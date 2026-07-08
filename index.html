@@ -1828,7 +1828,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260708c79';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260708c80';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='obf4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -3703,18 +3703,21 @@ function _ganttSlidesHTML(ini,fin,baseId,fore,onlyDisc){
   aOrder.sort(function(a,b){var ia=AREAORD.indexOf(a),ib=AREAORD.indexOf(b);ia=ia<0?99:ia;ib=ib<0?99:ib;return ia-ib||(a<b?-1:1)});
   Object.keys(byA).forEach(function(a){byA[a].ord.forEach(function(s){byA[a].sis[s].sort(function(x,y){var dx=x.real>=100?0:1,dy=y.real>=100?0:1;return dx-dy||(x.s0<y.s0?-1:(x.s0>y.s0?1:0))})})});
   var nRows=rows.length, nGrp=aOrder.length+aOrder.reduce(function(t,a){return t+byA[a].ord.length},0);
-  var avail=118;var unit=avail/Math.max(1,(nRows+nGrp*0.7));
-  var rh=Math.min(8.5,Math.max(3.3,unit));var gh=Math.max(3.8,rh*0.92);
-  var fs=rh>=7?9.6:(rh>=5.4?8.8:(rh>=4.2?8:7.2));
+  /* alto disponible REAL para las filas: lámina (190.5mm) − cabecera/columnas/regla/pie − franja de "no consideradas" (estimada por nº de chips) − margen. Todo se auto-escala para que ENTRE EN UNA SOLA DIAPO */
+  var _nBand=Math.min(40,sinProg.length);var bandMM=sinProg.length?Math.min(27,7+Math.ceil(_nBand/6)*4):4;
+  var avail=Math.max(46,190.5-34-bandMM-4);
+  var unit=avail/Math.max(1,(nRows+nGrp*0.82));
+  var rh=Math.min(8.4,Math.max(2.3,unit));var gh=Math.max(3,rh*0.88);
+  var fs=rh>=7?9.6:(rh>=5.6?8.8:(rh>=4.4?8:(rh>=3.4?7.2:6.4)));
   var step=nD<=22?1:Math.ceil(nD/22);
   var shade='';for(var k=0;k<nD;k++){if(nolab[k])shade+='<div style="position:absolute;top:0;bottom:0;left:'+(k/nD*100)+'%;width:'+(100/nD)+'%;background:repeating-linear-gradient(45deg,#DCE1E9 0,#DCE1E9 1px,#F2F5F9 1px,#F2F5F9 4.5px)"></div>'}
   var dayHead='';for(var k2=0;k2<nD;k2++){dayHead+='<div style="position:absolute;left:'+(k2/nD*100)+'%;width:'+(100/nD)+'%;text-align:center;font-size:6.6px;color:#5C6779;font-weight:700">'+((k2%step===0)?dm(days[k2]):'')+'</div>'}
   var nn=0,body='';
   aOrder.forEach(function(a){
    var A=byA[a];
-   body+='<div style="display:flex;align-items:center;height:'+gh+'mm;background:#1F3864;color:#fff;font-weight:900;font-size:'+(fs+0.6)+'px;padding:0 3mm;letter-spacing:.02em"><span style="opacity:.85;font-weight:700;margin-right:2mm">📍</span>'+esc(a)+'</div>';
+   body+='<div style="flex:none;display:flex;align-items:center;height:'+gh+'mm;background:#1F3864;color:#fff;font-weight:900;font-size:'+(fs+0.6)+'px;padding:0 3mm;letter-spacing:.02em"><span style="opacity:.85;font-weight:700;margin-right:2mm">📍</span>'+esc(a)+'</div>';
    A.ord.forEach(function(s){
-    body+='<div style="display:flex;align-items:center;height:'+(gh*0.92)+'mm;background:#DCE6F2;color:#1F3864;font-weight:800;font-size:'+(fs-0.4)+'px;padding:0 3mm 0 7mm">🔧 '+esc(s)+' <span style="opacity:.6;font-weight:700;margin-left:1.6mm">('+A.sis[s].length+')</span></div>';
+    body+='<div style="flex:none;display:flex;align-items:center;height:'+(gh*0.92)+'mm;background:#DCE6F2;color:#1F3864;font-weight:800;font-size:'+(fs-0.4)+'px;padding:0 3mm 0 7mm">🔧 '+esc(s)+' <span style="opacity:.6;font-weight:700;margin-left:1.6mm">('+A.sis[s].length+')</span></div>';
     A.sis[s].forEach(function(r,ri){
      nn++;
      var done=r.real>=100, atras=(r.real<r.proy);
@@ -3726,7 +3729,7 @@ function _ganttSlidesHTML(ini,fin,baseId,fore,onlyDisc){
      var nom=String((typeof pNom==='function')?pNom(r.p):(r.p.nombre||''));/* nombre COMPLETO: nunca se recorta, la fila crece si hace falta */
      var restTxt=r.glb?(Math.round(r.rest)+'%'):((typeof qty==='function'?qty(r.rest):r.rest)+(r.u!=='—'?(' '+r.u):''));
      var vCol=done?'#1E7A46':(atras?'#C0392B':'#1F3864');
-     body+='<div style="display:flex;align-items:stretch;min-height:'+rh+'mm;border-bottom:.25mm solid #EDF1F7'+(nn%2?';background:#FAFBFD':'')+'">'
+     body+='<div style="display:flex;align-items:stretch;flex:0 1 auto;height:'+rh+'mm;min-height:0;overflow:hidden;border-bottom:.25mm solid #EDF1F7'+(nn%2?';background:#FAFBFD':'')+'">'
       +'<div style="width:'+Wn+'mm;flex:none;display:flex;align-items:center;justify-content:center;font-size:'+(fs-0.4)+'px;color:#8A94A6;font-weight:800">'+nn+'</div>'
       +'<div style="width:'+Wa+'mm;flex:none;display:flex;align-items:center;gap:1.4mm;padding:.5mm 1.6mm .5mm 0">'+(done?'<span style="color:#1E7A46;font-weight:900;flex:none">✓</span>':(atras?'<span style="color:#C0392B;font-weight:900;flex:none">▲</span>':''))+'<span style="font-size:'+fs+'px;color:#1B2433;font-weight:600;line-height:1.14;word-break:break-word">'+esc(nom)+'</span></div>'
       +'<div style="width:'+Wu+'mm;flex:none;display:flex;align-items:center;justify-content:center;font-size:'+(fs-1)+'px;color:#5C6779;font-weight:700">'+esc(r.u)+'</div>'
@@ -3752,7 +3755,7 @@ function _ganttSlidesHTML(ini,fin,baseId,fore,onlyDisc){
    +'<div style="flex:none;background:linear-gradient(120deg,'+col+','+col+'D9);color:#fff;padding:3.4mm 6mm;display:flex;align-items:center;gap:5mm"><div style="flex:1;min-width:0"><div style="font-size:8.4px;letter-spacing:.16em;opacity:.9;font-weight:800">CRONOGRAMA DE AVANCE · GANTT</div><div style="font-size:17px;font-weight:900;letter-spacing:.02em">'+esc(disc).toUpperCase()+'</div><div style="font-size:9px;opacity:.92;font-weight:600">'+esc(DATA.proyecto)+'</div></div><div style="text-align:right;flex:none"><div style="font-size:12.5px;font-weight:900">'+dm(ini)+' → '+dm(fin)+'</div><div style="font-size:8.4px;opacity:.92">'+rows.length+' actividades en cronograma · datos al '+dm(fin)+'</div>'+(DISCS.length>1?('<div style="font-size:8.4px;opacity:.85">Diapositiva '+(di+1)+' / '+DISCS.length+'</div>'):'')+'</div></div>'
    +colH
    +'<div style="flex:none;position:relative;height:4.2mm;margin-left:'+Wfix+'mm;border-left:.4mm solid #D7E0EC">'+dayHead+'</div>'
-   +'<div style="flex:1;overflow:hidden">'+body+'</div>'
+   +'<div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">'+body+'</div>'
    +abajo
    +'<div style="flex:none;background:#1B2433;color:#B9C3D6;font-size:8px;font-weight:700;padding:1.4mm 6mm;display:flex;justify-content:space-between"><span>'+esc(DATA.proyecto)+'</span><span>Organizado por área y sistema (WBS) · '+dm(ini)+' – '+dm(fin)+(base?(' · base '+esc(base.nombre||'')):'')+'</span></div>'
    +'</div>');
