@@ -452,7 +452,7 @@ body.webmode #scrBita .scroll>*,body.webmode #scrPend .scroll>*,body.webmode #sc
       <div style="font-size:11px;color:var(--muted);margin:6px 2px 2px">O el reporte de avances con fotos por día:</div>
       <button id="repGen" class="btn btn-primary" type="button" style="height:46px;margin-top:4px;width:100%">Generar vista previa</button>
       <div style="display:flex;gap:8px;margin-top:10px">
-        <button id="repPDF" type="button" class="btn" style="flex:1;height:46px;background:#10324A;color:#fff">🖨 Guardar / Imprimir PDF</button>
+        <button id="repPDF" type="button" class="btn" style="flex:1;height:46px;background:#10324A;color:#fff">🖨 Guardar / Imprimir PDF</button><button id="repSlides" type="button" class="btn" style="flex:1;height:46px;background:#1E7A46;color:#fff">📽 Diapositivas WBS (días marcados)</button>
         <button id="repShare2" type="button" class="btn" style="flex:1;height:46px;background:var(--brand);color:#fff">📤 Compartir</button>
       </div>
       <div id="repPrev" style="margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px"></div>
@@ -1859,7 +1859,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260708d6';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260709a1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -3541,6 +3541,19 @@ setInterval(function(){try{if(typeof checkClock==='function')checkClock()}catch(
 if($('repGen'))$('repGen').onclick=function(){repGenerar()};
 if($('repConsol'))$('repConsol').onclick=function(){if(typeof _repConsol==='function')_repConsol()};
 if($('repPDF'))$('repPDF').onclick=async function(){if(!$('repPrint').innerHTML){var h=repGenerar();if(!h)return}var imgs=Array.prototype.slice.call($('repPrint').querySelectorAll('img'));try{if(typeof toast==='function')toast('Preparando fotos...');await Promise.all(imgs.map(function(im){if(im.complete&&im.naturalWidth)return Promise.resolve();return new Promise(function(res){im.onload=im.onerror=res;if(im.decode){im.decode().then(res).catch(res)}})}))}catch(e){}window.print()};
+if($('repSlides'))$('repSlides').onclick=function(){var sel=repSelectedDays();if(!sel.length){toast('Marca al menos un día');return}
+ sel=sel.slice().sort();var w=window.open('','_blank');if(!w){toast('Permite ventanas emergentes para el PDF');return}
+ toast('📽 Armando diapositivas de '+sel.length+' día(s)…');
+ var pF=Promise.resolve([]);
+ try{if(typeof sbBase==='function'&&state&&state.cfg&&state.cfg.supaUrl){pF=fetch(sbBase()+'/rest/v1/fotos?proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&fecha=in.('+sel.map(encodeURIComponent).join(',')+')&url=not.is.null&select=url,partida_id,partida_nombre,disciplina,fecha&order=fecha.desc&limit=1000',{headers:sbHead()}).then(function(r){return r.json()}).then(function(j){return Array.isArray(j)?j:[]}).catch(function(){return []})}}catch(_e){}
+ pF.then(function(fts){
+  try{var cfg={semana:'',contratista:'',cutIni:sel[0],cutFin:sel[sel.length-1],diasSel:sel,soloConAvance:true,cronoIni:sel[0],cronoFin:sel[sel.length-1],fore:false,lb:(typeof _xerLB==='function')?_xerLB():null,fotos:fts,inc:{wbs:1}};
+   var doc=_repConsolBuild(cfg);
+   if(!doc.slides){toast('No hay actividades con avance en esos días');try{w.close()}catch(_e){}return}
+   w.document.write('<html><head><meta charset="utf-8"><title>Avances por día — '+esc(DATA.proyecto)+'</title><style>'+doc.css+'</style></head><body>'+doc.body+'<script>window.addEventListener("load",function(){var im=[].slice.call(document.images||[]);Promise.all(im.map(function(i){return (i.complete||!i.src)?true:new Promise(function(res){i.onload=i.onerror=res;setTimeout(res,7000)})})).then(function(){setTimeout(function(){window.print()},400)})})<\/script></body></html>');w.document.close();
+  }catch(e){toast('No se pudo generar: '+((e&&e.message)||e));try{w.close()}catch(_e){}}
+ });
+};
 if($('repShare2'))$('repShare2').onclick=async function(){var days=repSelectedDays();if(!days.length){toast('Marca un día');return}var t=DATA.proyecto+'\nReporte de avances\n';days.forEach(function(f){var ps=repAllParts().filter(function(p){return p.fecha===f});if(!ps.length)return;t+='\n== '+fmtF(f)+' ==\n';ps.forEach(function(p){var m=metaOf(p.id);var adv=p.tipo==='glb'?((p.pctGlb||0)+'% global'):(p.cant!=null?('+'+qty(p.cant)+' '+((m&&m.unidad)||'')):'—');t+='• ['+p.id+'] '+(p.nombre||'')+' — '+adv+(p.obs?(' — '+p.obs):'')+'\n'})});try{if(navigator.share){await navigator.share({title:'Reporte avances',text:t});return}}catch(e){}try{await navigator.clipboard.writeText(t);toast('Reporte copiado al portapapeles')}catch(e){toast('No se pudo compartir')}};
 
 
@@ -4107,9 +4120,11 @@ function _repConsolBuild(cfg){
  }
  /* ---------- DETALLE POR WBS (una diapo por especialidad) ---------- */
  if(cfg.inc.wbs){
-  /* avance de la SEMANA elegida (cutIni–cutFin): metrado ejecutado en ese rango, por actividad */
-  function avSemOf(r){try{var ps=(typeof partesOf==='function')?partesOf(r.p.id):[];var enR=ps.filter(function(x){return x.fecha>=cfg.cutIni&&x.fecha<=cfg.cutFin});if(!enR.length)return null;
-   if(r.m&&r.m.unidad==='glb'){var d1=(typeof pctOfAt==='function')?(pctOfAt(r.p,cfg.cutFin)-pctOfAt(r.p,_prevDay(cfg.cutIni))):0;return Math.round(d1)>=1?('+'+Math.round(d1)+'%'):null}
+  /* avance de la SEMANA elegida (cutIni–cutFin) o de los DÍAS EXACTOS marcados (cfg.diasSel), por actividad */
+  var _selSet=null;try{if(cfg.diasSel&&cfg.diasSel.length){_selSet={};cfg.diasSel.forEach(function(d9){_selSet[d9]=1})}}catch(_e9){}
+  var _lblRng=_selSet?cfg.diasSel.slice().sort().map(function(d9){return d9.slice(8,10)+'/'+d9.slice(5,7)}).join(' · '):(dm(cfg.cutIni)+' – '+dm(cfg.cutFin));
+  function avSemOf(r){try{var ps=(typeof partesOf==='function')?partesOf(r.p.id):[];var enR=ps.filter(function(x){return _selSet?!!_selSet[x.fecha]:(x.fecha>=cfg.cutIni&&x.fecha<=cfg.cutFin)});if(!enR.length)return null;
+   if(r.m&&r.m.unidad==='glb'){var d1=0;if(_selSet){var _vis={};enR.forEach(function(x){if(x.tipo!=='glb'||_vis[x.fecha])return;_vis[x.fecha]=1;d1+=Math.max(0,(typeof pctOfAt==='function')?(pctOfAt(r.p,x.fecha)-pctOfAt(r.p,_prevDay(x.fecha))):0)})}else{d1=(typeof pctOfAt==='function')?(pctOfAt(r.p,cfg.cutFin)-pctOfAt(r.p,_prevDay(cfg.cutIni))):0}return Math.round(d1)>=1?('+'+Math.round(d1)+'%'):null}
    var s=0;enR.forEach(function(x){if(x.tipo==='cant')s+=(+x.cant||0)});var st=(typeof qty==='function')?qty(s):String(s);return (s>0&&st!=='0')?('+'+st+' '+((r.m&&r.m.unidad)||'')):null}catch(e){return null}}
   DISCS.forEach(function(d){var m=M[d];if(!m.n)return;var col=(typeof _dcol==='function')?_dcol(d):'#1F3864';
    var rowsById={};m.rows.forEach(function(r){rowsById[r.p.id]=r});
@@ -4120,9 +4135,11 @@ function _repConsolBuild(cfg){
    cand.forEach(function(f){if(picks.length>=NF||seenP[f.partida_id])return;picks.push(f);seenP[f.partida_id]=1;seenF[f.fecha]=1});
    cand.forEach(function(f){if(picks.length>=NF||picks.indexOf(f)>=0)return;picks.push(f)});
    var semCnt=0;m.rows.forEach(function(r){r.avSem=avSemOf(r);if(r.avSem)semCnt++});
+   var _rowsVis=cfg.soloConAvance?m.rows.filter(function(r){return r.avSem}):m.rows;/* modo días marcados: SOLO las actividades relacionadas a esos días */
+   if(cfg.soloConAvance&&!_rowsVis.length)return;
    /* agrupar por área→sistema */
-   var byA={},aOrd=[];m.rows.forEach(function(r){if(!byA[r.area]){byA[r.area]={s:{},o:[]};aOrd.push(r.area)}var A=byA[r.area];if(!A.s[r.sis]){A.s[r.sis]=[];A.o.push(r.sis)}A.s[r.sis].push(r)});
-   var totalItems=m.n, nGrp=aOrd.length+aOrd.reduce(function(t,a){return t+byA[a].o.length},0);
+   var byA={},aOrd=[];_rowsVis.forEach(function(r){if(!byA[r.area]){byA[r.area]={s:{},o:[]};aOrd.push(r.area)}var A=byA[r.area];if(!A.s[r.sis]){A.s[r.sis]=[];A.o.push(r.sis)}A.s[r.sis].push(r)});
+   var totalItems=_rowsVis.length, nGrp=aOrd.length+aOrd.reduce(function(t,a){return t+byA[a].o.length},0);
    var avail=190.5-30-6;var unit=avail/Math.max(1,(totalItems+nGrp*0.85));var rh=Math.min(8,Math.max(2.4,unit));var gh=Math.max(3,rh*0.9);var fs=rh>=6.5?9.4:(rh>=5?8.6:(rh>=3.8?7.8:6.6));
    var nn=0,body='';
    aOrd.forEach(function(a){var A=byA[a];
@@ -4151,14 +4168,14 @@ function _repConsolBuild(cfg){
     return '<div style="flex:1;min-height:0;display:flex;flex-direction:column;background:#fff;border:.3mm solid #C9D5E4;border-radius:1.6mm;overflow:hidden">'
      +'<div style="flex:1;min-height:0;overflow:hidden;background:#E9EEF5"><img src="'+esc(f.url)+'" style="width:100%;height:100%;object-fit:cover;display:block"></div>'
      +'<div style="flex:none;padding:1.2mm 1.8mm;border-top:.3mm solid #E3E9F2;background:#fff"><div style="font-size:7.8px;font-weight:800;color:#1B2433;line-height:1.18;max-height:5.8mm;overflow:hidden">'+esc(nom)+'</div><div style="font-size:7.8px;color:#0C5132;font-weight:900;margin-top:.4mm">'+(met?(esc(met)+' · '):'')+dm(f.fecha)+'</div></div></div>'}
-   var fotoPanel=picks.length?('<div style="width:'+(picks.length>3?92:47)+'mm;flex:none;border-left:.5mm solid #E3E9F2;background:#F7F9FC;padding:2mm;display:flex;flex-direction:column;gap:1.8mm;overflow:hidden"><div style="flex:none;font-size:8.2px;font-weight:900;color:#0C5132;letter-spacing:.06em">📸 AVANCES DE LA SEMANA · '+dm(cfg.cutIni)+' – '+dm(cfg.cutFin)+'</div><div style="flex:1;min-height:0;display:grid;grid-template-columns:'+(picks.length>3?'1fr 1fr':'1fr')+';grid-auto-rows:1fr;gap:1.8mm;overflow:hidden">'+picks.map(fotoCard).join('')+'</div></div>'):'';
+   var fotoPanel=picks.length?('<div style="width:'+(picks.length>3?92:47)+'mm;flex:none;border-left:.5mm solid #E3E9F2;background:#F7F9FC;padding:2mm;display:flex;flex-direction:column;gap:1.8mm;overflow:hidden"><div style="flex:none;font-size:8.2px;font-weight:900;color:#0C5132;letter-spacing:.06em">📸 '+(_selSet?'AVANCES DE LOS DÍAS':'AVANCES DE LA SEMANA')+' · '+_lblRng+'</div><div style="flex:1;min-height:0;display:grid;grid-template-columns:'+(picks.length>3?'1fr 1fr':'1fr')+';grid-auto-rows:1fr;gap:1.8mm;overflow:hidden">'+picks.map(fotoCard).join('')+'</div></div>'):'';
    SL.push('<div class="sl">'
-    +'<div style="flex:none;background:linear-gradient(120deg,'+col+','+col+'D9);color:#fff;padding:3.4mm 6mm;display:flex;align-items:center"><div style="flex:1"><div style="font-size:8.6px;letter-spacing:.16em;opacity:.9;font-weight:800">ACTIVIDADES POR ÁREA (WBS) · ESTADO A LA FECHA</div><div style="font-size:17px;font-weight:900">'+esc(d).toUpperCase()+'</div></div><div style="text-align:right;font-size:9px"><div><b style="color:#BFE5CC">'+m.culm+'</b> culminadas · <b style="color:#F3D9A6">'+m.curso+'</b> en curso · <b style="color:#F3C0BC">'+m.sin+'</b> sin avance'+(semCnt?(' · <b style="color:#D6F5DF">▣ '+semCnt+'</b> avanzaron en la semana'):'')+'</div><div style="opacity:.9">Plan '+m.plan+'% · Real '+m.real+'% · SPI '+m.spi.toFixed(2)+' · al '+dm(cut)+'</div></div></div>'
+    +'<div style="flex:none;background:linear-gradient(120deg,'+col+','+col+'D9);color:#fff;padding:3.4mm 6mm;display:flex;align-items:center"><div style="flex:1"><div style="font-size:8.6px;letter-spacing:.16em;opacity:.9;font-weight:800">ACTIVIDADES POR ÁREA (WBS) · ESTADO A LA FECHA</div><div style="font-size:17px;font-weight:900">'+esc(d).toUpperCase()+'</div></div><div style="text-align:right;font-size:9px"><div><b style="color:#BFE5CC">'+m.culm+'</b> culminadas · <b style="color:#F3D9A6">'+m.curso+'</b> en curso · <b style="color:#F3C0BC">'+m.sin+'</b> sin avance'+(semCnt?(' · <b style="color:#D6F5DF">▣ '+semCnt+'</b> avanzaron'):'')+'</div><div style="opacity:.9">Plan '+m.plan+'% · Real '+m.real+'% · SPI '+m.spi.toFixed(2)+' · al '+dm(cut)+'</div></div></div>'
     +'<div style="flex:1;min-height:0;overflow:hidden;display:flex"><div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="flex:none;display:flex;background:#F7F9FC;border-bottom:.5mm solid #E3E9F2;font-size:8.2px;color:#5C6779;font-weight:900;padding:1.4mm 0"><span style="width:8mm;text-align:center">N°</span><span style="width:'+(LB?86:100)+'mm">ACTIVIDAD</span><span style="width:12mm;text-align:center">UND</span><span style="width:13mm;text-align:right;padding-right:2mm">REND</span>'+(LB?'<span style="width:14mm;text-align:right;padding-right:2mm;color:#1F6FE0">PLAN LB0</span>':'')+'<span style="width:22mm;text-align:right;padding-right:2mm">RESTANTE</span><span style="width:16mm;text-align:right;padding-right:2mm">AVANCE</span><span style="flex:1;padding-left:3mm">PROGRESO · <span style="color:#1E7A46">▣ avance de la semana</span></span></div>'
     +'<div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">'+body+'</div>'
     +'</div>'+fotoPanel+'</div>'
-    +'<div style="flex:none;background:#1B2433;color:#B9C3D6;font-size:8px;font-weight:700;padding:1.4mm 6mm">'+esc(proy)+' · '+esc(d)+' · WBS por área/sistema · ▣ = avanzó en la semana '+dm(cfg.cutIni)+' – '+dm(cfg.cutFin)+'</div></div>');
+    +'<div style="flex:none;background:#1B2433;color:#B9C3D6;font-size:8px;font-weight:700;padding:1.4mm 6mm">'+esc(proy)+' · '+esc(d)+' · WBS por área/sistema · ▣ = avanzó en '+(_selSet?('los días '+_lblRng):('la semana '+_lblRng))+'</div></div>');
   });
  }
  /* ---------- PERSONAL / HISTOGRAMAS (desde los DR) ---------- */
