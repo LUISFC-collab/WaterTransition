@@ -403,7 +403,7 @@ body.webmode #scrBita .scroll>*,body.webmode #scrPend .scroll>*,body.webmode #sc
     </header>
     <div class="progctrl"><div class="segview"><button id="vSem" class="segb" type="button">Semana</button><button id="vMes" class="segb on" type="button">Mes</button></div><div style="flex:1"></div><button class="navb" id="progPrev" type="button">‹</button><button class="navb" id="progToday" type="button">Hoy</button><button class="navb" id="progNext" type="button">›</button><button class="navb" id="btnProgRot" type="button" title="Girar pantalla (horizontal/vertical)">🔄</button><button class="navb" id="btnFs" type="button" title="Pantalla completa (oculta la barra del navegador)">⛶</button><button class="navb" id="btnProgModo" type="button" title="Modo del cronograma">👁</button></div>
     <div style="padding:6px 12px 0;display:flex;justify-content:flex-end"><button id="btnCronoPdf" type="button" class="btn" style="height:36px;padding:0 14px;background:#0C5132;color:#fff;font-size:13px;width:auto">📄 Exportar cronograma (A3)</button></div>
-    <div id="progBody" style="display:flex;flex-direction:column;flex:1;min-height:0"><div id="progPanel" class="progpanel"><div id="progCount" style="font-size:12px;font-weight:700;color:var(--brand);background:#E8EEF8;border-radius:8px;padding:6px 10px;margin-bottom:8px">—</div><div class="pphint" id="ppHint">Toca ☰ Actividades: <b style="color:#1F6FEB">azul</b>=lista · <b style="color:#5B8FD9">celeste</b>=falta definir · <b style="color:#B42318">rojo</b>=restringida. Elige una y toca su DÍA DE INICIO.</div><div id="progListWrap"></div></div>
+    <div id="progBody" style="display:flex;flex-direction:column;flex:1;min-height:0"><div id="progPanel" class="progpanel"><div id="progCount" style="font-size:12px;font-weight:700;color:var(--brand);background:#E8EEF8;border-radius:8px;padding:6px 10px;margin-bottom:8px">—</div><div class="pphint" id="ppHint">Toca ☰ Actividades: <b style="color:#1F6FEB">azul</b>=lista · <b style="color:#5B8FD9">celeste</b>=falta definir · <b style="color:#B42318">rojo</b>=restringida. Elige una y toca su DÍA DE INICIO. En el calendario: <b>un toque</b> en una actividad la devuelve a la lista · <b>mantenla presionada</b> y arrástrala para correrla de día.</div><div id="progListWrap"></div></div>
     <div id="progDrag"></div><div class="scroll" id="progScrollWrap" style="flex:1;min-height:0;overflow:auto"><div id="progCal" class="progcal"></div></div></div>
   </div>
   <div id="stormBanner" class="stormbanner hidden"></div>
@@ -1830,7 +1830,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260708c87';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260708c89';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -3001,6 +3001,74 @@ function _cronoAsigHtml(_asg){var cc=_cronoCuadGet();var act=window._cronoActivo
   var sin=byG['']||[];if(sin.length){html+='<div style="font-weight:700;font-size:12px;color:var(--muted);margin:10px 0 4px">Sin cuadrilla ('+sin.length+')</div>'+sin.map(function(pr){return _ccPartCard(pr,'')}).join('');}
  }
  html+='</div>';return html;}
+/* === Interacción directa con las actividades del calendario ===
+   UN CLICK en la tarjeta → vuelve a LISTAS PARA PROGRAMAR · MANTENER PRESIONADA → arrastrarla a otro DÍA DE INICIO */
+function progQuitar(id){
+ if(window._bkcSrc){toast('Estás viendo un respaldo — sal de él para modificar');return}
+ if(typeof _gateAcc==="function"&&!_gateAcc("prog_cambiar","Quitar del cronograma"))return;
+ if(window._progSolo){toast('👁 Modo visualizar: toca ✏️ arriba para poder modificar');return}
+ var pr=state.prog[id];if(!pr)return;var cod=pr.codigo||id;
+ delete state.prog[id];if(typeof progTomb==='function')progTomb(id);
+ if(typeof logCambio==='function')logCambio('PROGRAMACION',id,'Quitada del cronograma con un toque (vuelve a la lista)');
+ progSave();
+ try{_pgSecOpen['l']=true}catch(e){}
+ var _pp=$('progPanel');if(_pp)_pp.classList.remove('hidden');
+ renderProgSelect();renderCal();
+ (async function(){try{var _dT=Number(state.progDel&&state.progDel[id])||0;if(sbReady()&&navigator.onLine)await sbDelete('programacion','proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&partida_id=eq.'+encodeURIComponent(id)+(_dT?('&ts=lt.'+_dT):''))}catch(e){}syncNow(true)})();
+ toast('↩ '+cod+' volvió a la lista para programar');
+}
+function progMover(id,ds){
+ if(window._bkcSrc){toast('Estás viendo un respaldo — sal de él para modificar');return}
+ if(typeof _gateAcc==="function"&&!_gateAcc("prog_cambiar","Correr en el cronograma"))return;
+ if(window._progSolo){toast('👁 Modo visualizar: toca ✏️ arriba para poder modificar');return}
+ if(ds<todayISO()&&!esAdmin()){toast('Solo el administrador puede programar en fechas pasadas; tú, de hoy en adelante');return}
+ var pr=state.prog[id];if(!pr)return;var old=pr.start;
+ if(old===ds){renderCal();return}
+ pr.start=ds;pr._lo=1;pr.ts=(typeof nowSrv==='function'?nowSrv():Date.now());
+ if(typeof logCambio==='function')logCambio('PROGRAMACION',id,'Corrida: inicia '+ds+' (antes '+old+') · '+(pr.dias||1)+' día(s)');
+ progSave();renderProgSelect();renderCal();
+ toast('↔ '+(pr.codigo||id)+' corrida: inicia '+ds.slice(5));syncNow(true);
+}
+function _pgStartMove(ch,id){
+ if(window._bkcSrc||window._progSolo||window._cronoActivo)return false;
+ window._pgMoving=id;
+ ch.style.outline='3px solid #F5A623';ch.style.opacity='.7';ch.style.zIndex='30';
+ try{if(navigator.vibrate)navigator.vibrate(30)}catch(e){}
+ var lastCell=null;
+ function pm(e){var el=document.elementFromPoint(e.clientX,e.clientY);var cell=el&&el.closest?el.closest('.cday'):null;
+  if(lastCell&&lastCell!==cell)lastCell.classList.remove('drop');
+  if(cell){cell.classList.add('drop');lastCell=cell}
+  if(e.cancelable)e.preventDefault()}
+ function pu(e){document.removeEventListener('pointermove',pm);document.removeEventListener('pointerup',pu);document.removeEventListener('pointercancel',pu);
+  if(lastCell)lastCell.classList.remove('drop');
+  var el=document.elementFromPoint(e.clientX,e.clientY);var cell=el&&el.closest?el.closest('.cday'):null;
+  window._pgMoving=null;ch.style.outline='';ch.style.opacity='';ch.style.zIndex='';
+  if(cell&&cell.getAttribute('data-day'))progMover(id,cell.getAttribute('data-day'));
+  else renderCal()}
+ document.addEventListener('pointermove',pm);document.addEventListener('pointerup',pu);document.addEventListener('pointercancel',pu);
+ toast('↔ Arrástrala y suéltala en su nuevo DÍA DE INICIO');
+ return true;
+}
+function _pgTaskWire(cal){
+ cal.querySelectorAll('.cdtask').forEach(function(ch){var id=ch.getAttribute('data-id');if(!id)return;
+  ch.addEventListener('click',function(e){
+   if(window._cronoActivo||window._pgMoving||ch._lpFired)return;
+   e.stopPropagation();e.preventDefault();progQuitar(id);
+  });
+  ch.addEventListener('pointerdown',function(ev){
+   if(window._cronoActivo||window._pgMoving)return;
+   var sx=ev.clientX,sy=ev.clientY;ch._lpFired=false;
+   function tmv(e3){if(ch._lpFired&&e3.cancelable)e3.preventDefault()}
+   ch.addEventListener('touchmove',tmv,{passive:false});
+   var t=setTimeout(function(){cleanup(false);ch._lpFired=true;if(!_pgStartMove(ch,id))ch._lpFired=false},430);
+   function cleanup(all){clearTimeout(t);ch.removeEventListener('pointermove',mv);ch.removeEventListener('pointerup',up);ch.removeEventListener('pointercancel',cancel);if(all)ch.removeEventListener('touchmove',tmv)}
+   function cancel(){cleanup(true)}
+   function mv(e2){if(Math.abs(e2.clientX-sx)>9||Math.abs(e2.clientY-sy)>9)cancel()}
+   function up(){cleanup(true);setTimeout(function(){ch._lpFired=false},80)}
+   ch.addEventListener('pointermove',mv);ch.addEventListener('pointerup',up);ch.addEventListener('pointercancel',cancel);
+  });
+ });
+}
 function renderCal(){try{window._pgAM=_pgActColorMap()}catch(_e){window._pgAM={}}try{window._pgLaneMap=_pgLanes()}catch(_e){window._pgLaneMap={}}var cal=$('progCal');if(!cal)return;var MO=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];var _tt='';try{if(progView==='mes'){_tt=MO[progAnchor.getMonth()].toUpperCase()+' '+progAnchor.getFullYear()}else{var _ws=startOfWeek(progAnchor),_we=addDays(_ws,6);_tt=(_ws.getMonth()===_we.getMonth())?(MO[_ws.getMonth()].toUpperCase()+' '+_we.getFullYear()):(MO[_ws.getMonth()].slice(0,3).toUpperCase()+' \u2013 '+MO[_we.getMonth()].slice(0,3).toUpperCase()+' '+_we.getFullYear())}}catch(_e){}var html='<div id="calMesTit" style="text-align:center;font-weight:800;color:#1F3864;font-size:14px;letter-spacing:3px;padding:3px 0 5px">'+_tt+'</div><div class="calhead"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>';
   html+=_ccActiveBanner();
   if(progView==='mes'){var first=new Date(progAnchor.getFullYear(),progAnchor.getMonth(),1);$('progRange').textContent=MO[progAnchor.getMonth()]+' '+progAnchor.getFullYear();var gs=startOfWeek(first);html+='<div class="calgrid">';for(var i=0;i<42;i++){var day=addDays(gs,i);var ds=ymd(day);var out=day.getMonth()!==progAnchor.getMonth();var tk=tasksOn(ds);html+='<div class="cday'+(out?' out':'')+(esFeriado(ds)?' nolab':'')+(ds===todayISO()?' today':'')+((ds<todayISO()&&!esAdmin())?' past':'')+'" data-day="'+ds+'"><span class="cdn">'+day.getDate()+'</span>'+_ccCellChips(tk)+'</div>'}html+='</div>'}
@@ -3013,6 +3081,7 @@ function renderCal(){try{window._pgAM=_pgActColorMap()}catch(_e){window._pgAM={}
    var _add=cal.querySelector('#_ccAdd');if(_add)_add.onclick=function(){_cronoAddCuad()};
    cal.querySelectorAll('._ccPart').forEach(function(p){p.onclick=function(){var pid=p.getAttribute('data-pid');if(!window._cronoActivo){toast('👆 Primero toca una cuadrilla (arriba) para activarla');return}_cronoAsignar(pid)}});
    cal.querySelectorAll('.cdtask').forEach(function(ch){ch.addEventListener('click',function(e){if(window._cronoActivo){e.stopPropagation();e.preventDefault();_cronoAsignar(ch.getAttribute('data-id'))}},true)});
+   try{_pgTaskWire(cal)}catch(_tw){}
    try{requestAnimationFrame(function(){_ccDrawBoxes()})}catch(_rb){_ccDrawBoxes()}
    if(!window._ccBoxWired){window._ccBoxWired=1;window.addEventListener('resize',function(){try{if($('scrProg')&&!$('scrProg').classList.contains('hidden'))_ccDrawBoxes()}catch(e){}});}
   }catch(_cce){}
