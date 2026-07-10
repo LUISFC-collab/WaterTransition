@@ -1,0 +1,43 @@
+=== offset 263740 ===
+ la zona de ELIMINADAS (soft-delete): guarda copia completa con metrados, cargas, restricciones y fotos, y se puede restablecer. Apagado por defecto.','g'],
+   ['act_ver_elim','👁 Ver actividades eliminadas','Ver las actividades eliminadas y RESTABLECERLAS completas (con sus metrados, cargas, restricciones y fotos intactas). Solo admin.','p'],
+   ['act_reset0','↺ Poner avance en 0','Regresar el avance acumulado de una actividad a 0. Admin directo; rol → solicitud.','r'],
+   ['act_mod_carga','✎ Modificar carga — SOLICITAR','Pedir al admin que cambie el valor de una carga ya hecha (el admin aprueba).','b'],
+   ['act_mod_carga_dir','✎ Modificar carga — CAMBIO DIRECTO','Cambiar el valor de una ca
+
+=== offset 268239 ===
+ortar','av_fotos_subir','av_fotos_borrar','av_fotos_rest','av_fotos_migrar','av_obs','act_crear','act_renombrar','act_nombre_version','act_nombre_borrar','act_ver_elim','act_eliminar','act_mod_carga','act_borrar_carga','act_fecha_carga','cuad_definir','rep_tormenta','rep_restot','esp_cambio','esp_Mecanica','esp_Electrica','esp_Civil','act_editar','act_reset0','met_definir','met_cambiar','prog_programar','prog_cambiar','pend_crear','pend_responder','pend_eliminar','av_restr_int','av_restr_mina','act_mod_carga_dir','act_borrar_carga_dir','act_fecha_carga_dir','act_editar_dir','act_eliminar_dir','plan_fechas'];
+var PERMS_DESTRUCT={act_eliminar:1,act_eliminar_dir:1,act_borrar_carga:1,av_fotos_bo
+
+=== offset 268596 ===
+et0','met_definir','met_cambiar','prog_programar','prog_cambiar','pend_crear','pend_responder','pend_eliminar','av_restr_int','av_restr_mina','act_mod_carga_dir','act_borrar_carga_dir','act_fecha_carga_dir','act_editar_dir','act_eliminar_dir','plan_fechas'];
+var PERMS_DESTRUCT={act_eliminar:1,act_eliminar_dir:1,act_borrar_carga:1,av_fotos_borrar:1,act_reset0:1,act_nombre_borrar:1,pend_eliminar:1,prog_cambiar:0};
+/* Estado REAL de cada permiso (auditoría c4): si=bloquea de verdad · parcial=bloquea a medias/con fuga · no=aún no tiene efecto. El badge del panel sale de aquí para que NUNCA mienta. */
+var PERMS_STATUS={av_reportar:'solicita',av_fotos_subir:'solicita',av_fotos_borrar:'solicita',av
+
+=== offset 269156 ===
+anel sale de aquí para que NUNCA mienta. */
+var PERMS_STATUS={av_reportar:'solicita',av_fotos_subir:'solicita',av_fotos_borrar:'solicita',av_obs:'solicita',av_restr_int:'solicita',av_restr_mina:'solicita',act_crear:'solicita',act_renombrar:'si',act_editar:'solicita',act_editar_dir:'si',plan_fechas:'si',act_eliminar:'solicita',act_eliminar_dir:'si',act_reset0:'solicita',act_mod_carga:'solicita',act_borrar_carga:'solicita',act_fecha_carga:'solicita',act_mod_carga_dir:'si',act_borrar_carga_dir:'si',act_fecha_carga_dir:'si',met_definir:'si',met_cambiar:'si',prog_programar:'solicita',prog_cambiar:'solicita',cuad_definir:'solicita',rep_tormenta:'solicita',rep_restot:'solicita',pend_crear:'solicita
+
+=== offset 271388 ===
+eta de actividad → ⚙ → Modificar (directo)'},
+ plan_fechas:{sel:'',msg:'Tarjeta de actividad → ⚙ → Planificación'},
+ act_eliminar:{sel:'',msg:'Tarjeta de actividad → ⚙ → Eliminar actividad'},
+ act_eliminar_dir:{sel:'',msg:'Tarjeta de actividad → ⚙ → Eliminar (directo)'},
+ act_ver_elim:{sel:'',msg:'Pantalla Servidor/Exportar → tile 👁 Eliminadas'},
+ act_reset0:{sel:'',msg:'Tarjeta de actividad → ⚙ → Poner avance en 0'},
+ act_mod_carga:{sel:'',msg:'Tarjeta → ⚙ → cargas previas → ✎ Modificar'},
+ act_borrar_carga:{sel:'',msg:'Tarjeta → ⚙ → cargas previas → ✕ Borrar'},
+ act_fecha_carga:{sel:'',msg:'Tarjeta → ⚙ → cargas previas → 📅 (solicitar)'},
+ act_mod_carga_dir:{sel:'',msg:'Tarjeta → ⚙ → cargas
+
+=== offset 465813 ===
+()};var chk=document.getElementById('_r0chk'),go=document.getElementById('_r0go');chk.onchange=function(){go.disabled=!chk.checked;go.style.opacity=chk.checked?'1':'.45'};go.onclick=function(){if(!chk.checked)return;ov.remove();if(adm){resetAvance0(p)}else{solicitarReset0(p)}}}
+function resetAvance0(p){if(typeof puedeAcc==='function' && !puedeAcc('act_reset0')){ if(typeof toast==='function')toast('⛔ No tienes permiso para esto'); return; }if(!p)return;var id=p.id;var dead=state.partes.filter(function(x){return x.id===id&&(x.tipo==='cant'||x.tipo==='glb')});state.partes=state.partes.filter(function(x){return !(x.id===id&&(x.tipo==='cant'||x.tipo==='glb'))});store.set(KP,state.partes);dead.for
+
+=== offset 471807 ===
+tion')renderHist(p);if(typeof renderBars==='function')renderBars(p);if(typeof updStore==='function')updStore();}catch(e){}
+  toast(dead.length+' avance(s) anulado(s) (guardado)');
+  if(typeof syncNow==='function')syncNow(true);
+}
+function solicitarReset0(p){if(typeof _gateW==='function'&&!_gateW())return;if(typeof _gateAcc==='function'&&!_gateAcc('act_reset0','Pedir avance en 0'))return;if(!p)return;if(_reqYaEnviada('reset0',null,(typeof codeOf==='function')?codeOf(p):p.id))return;try{state.pend=state.pend||[];state.pend.push({id:uuid(),proyecto:DATA.proyecto,tipo:'reset0',descripcion:'\u21ba Poner avance en 0 ['+((typeof codeOf==='function')?codeOf(p):p.id)+'] '+(p.nombre||''),supervisor:(s
