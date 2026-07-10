@@ -1958,17 +1958,31 @@ function _pdEliminarP(pid){var r=state.personal[pid];if(!r)return;r.eliminado=tr
 function _pdRestaurarP(pid){var r=state.personal[pid];if(!r)return;r.eliminado=false;r.elim_por='';r.elim_ts=null;r.ts=(typeof nowSrv==='function'?nowSrv():Date.now());store.set(KPD,state.personal);_pdUp(r)}
 function _pdDiaSet(pid,f,patch){f=f||todayISO();var m=state.persDia[f]=state.persDia[f]||{};var d=m[pid]||{proyecto:DATA.proyecto,fecha:f,pid:pid,cuadrilla:'',estado:'designado'};for(var k in patch)d[k]=patch[k];d.quien=(state.user&&state.user.supervisor)||'';d.ts=(typeof nowSrv==='function'?nowSrv():Date.now());d.cell_at=Date.now();m[pid]=d;store.set(KPDIA,state.persDia);_pdDiaUp(d);_pdBadge();return d}
 function _pdConsiderarAyer(){var hoy=todayISO(),ayer=_pdAddDias(hoy,-1);var ma=state.persDia[ayer]||{};
- var deAyer=[];for(var pid in ma){var d=ma[pid];if(d&&d.estado==='designado'&&state.personal[pid]&&!state.personal[pid].eliminado)deAyer.push(pid)}
- if(!deAyer.length){toast('Ayer no hubo designación de personal');return 0}
- if(!confirm('¿Desea confirmar usar las CUADRILLAS DEL DÍA ANTERIOR?\n\nHOY quedará exactamente como ayer ('+deAyer.length+' persona(s) con sus cuadrillas). Lo designado hoy se reemplaza.\n\nLos reportes ya guardados NO se tocan.'))return 0;
- var n=0,ret=0;
- /* 1) hoy = exactamente ayer: retirar a los de hoy que ayer no estaban */
- var mh=state.persDia[hoy]||{};
- for(var ph in mh){var dh=mh[ph];if(!dh||dh.estado!=='designado')continue;
-  var da=ma[ph];if(!(da&&da.estado==='designado')){_pdDiaSet(ph,hoy,{estado:'retirado',cuadrilla:''});ret++}}
- /* 2) designar a todos los de ayer con su cuadrilla de ayer */
- deAyer.forEach(function(p2){_pdDiaSet(p2,hoy,{estado:'designado',cuadrilla:(ma[p2].cuadrilla||'')});n++});
- toast('✓ Hoy quedó como AYER: '+n+' designado(s) con sus cuadrillas'+(ret?(' · '+ret+' de hoy retirados (con respaldo)'):''));return n}
+ /* FUENTE A: la designación registrada de ayer */
+ var fuente=[];var origen='la designación de AYER';
+ for(var pid in ma){var d=ma[pid];if(d&&d.estado==='designado'&&state.personal[pid]&&!state.personal[pid].eliminado)fuente.push({pid:pid,nombre:state.personal[pid].nombre,cargo:state.personal[pid].cargo||'',disc:state.personal[pid].especialidad||'',cuadrilla:String(d.cuadrilla||'')})}
+ /* FUENTE B (respaldo): los NOMBRES definidos en las CUADRILLAS guardadas al cerrar el día */
+ if(!fuente.length){origen='las CUADRILLAS guardadas (lo definido al cerrar el día)';
+  var vistos={};var discs=(typeof DISC!=='undefined'&&DISC&&DISC.length)?DISC.slice():['Mecanica','Electrica','Civil'];
+  discs.forEach(function(dc){for(var nn=1;nn<=5;nn++){var def=(typeof _cuadActiva==='function')?_cuadActiva(nn,dc):null;if(!def)continue;
+   (def.personal||[]).forEach(function(g){(g.nombres||[]).forEach(function(nm){nm=String(nm||'').trim();if(!nm)return;
+    var k=nm.toLowerCase();if(vistos[k])return;vistos[k]=1;
+    fuente.push({pid:'',nombre:nm,cargo:g.cargo||'',disc:dc,cuadrilla:String(nn)})})})}})}
+ if(!fuente.length){toast('No hay nada de ayer: ni designación ni cuadrillas guardadas');return 0}
+ var mh=state.persDia[hoy]||{};var hoyN=0;for(var ph0 in mh){if(mh[ph0]&&mh[ph0].estado==='designado')hoyN++}
+ if(!confirm('¿Desea confirmar usar el personal del DÍA ANTERIOR?\n\nSe tomará '+origen+': '+fuente.length+' persona(s) con sus cuadrillas.\n\n⚠ Se BORRARÁN los recursos actualmente en el listado de HOY'+(hoyN?(' ('+hoyN+')'):'')+' — quedan con respaldo y los reportes ya guardados NO se tocan.'))return 0;
+ var n=0,ret=0,creadas=0;
+ /* 1) limpiar el listado de hoy */
+ var quedan={};fuente.forEach(function(f){if(f.pid)quedan[f.pid]=1});
+ for(var ph in mh){var dh=mh[ph];if(!dh||dh.estado!=='designado')continue;if(!quedan[ph]){_pdDiaSet(ph,hoy,{estado:'retirado',cuadrilla:''});ret++}}
+ /* 2) cargar solo lo de ayer (creando en el padrón a los que falten) */
+ fuente.forEach(function(f){var pid2=f.pid;
+  if(!pid2){var p2=_pdPersonaPorNombre(f.nombre);
+   if(p2&&p2.eliminado){_pdRestaurarP(p2.pid);pid2=p2.pid}
+   else if(p2){pid2=p2.pid}
+   else{var np=_pdNuevaPersona(f.nombre,f.cargo,f.disc,'');pid2=np.pid;creadas++}}
+  _pdDiaSet(pid2,hoy,{estado:'designado',cuadrilla:f.cuadrilla||''});n++});
+ toast('✓ Cargado como AYER: '+n+' designado(s) con sus cuadrillas'+(creadas?(' · '+creadas+' agregada(s) al padrón'):'')+(ret?(' · '+ret+' de hoy retirados (con respaldo)'):''));return n}
 /* --- cuadrillas: nueva versión sin/con una persona (los partes viejos guardan snapshot: inmunes) --- */
 async function _pdCuadNuevaVersion(def,personalNuevo){try{var n=def.numero;var ver=(+def.version||0)+1;var id=def.disc+'_c'+n+'.'+ver;
  var row={id:id,numero:n,version:ver,etiqueta:def.etiqueta||('Cuadrilla '+n),disc:def.disc,personal:personalNuevo,activa:true,proyecto:DATA.proyecto,quien:(state.user&&state.user.supervisor)||'',ts:(typeof nowSrv==='function'?nowSrv():Date.now()),cell_at:Date.now(),updated_at:new Date().toISOString()};
@@ -2009,7 +2023,7 @@ function _pdFaltan(){try{if(!(state&&state.user))return[];var L=_pdDesigList(tod
 function _pdBadge(){try{var b=document.getElementById('_pdBadgeF');if(!b)return;var n=_pdFaltan().length;b.style.display=(n>0&&state&&state.user)?'flex':'none';var c=b.querySelectorAll('span')[1];if(c)c.textContent=n}catch(e){}}
 function _pdShowFaltantes(){try{var L=_pdFaltan();var esc=function(t){return String(t).replace(/</g,'&lt;')};
  var ov=document.getElementById('_pdFOv');if(ov)ov.remove();ov=document.createElement('div');ov.id='_pdFOv';
- ov.style.cssText='position:fixed;inset:0;z-index:2147483500;background:rgba(15,25,45,.6);display:flex;align-items:flex-end;justify-content:center';
+ ov.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(15,25,45,.6);display:flex;align-items:flex-end;justify-content:center';
  var puedeAsignar=_pdPuedo()||(typeof puedeAcc==='function'&&puedeAcc('cuad_definir'));
  ov.innerHTML='<div style="background:#fff;width:100%;max-width:540px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:80vh;overflow-y:auto">'
   +'<div style="font-weight:900;color:#B42318;font-size:16px;margin-bottom:4px">👤 Personal designado HOY sin cuadrilla ('+L.length+')</div>'
@@ -2058,7 +2072,7 @@ function _pdSolicitarNueva(n,disc){try{
  var esc2=function(t){return String(t).replace(/</g,'&lt;')};
  var ov=document.getElementById('_pdSolOv');if(ov)ov.remove();
  ov=document.createElement('div');ov.id='_pdSolOv';
- ov.style.cssText='position:fixed;inset:0;z-index:2147483600;background:rgba(15,25,45,.65);display:flex;align-items:flex-end;justify-content:center';
+ ov.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(15,25,45,.65);display:flex;align-items:flex-end;justify-content:center';
  ov.innerHTML='<div style="background:#fff;width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box">'
   +'<div style="font-weight:900;color:#1F3864;font-size:16px;margin-bottom:3px">🙋 Solicitar adicionar una persona</div>'
   +'<div style="font-size:12px;color:#5C6779;margin-bottom:12px">Para la <b>Cuadrilla '+n+'</b> · '+esc2(disc)+'. La solicitud llega a quienes designan personal en obra.</div>'
@@ -2563,7 +2577,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260709f4';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260709f5';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
