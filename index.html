@@ -2287,12 +2287,38 @@ function _showCuadrillas(nFoco){if(typeof _gateW==='function'&&!_gateW())return;
     h+='<optgroup label="Disponibles">'+(libres.length?libres.map(function(o){return op(o,'')}).join(''):'<option disabled>— nadie libre —</option>')+'</optgroup>';
     if(ocupados.length)h+='<optgroup label="Ya asignados (pide confirmación)">'+ocupados.map(function(o){return op(o,'#B45309')}).join('')+'</optgroup>';
     return h}
-  function paint(){host.innerHTML=cargos.map(function(g,i){var rows='';for(var k=0;k<g.cant;k++){
-    rows+=_selHoy
-     ?('<select data-nmsel="'+i+':'+k+'" style="width:100%;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff;box-sizing:border-box">'+_cqOpts(i,k,g)+'</select>')
-     :('<input data-nm="'+i+':'+k+'" placeholder="Nombre del '+esc(g.cargo)+' '+(k+1)+'" value="'+esc(g.nombres[k]||'')+'" style="width:100%;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff;box-sizing:border-box">')}
+  /* ---- modo DESIGNACIÓN: la cuadrilla es una LISTA de personas (el cargo lo trae el padrón) ---- */
+  function _cqInts(){var o=[];cargos.forEach(function(g,i){(g.nombres||[]).forEach(function(nm,k){if(String(nm||'').trim())o.push({nombre:nm,cargo:g.cargo,i:i,k:k})})});return o}
+  function _cqMete(p){var cg=String(p.cargo||'').trim()||'Otro';var slot=null;
+   for(var i2=0;i2<cargos.length;i2++){if(String(cargos[i2].cargo).toLowerCase()===cg.toLowerCase()){slot=cargos[i2];break}}
+   if(!slot){slot={cargo:cg,cant:0,nombres:[]};cargos.push(slot)}
+   var nm=String(p.nombre).trim();
+   if(!slot.nombres.some(function(x){return String(x).trim().toLowerCase()===nm.toLowerCase()})){slot.nombres.push(nm)}
+   slot.cant=slot.nombres.length}
+  function _cqSaca(i,k){var g=cargos[i];if(!g)return;g.nombres.splice(k,1);g.cant=g.nombres.length}
+  function _paintDesig(){
+   var ints=_cqInts();
+   host.innerHTML='<div style="border:1px solid #1d2c47;border-radius:8px;padding:9px;margin-bottom:8px">'
+    +'<div style="font-weight:800;color:#cfe3ff;font-size:12.5px;margin-bottom:6px">👷 Integrantes de la Cuadrilla '+n+' <span style="color:#9db4d6;font-weight:700">('+ints.length+')</span></div>'
+    +(ints.length?ints.map(function(o){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid #172033"><span style="flex:1;color:#fff;font-size:13px">'+esc(o.nombre)+' <span style="color:#9db4d6;font-size:11.5px">('+esc(o.cargo)+')</span></span><button data-quita="'+o.i+':'+o.k+'" title="Quitar de esta cuadrilla" style="width:30px;height:28px;background:#5A1A1A;color:#fff;border:0;border-radius:7px;font-weight:900">×</button></div>'}).join('')
+      :'<div style="color:#8b949e;font-size:12px;padding:4px 0">Aún no hay nadie. Agrégalos con ＋ desde la lista de abajo.</div>')
+    +'</div>'
+    +'<div id="_cqDesig'+n+'" style="margin-top:2px"></div>'
+    +'<div id="_cqMsg'+n+'" style="margin-top:6px;font-weight:800;min-height:18px;font-size:12.5px"></div>'
+    +'<button id="_cqSave'+n+'" style="width:100%;margin-top:2px;background:#1E7A46;color:#fff;border:0;border-radius:8px;padding:12px;font-weight:800;font-size:14px">✅ Guardar Cuadrilla '+n+'</button>';
+   Array.prototype.forEach.call(host.querySelectorAll('[data-quita]'),function(b){b.onclick=function(){
+    var p2=b.getAttribute('data-quita').split(':');var i=+p2[0],k=+p2[1];
+    var nm=cargos[i]&&cargos[i].nombres[k];var per=nm?_pdPersonaPorNombre(nm):null;
+    if(per&&_pendQuitar[per.pid])delete _pendQuitar[per.pid];   /* ya no se reasigna */
+    _cqSaca(i,k);paint()}});
+  }
+  function paint(){if(_selHoy){_paintDesig();_wireResto();return}
+   host.innerHTML=cargos.map(function(g,i){var rows='';for(var k=0;k<g.cant;k++){
+    rows+='<input data-nm="'+i+':'+k+'" placeholder="Nombre del '+esc(g.cargo)+' '+(k+1)+'" value="'+esc(g.nombres[k]||'')+'" style="width:100%;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff;box-sizing:border-box">'}
     return '<div style="border:1px solid #1d2c47;border-radius:8px;padding:8px;margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><b style="color:#cfe3ff">'+esc(g.cargo)+'</b><span style="margin-left:auto"></span><button data-mm="'+i+'" style="width:34px;height:30px;background:#2d333b;color:#fff;border:0;border-radius:7px;font-weight:900">−</button><b style="min-width:22px;text-align:center;color:#fff">'+g.cant+'</b><button data-pp="'+i+'" style="width:34px;height:30px;background:#2d333b;color:#fff;border:0;border-radius:7px;font-weight:900">＋</button><button data-xx="'+i+'" title="Quitar este cargo" style="width:30px;height:30px;background:#5A1A1A;color:#fff;border:0;border-radius:7px;font-weight:900;margin-left:2px">×</button></div>'+rows+'</div>'}).join('')
     +'<div style="display:flex;gap:8px;margin-top:4px"><input id="_cqNuevo'+n+'" placeholder="Otro cargo (ej. Técnico)…" style="flex:1;padding:9px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff;box-sizing:border-box"><button id="_cqOtro'+n+'" style="background:#33406a;color:#fff;border:0;border-radius:8px;padding:9px 12px;font-weight:800">＋ Agregar cargo</button></div><div id="_cqDesig'+n+'" style="margin-top:9px"></div><div id="_cqMsg'+n+'" style="margin-top:6px;font-weight:800;min-height:18px;font-size:12.5px"></div><button id="_cqSave'+n+'" style="width:100%;margin-top:2px;background:#1E7A46;color:#fff;border:0;border-radius:8px;padding:12px;font-weight:800;font-size:14px">✅ Guardar Cuadrilla '+n+'</button>';
+   _wireResto()}
+  function _wireResto(){
    Array.prototype.forEach.call(host.querySelectorAll('[data-pp]'),function(b){b.onclick=function(){var g=cargos[+b.getAttribute('data-pp')];g.cant++;paint()}});
    Array.prototype.forEach.call(host.querySelectorAll('[data-mm]'),function(b){b.onclick=function(){var g=cargos[+b.getAttribute('data-mm')];g.cant=Math.max(0,g.cant-1);g.nombres.length=Math.min(g.nombres.length,g.cant);paint()}});
    Array.prototype.forEach.call(host.querySelectorAll('[data-nm]'),function(inp){inp.oninput=function(){var p=inp.getAttribute('data-nm').split(':');cargos[+p[0]].nombres[+p[1]]=inp.value}});
@@ -2310,19 +2336,28 @@ function _showCuadrillas(nFoco){if(typeof _gateW==='function'&&!_gateW())return;
     paint();   /* paint reconstruye el DOM: el mensaje se pone DESPUÉS */
     var mq=document.getElementById('_cqMsg'+n);if(mq){mq.textContent=_txt;mq.style.color='#7fd7a5'}}});
    Array.prototype.forEach.call(host.querySelectorAll('[data-xx]'),function(b){b.onclick=function(){cargos.splice(+b.getAttribute('data-xx'),1);paint();var mq=document.getElementById('_cqMsg'+n);if(mq){mq.textContent='Cargo quitado de esta cuadrilla';mq.style.color='#9db4d6'}}});
-   try{var _dg=document.getElementById('_cqDesig'+n);if(_dg){var _hoyL=_pdDesigList(todayISO()).filter(function(x){return _pdDiscDe(x.p,DISC0)===DISC0});
- if(_hoyL.length){_dg.innerHTML='<div style="font-weight:800;color:#9db4d6;font-size:12px;margin-bottom:4px">🧑‍🔧 Designados HOY ('+DISC0+') — toca ＋ para meterlos a esta cuadrilla</div>'+_hoyL.map(function(x){var en=x.d.cuadrilla?(' · en C'+x.d.cuadrilla):'';return '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid #172033"><span style="flex:1;color:#cfe3ff;font-size:12.5px">'+esc(x.p.nombre)+' <span style="color:#9db4d6">('+esc(x.p.cargo||'—')+')'+en+'</span></span>'+(String(x.d.cuadrilla)===String(n)?'<span style="color:#7fd7a5;font-weight:800">✓ aquí</span>':'<button data-pdadd="'+x.p.pid+'" style="background:#1E7A46;color:#fff;border:0;border-radius:7px;width:28px;height:28px;font-weight:900">＋</button>')+'</div>'}).join('')+'<button id="_cqPedir'+n+'" style="margin-top:6px;background:#33406a;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800;font-size:12px">🙋 Solicitar adicionar una persona</button>';
+   try{var _dg=document.getElementById('_cqDesig'+n);if(_dg){
+ var _arriba={};cargos.forEach(function(g){(g.nombres||[]).forEach(function(nm){if(nm)_arriba[String(nm).trim().toLowerCase()]=1})});
+ var _hoyL=_pdDesigList(todayISO()).filter(function(x){return _pdDiscDe(x.p,DISC0)===DISC0&&!_arriba[String(x.p.nombre).trim().toLowerCase()]});
+ if(true){var _libres=[],_ocup=[];
+  _hoyL.forEach(function(x){var cu=String(x.d.cuadrilla||'');
+   if(!cu||cu===String(n)||_pendQuitar[x.p.pid])_libres.push(x);else _ocup.push(x)});
+  function _fila(x,amb){var cu=String(x.d.cuadrilla||'');
+   return '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid #172033"><span style="flex:1;color:'+(amb?'#E0A44B':'#cfe3ff')+';font-size:12.5px">'+esc(x.p.nombre)+' <span style="color:#9db4d6">('+esc(x.p.cargo||'—')+')</span>'+(amb?('<span style="color:#E0A44B;font-size:11px"> — en C'+esc(cu)+'</span>'):'')+'</span><button data-pdadd="'+x.p.pid+'" style="background:'+(amb?'#B45309':'#1E7A46')+';color:#fff;border:0;border-radius:7px;width:28px;height:28px;font-weight:900">＋</button></div>'}
+  _dg.innerHTML='<div style="font-weight:800;color:#9db4d6;font-size:12px;margin-bottom:4px">🧑‍🔧 Disponibles HOY ('+DISC0+') — toca ＋ para subirlos a la cuadrilla</div>'
+   +(_libres.length?_libres.map(function(x){return _fila(x,false)}).join(''):'<div style="color:#8b949e;font-size:11.5px;padding:3px 0">— nadie libre —</div>')
+   +(_ocup.length?('<div style="font-weight:800;color:#E0A44B;font-size:11.5px;margin-top:7px">Ya asignados a otra cuadrilla (pide confirmación)</div>'+_ocup.map(function(x){return _fila(x,true)}).join('')):'')
+   +'<button id="_cqPedir'+n+'" style="margin-top:6px;background:#33406a;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800;font-size:12px">🙋 Solicitar adicionar una persona</button>';
   _dg.querySelectorAll('[data-pdadd]').forEach(function(b2){b2.onclick=function(){var pid=b2.getAttribute('data-pdadd');var p=state.personal[pid];if(!p)return;
    var d=(_pdHoy(todayISO()))[pid];var otra=(d&&d.cuadrilla&&String(d.cuadrilla)!==String(n))?String(d.cuadrilla):'';
-   var meter=function(){var cg=String(p.cargo||'').trim()||'Otro';var slot=null;for(var i2=0;i2<cargos.length;i2++){if(String(cargos[i2].cargo).toLowerCase()===cg.toLowerCase()){slot=cargos[i2];break}}
-    if(!slot){slot={cargo:cg,cant:0,nombres:[]};cargos.push(slot)}
-    var nm=String(p.nombre).trim();if(!slot.nombres.some(function(x2){return String(x2).trim().toLowerCase()===nm.toLowerCase()})){slot.nombres.push(nm);slot.cant=Math.max((slot.cant||0)+1,slot.nombres.length)}
-    if(otra)_pendQuitar[pid]=otra;   /* se aplica al GUARDAR */
-    paint()};
+   var meter=function(){_cqMete(p);if(otra)_pendQuitar[pid]=otra;   /* se aplica al GUARDAR */
+    paint();var mq2=document.getElementById('_cqMsg'+n);if(mq2){mq2.textContent=p.nombre+' → Cuadrilla '+n+(otra?(' (se quita de C'+otra+' al guardar)'):'');mq2.style.color='#7fd7a5'}};
    if(otra){if(confirm('¿Desea quitar a '+p.nombre+' de la cuadrilla C'+otra+'?\n\nSe pasará a la Cuadrilla '+n+' al GUARDAR. Los reportes ya guardados NO se tocan.'))meter()}else meter()}});
   var _pq2=document.getElementById('_cqPedir'+n);if(_pq2)_pq2.onclick=function(){_pdSolicitarNueva(n,DISC0)};
- }else{_dg.innerHTML='<div style="color:#8b949e;font-size:11.5px;margin-bottom:6px">Sin personal designado hoy para '+DISC0+' — se sigue escribiendo los nombres como siempre. El designador puede cargarlo en 📊 Personal → 🧑‍🔧 Designar.</div><button id="_cqPedir'+n+'" style="background:#33406a;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800;font-size:12px">🙋 Solicitar adicionar una persona</button>';
-  var _pq3=document.getElementById('_cqPedir'+n);if(_pq3)_pq3.onclick=function(){_pdSolicitarNueva(n,DISC0)}}}}catch(_pde){}
+ }
+  if(!_selHoy&&!_hoyL.length){_dg.innerHTML='<div style="color:#8b949e;font-size:11.5px;margin-bottom:6px">Sin personal designado hoy para '+DISC0+' — se sigue escribiendo los nombres como siempre. El designador puede cargarlo en 📊 Personal → 🧑‍🔧 Designar.</div><button id="_cqPedir'+n+'" style="background:#33406a;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800;font-size:12px">🙋 Solicitar adicionar una persona</button>';
+   var _pq3=document.getElementById('_cqPedir'+n);if(_pq3)_pq3.onclick=function(){_pdSolicitarNueva(n,DISC0)}}
+ }}catch(_pde){}
  var bo=document.getElementById('_cqOtro'+n);if(bo)bo.onclick=function(){var inp=document.getElementById('_cqNuevo'+n);var nm=(inp&&inp.value||'').trim();var mq=document.getElementById('_cqMsg'+n);if(!nm){if(mq){mq.textContent='⚠ Escribe el nombre del cargo en la casilla de al lado';mq.style.color='#FFD27A'}return}if(cargos.some(function(g){return g.cargo.toLowerCase()===nm.toLowerCase()})){if(mq){mq.textContent='⚠ Ese cargo ya está en la lista';mq.style.color='#FFD27A'}return}cargos.push({cargo:nm,cant:1,nombres:[]});paint();var m2=document.getElementById('_cqMsg'+n);if(m2){m2.textContent='✓ Cargo "'+nm+'" agregado — ponle cantidad y nombres';m2.style.color='#7fd7a5'}};
    var bs=document.getElementById('_cqSave'+n);if(bs)bs.onclick=async function(){
     var mq=document.getElementById('_cqMsg'+n);
@@ -2473,7 +2508,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260709f1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260709f2';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
