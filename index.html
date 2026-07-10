@@ -1881,7 +1881,9 @@ function _pdEspActivasHoy(){var s2={};_pdDesigList(todayISO()).forEach(function(
 function _pdActivoHoy(disc){try{return _pdDesigList(todayISO()).some(function(x){return String(x.p.especialidad||'')===String(disc)})}catch(e){return false}}
 /* filtra una cuadrilla vieja dejando SOLO a los designados de hoy */
 function _pdFiltraCuadHoy(def,disc){try{if(!def||!_pdActivoHoy(disc))return (def&&def.personal)||[];
- var vivos={};_pdDesigList(todayISO()).forEach(function(x){vivos[String(x.p.nombre).trim().toLowerCase()]=1});
+ /* efectivo HOY = designado hoy Y con ESTA cuadrilla asignada (si hoy está en otra, aquí no cuenta) */
+ var num=String(def.numero||'');
+ var vivos={};_pdDesigList(todayISO()).forEach(function(x){if(String(x.d.cuadrilla||'')===num)vivos[String(x.p.nombre).trim().toLowerCase()]=1});
  return (def.personal||[]).map(function(g){var nn=(g.nombres||[]).filter(function(nm){return vivos[String(nm).trim().toLowerCase()]});
   return {cargo:g.cargo,cant:nn.length,nombres:nn}}).filter(function(g){return g.cant>0})
 }catch(e){return (def&&def.personal)||[]}}
@@ -2586,7 +2588,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260709f7';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260709f8';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
