@@ -994,7 +994,7 @@ async function _rtRefrescarWbsX(){
 }
 function _rtOnCambio(tabla){
  if(tabla==='wbs_extra'){_rtRefrescarWbsX();return}
- if(tabla==='personal'||tabla==='personal_dia'){try{_pdRT()}catch(e){}return}
+ if(tabla==='personal'||tabla==='personal_dia'||tabla==='personal_esp'){try{_pdRT()}catch(e){}return}
  if(tabla==='cuadrillas'){try{if(typeof _pullCuadrillas==='function')_pullCuadrillas()}catch(e){}try{_pdRT()}catch(e){}return}
  if(tabla==='nuevas'){try{if(typeof syncNow==='function')syncNow()}catch(e){}}
 }
@@ -1010,7 +1010,7 @@ function _rtInit(){
   _RT.ws=ws;
   ws.onopen=function(){
    _RT.tries=0;
-   ws.send(JSON.stringify({topic:'realtime:obf_wbs',event:'phx_join',ref:'1',join_ref:'1',payload:{config:{broadcast:{ack:false,self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'wbs_extra'},{event:'*',schema:'public',table:'nuevas'},{event:'*',schema:'public',table:'personal'},{event:'*',schema:'public',table:'personal_dia'},{event:'*',schema:'public',table:'cuadrillas'}]}}}));
+   ws.send(JSON.stringify({topic:'realtime:obf_wbs',event:'phx_join',ref:'1',join_ref:'1',payload:{config:{broadcast:{ack:false,self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'wbs_extra'},{event:'*',schema:'public',table:'nuevas'},{event:'*',schema:'public',table:'personal'},{event:'*',schema:'public',table:'personal_dia'},{event:'*',schema:'public',table:'personal_esp'},{event:'*',schema:'public',table:'cuadrillas'}]}}}));
    _RT.hb=setInterval(function(){try{ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(++_RT.ref)}))}catch(e){}},22000);
   };
   ws.onmessage=function(m){try{var d=JSON.parse(m.data);
@@ -1490,7 +1490,7 @@ function _mpApply(on,quien){try{
 }catch(e){}}
 async function _mpServer(on){try{var r=await fetch(sbBase()+'/rest/v1/app_config?id=eq.1',{method:'PATCH',headers:sbHead({'Prefer':'return=minimal'}),body:JSON.stringify({modo_prueba:!!on,mp_quien:(state.user&&state.user.supervisor)||'',mp_ts:Date.now(),updated_at:new Date().toISOString()})});return r.ok}catch(e){return false}}
 /* ===== MODO PRUEBAS EN VIVO: copia y restauración de TODA la base en el server ===== */
-var _MP_TABLAS=['personal','personal_dia','partes','fotos','fotos_borradas','metrados','nuevas','ediciones','programacion','calendario','reportabilidad','reinicios','pendientes','cambios','conflictos','restricciones_generales','restricciones_partida','tormenta','dias_habilitados','borrados','cuadrillas','bitacora','interf_log','presencia_lapsos','avance_semana','metas_semana','prog_semana','razones_noavance','semanas','roles_usuarios','roles_permisos','fotos_migra','partida_nombres'];
+var _MP_TABLAS=['personal','personal_dia','personal_esp','partes','fotos','fotos_borradas','metrados','nuevas','ediciones','programacion','calendario','reportabilidad','reinicios','pendientes','cambios','conflictos','restricciones_generales','restricciones_partida','tormenta','dias_habilitados','borrados','cuadrillas','bitacora','interf_log','presencia_lapsos','avance_semana','metas_semana','prog_semana','razones_noavance','semanas','roles_usuarios','roles_permisos','fotos_migra','partida_nombres'];
 function _mpProcUI(tit){var old=document.getElementById('_mpProc');if(old)old.remove();var ov=document.createElement('div');ov.id='_mpProc';ov.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(8,8,18,.92);display:flex;align-items:center;justify-content:center;padding:20px';ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:22px;max-width:420px;width:100%;text-align:center"><div id="_mpPT" style="font-weight:900;font-size:16px;color:#1F3864;margin-bottom:12px"></div><div style="background:#EEF2F7;border-radius:99px;height:14px;overflow:hidden"><div id="_mpPB" style="height:100%;width:0%;background:#1E7A46;transition:width .3s"></div></div><div id="_mpPS" style="margin-top:10px;font-size:13px;color:#4A5568;font-weight:700"></div><div id="_mpPC" style="margin-top:6px;font-size:24px;font-weight:900;color:#B45309"></div></div>';document.body.appendChild(ov);document.getElementById('_mpPT').textContent=tit;return ov}
 function _mpProcSet(pct,sub){var b=document.getElementById('_mpPB');if(b)b.style.width=Math.round(pct)+'%';var s=document.getElementById('_mpPS');if(s)s.textContent=sub||''}
 var _mpEtaFin=0,_mpEtaIv=null;
@@ -1832,15 +1832,16 @@ function _cuadActiva(n,disc){disc=(disc!=null?disc:((state.user&&state.user.disc
 function cuadLbl(c){return String(c==null?'':c).replace(/^Cuadrilla (\d+)\.\d+/,'Cuadrilla $1')}
 function _cuadNombres(def){var out=[];try{(def.personal||[]).forEach(function(g){(g.nombres||[]).forEach(function(n){if(n&&String(n).trim())out.push(String(n).trim())})})}catch(e){}return out}
 function _cuadResumen(def){try{return (def.personal||[]).filter(function(g){return g.cant>0}).map(function(g){return g.cargo+' '+g.cant}).join(', ')}catch(e){return ''}}
+function _pdCuadRep(d){try{var _dc=(d&&d.disc)||((state.user&&state.user.disc)||'');return (typeof _pdFiltraCuadHoy==='function')?_pdFiltraCuadHoy(d,_dc):((d&&d.personal)||[])}catch(e){return (d&&d.personal)||[]}}
 function renderCuadPick(){var w=document.getElementById('rCuadPick');if(!w)return;
- if(regCuad){try{var _fr=_cuadActiva(regCuad.numero);if(_fr&&_fr.id!==regCuad.id){regCuad=_fr;window._regCuadLock=true;regPer=(_fr.personal||[]).filter(function(g){return g.cant>0}).map(function(g){return {tipo:g.cargo,cant:g.cant,fixed:true,nombres:(g.nombres||[]).slice()}});renderPer();toast('🔁 Cuadrilla '+_fr.numero+' actualizada (v'+_fr.version+') — desde ahora los metrados salen con la nueva conformación')}}catch(e){}}
+ if(regCuad){try{var _fr=_cuadActiva(regCuad.numero);if(_fr&&_fr.id!==regCuad.id){regCuad=_fr;window._regCuadLock=true;regPer=_pdCuadRep(_fr).filter(function(g){return g.cant>0}).map(function(g){return {tipo:g.cargo,cant:g.cant,fixed:true,nombres:(g.nombres||[]).slice()}});renderPer();toast('🔁 Cuadrilla '+_fr.numero+' actualizada (v'+_fr.version+') — desde ahora los metrados salen con la nueva conformación')}}catch(e){}}
  w.innerHTML='';var info=document.getElementById('rCuadInfo'),chk=document.getElementById('rCuadChk');
  for(var n=1;n<=5;n++){(function(n){var def=_cuadActiva(n);var sel=regCuad&&+regCuad.numero===+n;var b=document.createElement('button');b.type='button';
   b.style.cssText='flex:1;min-width:52px;padding:9px 4px;border-radius:9px;font-weight:800;font-size:12.5px;cursor:pointer;border:1.5px solid '+(sel?'#1E7A46':(def?'#1E7A46':'#C9D2E0'))+';background:'+(sel?'#1E7A46':'#fff')+';color:'+(sel?'#fff':(def?'#1E7A46':'#8A94A6'));
   b.textContent=(def?'✓ ':'')+'C'+n;
   b.onclick=function(){var d=_cuadActiva(n);if(!d){if(confirm('La Cuadrilla '+n+' aún no está definida.\n\n¿Definirla ahora?'))_showCuadrillas(n);return}
    if(regCuad&&+regCuad.numero===+n){regCuad=null;window._regCuadLock=false;try{regPer=JSON.parse(JSON.stringify(window._regPerBase||[]))}catch(e){}renderPer();renderCuadPick();return}
-   regCuad=d;window._regCuadLock=true;regPer=(d.personal||[]).filter(function(g){return g.cant>0}).map(function(g){return {tipo:g.cargo,cant:g.cant,fixed:true,nombres:(g.nombres||[]).slice()}});renderPer();renderCuadPick()};
+   regCuad=d;window._regCuadLock=true;regPer=_pdCuadRep(d).filter(function(g){return g.cant>0}).map(function(g){return {tipo:g.cargo,cant:g.cant,fixed:true,nombres:(g.nombres||[]).slice()}});if(!regPer.length&&typeof _pdActivoHoy==='function'&&_pdActivoHoy((state.user&&state.user.disc)||''))toast('Esta cuadrilla aún no tiene personal designado HOY — ármala en ⚙ Definir cuadrillas');renderPer();renderCuadPick()};
   w.appendChild(b)})(n)}
  if(regCuad){var d=regCuad;var nms=_cuadNombres(d);if(chk){chk.textContent='✓ definida';chk.style.color='#1E7A46'}if(info){info.innerHTML='<b style="color:#1E7A46">✓ Cuadrilla '+d.numero+'</b> <span style="color:#8A94A6;font-weight:600">· v'+d.version+' · personal abajo ↓</span><div style="margin-top:6px"><button type="button" id="rCuadMod" style="background:#8A4B00;color:#fff;border:0;border-radius:9px;padding:9px 13px;font-weight:800;font-size:12.5px;cursor:pointer">🔁 La cuadrilla cambió hoy — registrar el cambio</button></div>';info.style.color='#3A4657';var bm=document.getElementById('rCuadMod');if(bm)bm.onclick=function(){_showCuadrillas(regCuad.numero)};}}
  else{if(chk){chk.textContent='\u26a0 obligatorio';chk.style.color='#C81E1E'}if(info){info.innerHTML='<div style="border:1.5px solid #F1B4B0;background:#FDECEA;border-radius:10px;padding:9px 11px;color:#C81E1E;font-weight:800">\u26a0 Elige una cuadrilla (obligatorio) para poder guardar el metrado.<div style="font-weight:600;color:#8A2A22;margin-top:3px;font-size:11.5px">Toca C1\u2013C5 arriba, o usa \u2699 Definir cuadrillas si a\u00fan no existe.</div></div>';info.style.color=''}}
@@ -1849,7 +1850,39 @@ function renderCuadPick(){var w=document.getElementById('rCuadPick');if(!w)retur
    Padrón del proyecto (nombre, cargo, especialidad o STAFF, nombre-mina EXACTO sin trim) + designación
    por DÍA (tabla personal_dia: cada fecha su fila → los días pasados quedan inmunes). TODO es ADITIVO:
    sin designación, la app reporta EXACTAMENTE como siempre. Acceso: admin real + roles con pers_designar. */
-var KPD='wtt4_personal',KPDIA='wtt4_persdia';
+var KPD='wtt4_personal',KPDIA='wtt4_persdia',KPESP='wtt4_persesp';
+var _pdEspBase=['Mecanica','Electrica','Civil'];   /* las 3 NUNCA se borran */
+try{if(!state.persEsp)state.persEsp=store.get(KPESP)||{}}catch(e){state.persEsp={}}
+function _pdEspExtras(){var o=[];for(var k in (state.persEsp||{})){var r=state.persEsp[k];if(r&&!r.eliminado)o.push(r.nombre)}o.sort();return o}
+function _pdEspAll(){return _pdEspBase.concat(_pdEspExtras())}
+function _pdEsEspBase(e){return _pdEspBase.indexOf(String(e||''))>-1}
+function _pdEspUp(row){try{row.proyecto=DATA.proyecto;row.updated_at=new Date().toISOString();if(sbReady()&&navigator.onLine)fetch(sbBase()+'/rest/v1/personal_esp?on_conflict=proyecto,nombre',{method:'POST',headers:sbHead({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify([_pdClean(row)])}).catch(function(){})}catch(e){}}
+function _pdEspAdd(nombre){nombre=String(nombre||'').trim();if(!nombre)return null;
+ if(_pdEsEspBase(nombre)){toast('Esa ya es una especialidad base');return nombre}
+ var ex=state.persEsp[nombre];
+ var row=ex||{proyecto:DATA.proyecto,nombre:nombre,eliminado:false,quien:(state.user&&state.user.supervisor)||'',cell_at:Date.now()};
+ row.eliminado=false;row.ts=(typeof nowSrv==='function'?nowSrv():Date.now());
+ state.persEsp[nombre]=row;store.set(KPESP,state.persEsp);_pdEspUp(row);return nombre}
+function _pdEspDel(nombre){if(_pdEsEspBase(nombre)){toast('Las 3 especialidades base no se pueden borrar');return false}
+ var r=state.persEsp[nombre];if(!r)return false;
+ var usan=_pdVivos().filter(function(p){return String(p.especialidad||'')===nombre});
+ if(usan.length&&!confirm('⚠ '+usan.length+' persona(s) tienen la especialidad "'+nombre+'".\n\nAl borrarla quedarán SIN especialidad (podrás reasignarlas). ¿Continuar?'))return false;
+ if(!usan.length&&!confirm('¿Borrar la especialidad "'+nombre+'"?'))return false;
+ usan.forEach(function(p){p.especialidad='';p.ts=(typeof nowSrv==='function'?nowSrv():Date.now());_pdUp(p)});
+ if(usan.length)store.set(KPD,state.personal);
+ r.eliminado=true;r.quien=(state.user&&state.user.supervisor)||'';r.ts=(typeof nowSrv==='function'?nowSrv():Date.now());
+ state.persEsp[nombre]=r;store.set(KPESP,state.persEsp);_pdEspUp(r);
+ toast('🗑 Especialidad "'+nombre+'" borrada'+(usan.length?(' — '+usan.length+' persona(s) quedaron sin especialidad'):''));return true}
+/* ¿esa especialidad ya tiene alguien designado HOY? (entonces no aplica "considerar ayer") */
+function _pdEspActivasHoy(){var s2={};_pdDesigList(todayISO()).forEach(function(x){var e=String(x.p.especialidad||'');if(e)s2[e]=1});return s2}
+function _pdActivoHoy(disc){try{return _pdDesigList(todayISO()).some(function(x){return String(x.p.especialidad||'')===String(disc)})}catch(e){return false}}
+/* filtra una cuadrilla vieja dejando SOLO a los designados de hoy */
+function _pdFiltraCuadHoy(def,disc){try{if(!def||!_pdActivoHoy(disc))return (def&&def.personal)||[];
+ var vivos={};_pdDesigList(todayISO()).forEach(function(x){vivos[String(x.p.nombre).trim().toLowerCase()]=1});
+ return (def.personal||[]).map(function(g){var nn=(g.nombres||[]).filter(function(nm){return vivos[String(nm).trim().toLowerCase()]});
+  return {cargo:g.cargo,cant:nn.length,nombres:nn}}).filter(function(g){return g.cant>0})
+}catch(e){return (def&&def.personal)||[]}}
+function _pdPersonaPorNombre(nm){var t=String(nm||'').trim().toLowerCase();var o=null;_pdVivos().forEach(function(p){if(!o&&String(p.nombre).trim().toLowerCase()===t)o=p});return o}
 try{if(!state.personal)state.personal=store.get(KPD)||{}}catch(e){state.personal={}}
 try{if(!state.persDia)state.persDia=store.get(KPDIA)||{}}catch(e){state.persDia={}}
 function _pdPuedo(){try{if(typeof esAdminReal==='function'&&esAdminReal()&&!window._impRol)return true;return (typeof puedeAcc==='function'&&puedeAcc('pers_designar'))}catch(e){return false}}
@@ -1862,7 +1895,7 @@ function _pdSig(){try{
  var a=Object.keys(state.personal||{}).sort().map(function(k){var r=state.personal[k];return k+':'+r.nombre+':'+r.cargo+':'+r.especialidad+':'+(r.eliminado?1:0)}).join('|');
  var f=todayISO();var m=(state.persDia||{})[f]||{};
  var b=Object.keys(m).sort().map(function(k){return k+':'+m[k].estado+':'+(m[k].cuadrilla||'')}).join('|');
- return a+'#'+b}catch(e){return ''}}
+ return a+'#'+b+'#'+_pdEspExtras().join(',')}catch(e){return ''}}
 function _pdRT(){try{if(_pdRTt)clearTimeout(_pdRTt);_pdRTt=setTimeout(function(){_pdRTt=null;_pdRefrescar()},450)}catch(e){}}
 async function _pdRefrescar(){
  if(!(state&&state.user))return;
@@ -1894,6 +1927,10 @@ async function _pdPull(fechas){try{if(!(typeof sbReady==='function'&&sbReady()&&
    else if(Number(_lr.ts||0)>Number(_sr.ts||0)){m[_k2]=_lr;_pdUp(_lr)} /* local más nuevo → gana */
   }
   state.personal=m;store.set(KPD,m)}}
+ try{var re=await fetch(sbBase()+'/rest/v1/personal_esp?proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&select=*&limit=300',{headers:sbHead()});
+  if(re.ok){var er=await re.json();if(Array.isArray(er)){var em={};er.forEach(function(x){if(x&&x.nombre){x._sv=1;em[x.nombre]=x}});
+   var _le=state.persEsp||{};for(var _ek in _le){if(!em[_ek]&&!_le[_ek]._sv){em[_ek]=_le[_ek];_pdEspUp(_le[_ek])}}
+   state.persEsp=em;store.set(KPESP,em)}}}catch(_ee){}
  var hoy=todayISO();var fs=(fechas&&fechas.length)?fechas:[hoy,_pdAddDias(hoy,-1)];
  var r2=await fetch(sbBase()+'/rest/v1/personal_dia?proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&fecha=in.('+fs.map(encodeURIComponent).join(',')+')&select=*&limit=3000',{headers:sbHead()});
  if(r2.ok){var rw=await r2.json();if(Array.isArray(rw)){
@@ -1918,8 +1955,18 @@ function _pdEliminarP(pid){var r=state.personal[pid];if(!r)return;r.eliminado=tr
 function _pdRestaurarP(pid){var r=state.personal[pid];if(!r)return;r.eliminado=false;r.elim_por='';r.elim_ts=null;r.ts=(typeof nowSrv==='function'?nowSrv():Date.now());store.set(KPD,state.personal);_pdUp(r)}
 function _pdDiaSet(pid,f,patch){f=f||todayISO();var m=state.persDia[f]=state.persDia[f]||{};var d=m[pid]||{proyecto:DATA.proyecto,fecha:f,pid:pid,cuadrilla:'',estado:'designado'};for(var k in patch)d[k]=patch[k];d.quien=(state.user&&state.user.supervisor)||'';d.ts=(typeof nowSrv==='function'?nowSrv():Date.now());d.cell_at=Date.now();m[pid]=d;store.set(KPDIA,state.persDia);_pdDiaUp(d);_pdBadge();return d}
 function _pdConsiderarAyer(){var hoy=todayISO(),ayer=_pdAddDias(hoy,-1);var ma=state.persDia[ayer]||{};var n=0;
- for(var pid in ma){var d=ma[pid];if(!d||d.estado!=='designado')continue;if(!state.personal[pid]||state.personal[pid].eliminado)continue;var hd=(state.persDia[hoy]||{})[pid];if(hd&&hd.estado==='designado')continue;_pdDiaSet(pid,hoy,{estado:'designado',cuadrilla:d.cuadrilla||''});n++}
- toast(n?('✓ '+n+' persona(s) consideradas como AYER (con su cuadrilla)'):'Ayer no hubo designación (o ya están todos hoy)');return n}
+ var activas=_pdEspActivasHoy();var saltadas={};
+ for(var pid in ma){var d=ma[pid];if(!d||d.estado!=='designado')continue;
+  var per=state.personal[pid];if(!per||per.eliminado)continue;
+  var esp=String(per.especialidad||'');
+  /* si esa especialidad YA tiene gente designada hoy, no se arrastra nada de ayer */
+  if(esp&&activas[esp]){saltadas[esp]=(saltadas[esp]||0)+1;continue}
+  var hd=(state.persDia[hoy]||{})[pid];if(hd&&hd.estado==='designado')continue;
+  _pdDiaSet(pid,hoy,{estado:'designado',cuadrilla:d.cuadrilla||''});n++}
+ var sk=Object.keys(saltadas);
+ var msg=n?('✓ '+n+' persona(s) traídas de AYER (con su cuadrilla)'):'Nada que traer de ayer';
+ if(sk.length)msg+=' · sin tocar '+sk.join(', ')+' (ya designaron hoy)';
+ toast(msg);return n}
 /* --- cuadrillas: nueva versión sin/con una persona (los partes viejos guardan snapshot: inmunes) --- */
 async function _pdCuadNuevaVersion(def,personalNuevo){try{var n=def.numero;var ver=(+def.version||0)+1;var id=def.disc+'_c'+n+'.'+ver;
  var row={id:id,numero:n,version:ver,etiqueta:def.etiqueta||('Cuadrilla '+n),disc:def.disc,personal:personalNuevo,activa:true,proyecto:DATA.proyecto,quien:(state.user&&state.user.supervisor)||'',ts:(typeof nowSrv==='function'?nowSrv():Date.now()),cell_at:Date.now(),updated_at:new Date().toISOString()};
@@ -2019,6 +2066,7 @@ async function _pdImportar(file){try{var X=await _xlsxLoad();
  for(var i=start;i<rows.length;i++){var r=rows[i]||[];var nom=String(r[0]==null?'':r[0]).trim();if(!nom)continue;
   var cargo=String(r[1]==null?'':r[1]).trim();var esp=String(r[2]==null?'':r[2]).trim()||'STAFF';
   var nmina=(r[3]==null?'':String(r[3]));/* EXACTO: sin trim — un espacio final importa */
+  if(esp&&!_pdEsEspBase(esp)&&!state.persEsp[esp])_pdEspAdd(esp);
   var ex=idx[nom.toLowerCase()];
   if(ex){if(cargo)ex.cargo=cargo;if(esp)ex.especialidad=esp;if(r[3]!=null)ex.nombre_mina=nmina;ex.ts=(typeof nowSrv==='function'?nowSrv():Date.now());_pdUp(ex);upd++}
   else{_pdNuevaPersona(nom,cargo,esp,nmina);alta++}}
@@ -2049,7 +2097,8 @@ function _pdBodyHtml(){var esc=function(t){return String(t).replace(/</g,'&lt;')
   +'<button id="_pdBtnTpl" style="flex:1;min-width:130px;background:#33406a;color:#fff;border:0;border-radius:9px;padding:9px;font-weight:800;font-size:11.5px">📤 Plantilla Excel</button>'
   +'<label style="flex:1;min-width:130px;background:#5B3A8A;color:#fff;border:0;border-radius:9px;padding:9px;font-weight:800;font-size:11.5px;text-align:center;cursor:pointer">📥 Importar Excel<input id="_pdFile" type="file" accept=".xlsx,.xls" style="display:none"></label>'
   +'<button id="_pdBtnExp" style="flex:1;min-width:130px;background:#0C5132;color:#fff;border:0;border-radius:9px;padding:9px;font-weight:800;font-size:11.5px">📤 Exportar día…</button></div>';
- h+='<div style="background:#F6F8FB;border:1px solid #E3E8F0;border-radius:10px;padding:8px;margin-bottom:8px"><div style="display:flex;gap:5px;flex-wrap:wrap"><input id="_pdN" placeholder="Nombre" style="flex:2;min-width:130px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px"><input id="_pdC" placeholder="Cargo" style="flex:1;min-width:90px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px"><input id="_pdE" list="_pdEL" placeholder="Especialidad o STAFF" style="flex:1;min-width:110px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px"><datalist id="_pdEL"><option value="Mecanica"><option value="Electrica"><option value="Civil"><option value="STAFF"><option value="Conductores"></datalist><input id="_pdM" placeholder="Nombre mina (opcional, EXACTO)" style="flex:2;min-width:150px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px"><button id="_pdSaveP" style="background:#1E7A46;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:900">＋</button></div></div>';
+ h+='<div style="background:#F6F8FB;border:1px solid #E3E8F0;border-radius:10px;padding:8px;margin-bottom:8px"><div style="display:flex;gap:5px;flex-wrap:wrap"><input id="_pdN" placeholder="Nombre" style="flex:2;min-width:130px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px"><input id="_pdC" placeholder="Cargo" style="flex:1;min-width:90px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px"><select id="_pdE" style="flex:1;min-width:130px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px;background:#fff"></select><input id="_pdM" placeholder="Nombre mina (opcional, EXACTO)" style="flex:2;min-width:150px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px"><button id="_pdSaveP" style="background:#1E7A46;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:900">＋</button></div></div>';
+ h+='<div id="_pdEspChips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;align-items:center"></div>';
  h+='<input id="_pdPadQ" placeholder="🔎 Filtrar padrón…" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px;margin-bottom:6px"><div id="_pdPadList"></div>';
  h+='</div>';return h}
 function _pdWire(ov){try{var esc=function(t){return String(t).replace(/</g,'&lt;')};var hoy=todayISO();
@@ -2064,6 +2113,25 @@ function _pdWire(ov){try{var esc=function(t){return String(t).replace(/</g,'&lt;
  var bt=document.getElementById('_pdBtnTpl');if(bt)bt.onclick=_pdPlantilla;
  var be=document.getElementById('_pdBtnExp');if(be)be.onclick=_pdExportDia;
  var bf=document.getElementById('_pdFile');if(bf)bf.onchange=function(){if(this.files&&this.files[0])_pdImportar(this.files[0]);this.value=''};
+ function _pdEspFill(sel){var e=document.getElementById('_pdE');if(!e)return;
+  var ex=_pdEspExtras();
+  e.innerHTML='<option value="">— Especialidad —</option>'
+   +'<optgroup label="Especialidades">'+_pdEspBase.map(function(b){return '<option value="'+esc(b)+'">'+esc(b)+'</option>'}).join('')+'</optgroup>'
+   +(ex.length?('<optgroup label="Otras">'+ex.map(function(b){return '<option value="'+esc(b)+'">'+esc(b)+'</option>'}).join('')+'</optgroup>'):'')
+   +'<optgroup label="—"><option value="__otra">➕ Otra… (definir)</option></optgroup>';
+  if(sel)e.value=sel}
+ function _pdEspChips(){var c=document.getElementById('_pdEspChips');if(!c)return;
+  var ex=_pdEspExtras();
+  c.innerHTML='<span style="font-size:11px;color:#8A94A6;font-weight:700">Otras especialidades:</span>'
+   +(ex.length?ex.map(function(b){return '<span style="background:#EEF1F6;border-radius:8px;padding:3px 6px 3px 9px;font-size:11.5px;font-weight:700;color:#1F3864;display:inline-flex;align-items:center;gap:4px">'+esc(b)+'<button data-espdel="'+esc(b)+'" title="Borrar esta especialidad" style="background:none;border:0;color:#B42318;font-weight:900;cursor:pointer;padding:0 2px">×</button></span>'}).join(''):'<span style="font-size:11.5px;color:#8A94A6">— ninguna —</span>')
+   +'<button id="_pdEspNew" style="background:#1F3864;color:#fff;border:0;border-radius:8px;padding:4px 9px;font-weight:800;font-size:11.5px">＋ Otra</button>'
+   +'<span style="font-size:10.5px;color:#8A94A6">(Mecanica · Electrica · Civil no se borran)</span>';
+  c.querySelectorAll('[data-espdel]').forEach(function(b){b.onclick=function(){if(_pdEspDel(b.getAttribute('data-espdel')))_showPersonal('desig')}});
+  var nb=document.getElementById('_pdEspNew');if(nb)nb.onclick=function(){var nm=prompt('Nombre de la nueva especialidad (ej. STAFF, CONDUCTORES, GRÚA):');if(!nm||!nm.trim())return;_pdEspAdd(nm);_pdEspFill(nm.trim());_pdEspChips()}}
+ _pdEspFill('');_pdEspChips();
+ var _es=document.getElementById('_pdE');if(_es)_es.onchange=function(){
+  if(this.value==='__otra'){var nm=prompt('Nombre de la nueva especialidad (ej. STAFF, CONDUCTORES, GRÚA):');
+   if(nm&&nm.trim()){_pdEspAdd(nm);_pdEspFill(nm.trim());_pdEspChips()}else{_pdEspFill('')}}};
  var sp=document.getElementById('_pdSaveP');if(sp)sp.onclick=function(){var n=document.getElementById('_pdN'),c=document.getElementById('_pdC'),e2=document.getElementById('_pdE'),m2=document.getElementById('_pdM');
   if(!(n&&n.value.trim())){toast('Escribe el nombre');return}
   if(_pdVivos().some(function(p){return String(p.nombre).trim().toLowerCase()===n.value.trim().toLowerCase()})){toast('Ya está en el padrón');return}
@@ -2137,15 +2205,54 @@ function _showCuadrillas(nFoco){if(typeof _gateW==='function'&&!_gateW())return;
    L.appendChild(box)})(n)}
   Array.prototype.forEach.call(L.querySelectorAll('[data-ed]'),function(b){b.onclick=function(){editor(+b.getAttribute('data-ed'))}})}
  function editor(n){var host=document.getElementById('_cqEd'+n);var estaba=host&&host.style.display!=='none';draw();host=document.getElementById('_cqEd'+n);if(estaba){host.style.display='none';return}
-  var def=_cuadActiva(n);var cargos=CARGOS.map(function(c){var g=def?(def.personal||[]).filter(function(x){return x.cargo===c})[0]:null;return {cargo:c,cant:g?+g.cant:0,nombres:g?(g.nombres||[]).slice():[]}});
-  ((def&&def.personal)||[]).forEach(function(g){if(CARGOS.indexOf(g.cargo)<0)cargos.push({cargo:g.cargo,cant:+g.cant||0,nombres:(g.nombres||[]).slice()})});
+  var def=_cuadActiva(n);
+  /* si HOY ya se designó personal de esta especialidad, la cuadrilla NO arrastra a la gente de ayer */
+  var _defP=(typeof _pdFiltraCuadHoy==='function')?_pdFiltraCuadHoy(def,DISC0):((def&&def.personal)||[]);
+  var _selHoy=(typeof _pdActivoHoy==='function')&&_pdActivoHoy(DISC0);
+  var _pendQuitar={};   /* pid -> cuadrilla de la que se quita (se aplica al GUARDAR) */
+  var cargos=CARGOS.map(function(c){var g=_defP.filter(function(x){return x.cargo===c})[0];return {cargo:c,cant:g?+g.cant:0,nombres:g?(g.nombres||[]).slice():[]}});
+  _defP.forEach(function(g){if(CARGOS.indexOf(g.cargo)<0)cargos.push({cargo:g.cargo,cant:+g.cant||0,nombres:(g.nombres||[]).slice()})});
   host.style.display='block';
-  function paint(){host.innerHTML=cargos.map(function(g,i){var rows='';for(var k=0;k<g.cant;k++){rows+='<input data-nm="'+i+':'+k+'" placeholder="Nombre del '+esc(g.cargo)+' '+(k+1)+'" value="'+esc(g.nombres[k]||'')+'" style="width:100%;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff;box-sizing:border-box">'}
+  function _cqOpts(i,k,g){
+    /* desplegable: primero los NO asignados, luego (en ámbar) los que ya están en otra cuadrilla */
+    var hoyM=_pdHoy(todayISO());
+    var elegidos={};cargos.forEach(function(gg,ii){(gg.nombres||[]).forEach(function(nm,kk){if(!(ii===i&&kk===k)&&nm)elegidos[String(nm).trim().toLowerCase()]=1})});
+    var lista=_pdDesigList(todayISO()).filter(function(x){return _pdDiscDe(x.p,DISC0)===DISC0});
+    var actual=String(g.nombres[k]||'');
+    var libres=[],ocupados=[];
+    lista.forEach(function(x){var nm=String(x.p.nombre);
+     if(elegidos[nm.trim().toLowerCase()])return;                         /* ya está en otra fila de esta misma cuadrilla */
+     var cu=String((hoyM[x.p.pid]||{}).cuadrilla||'');
+     if(!cu||cu===String(n)||_pendQuitar[x.p.pid])libres.push({p:x.p,cu:cu});else ocupados.push({p:x.p,cu:cu})});
+    function op(o,color){var selAttr=(String(o.p.nombre)===actual)?' selected':'';
+     return '<option value="'+esc(o.p.pid)+'"'+selAttr+(color?(' style="color:'+color+'"'):'')+'>'+esc(o.p.nombre)+' · '+esc(o.p.cargo||'—')+(o.cu&&o.cu!==String(n)?(' — en C'+esc(o.cu)):'')+'</option>'}
+    var h='<option value="">— elegir persona designada —</option>';
+    if(actual&&!_pdPersonaPorNombre(actual))h+='<option value="__libre" selected>'+esc(actual)+' (escrito a mano)</option>';
+    h+='<optgroup label="Disponibles">'+(libres.length?libres.map(function(o){return op(o,'')}).join(''):'<option disabled>— nadie libre —</option>')+'</optgroup>';
+    if(ocupados.length)h+='<optgroup label="Ya asignados (pide confirmación)">'+ocupados.map(function(o){return op(o,'#B45309')}).join('')+'</optgroup>';
+    return h}
+  function paint(){host.innerHTML=cargos.map(function(g,i){var rows='';for(var k=0;k<g.cant;k++){
+    rows+=_selHoy
+     ?('<select data-nmsel="'+i+':'+k+'" style="width:100%;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff;box-sizing:border-box">'+_cqOpts(i,k,g)+'</select>')
+     :('<input data-nm="'+i+':'+k+'" placeholder="Nombre del '+esc(g.cargo)+' '+(k+1)+'" value="'+esc(g.nombres[k]||'')+'" style="width:100%;margin-top:5px;padding:8px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff;box-sizing:border-box">')}
     return '<div style="border:1px solid #1d2c47;border-radius:8px;padding:8px;margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><b style="color:#cfe3ff">'+esc(g.cargo)+'</b><span style="margin-left:auto"></span><button data-mm="'+i+'" style="width:34px;height:30px;background:#2d333b;color:#fff;border:0;border-radius:7px;font-weight:900">−</button><b style="min-width:22px;text-align:center;color:#fff">'+g.cant+'</b><button data-pp="'+i+'" style="width:34px;height:30px;background:#2d333b;color:#fff;border:0;border-radius:7px;font-weight:900">＋</button><button data-xx="'+i+'" title="Quitar este cargo" style="width:30px;height:30px;background:#5A1A1A;color:#fff;border:0;border-radius:7px;font-weight:900;margin-left:2px">×</button></div>'+rows+'</div>'}).join('')
     +'<div style="display:flex;gap:8px;margin-top:4px"><input id="_cqNuevo'+n+'" placeholder="Otro cargo (ej. Técnico)…" style="flex:1;padding:9px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#fff;box-sizing:border-box"><button id="_cqOtro'+n+'" style="background:#33406a;color:#fff;border:0;border-radius:8px;padding:9px 12px;font-weight:800">＋ Agregar cargo</button></div><div id="_cqDesig'+n+'" style="margin-top:9px"></div><div id="_cqMsg'+n+'" style="margin-top:6px;font-weight:800;min-height:18px;font-size:12.5px"></div><button id="_cqSave'+n+'" style="width:100%;margin-top:2px;background:#1E7A46;color:#fff;border:0;border-radius:8px;padding:12px;font-weight:800;font-size:14px">✅ Guardar Cuadrilla '+n+'</button>';
    Array.prototype.forEach.call(host.querySelectorAll('[data-pp]'),function(b){b.onclick=function(){var g=cargos[+b.getAttribute('data-pp')];g.cant++;paint()}});
    Array.prototype.forEach.call(host.querySelectorAll('[data-mm]'),function(b){b.onclick=function(){var g=cargos[+b.getAttribute('data-mm')];g.cant=Math.max(0,g.cant-1);g.nombres.length=Math.min(g.nombres.length,g.cant);paint()}});
    Array.prototype.forEach.call(host.querySelectorAll('[data-nm]'),function(inp){inp.oninput=function(){var p=inp.getAttribute('data-nm').split(':');cargos[+p[0]].nombres[+p[1]]=inp.value}});
+   Array.prototype.forEach.call(host.querySelectorAll('[data-nmsel]'),function(sel){sel.onchange=function(){
+    var p=sel.getAttribute('data-nmsel').split(':');var i=+p[0],k=+p[1];var pid=sel.value;
+    if(!pid||pid==='__libre'){cargos[i].nombres[k]='';paint();return}
+    var per=state.personal[pid];if(!per){paint();return}
+    var cu=String((_pdHoy(todayISO())[pid]||{}).cuadrilla||'');
+    if(cu&&cu!==String(n)&&!_pendQuitar[pid]){
+     if(!confirm('¿Desea quitar a '+per.nombre+' de la cuadrilla C'+cu+'?\n\nSe pasará a la Cuadrilla '+n+' al GUARDAR. Los reportes ya guardados NO se tocan.')){paint();return}
+     _pendQuitar[pid]=cu;
+    }
+    cargos[i].nombres[k]=per.nombre;
+    var _txt=per.nombre+' → Cuadrilla '+n+(_pendQuitar[pid]?(' (se quita de C'+_pendQuitar[pid]+' al guardar)'):'');
+    paint();   /* paint reconstruye el DOM: el mensaje se pone DESPUÉS */
+    var mq=document.getElementById('_cqMsg'+n);if(mq){mq.textContent=_txt;mq.style.color='#7fd7a5'}}});
    Array.prototype.forEach.call(host.querySelectorAll('[data-xx]'),function(b){b.onclick=function(){cargos.splice(+b.getAttribute('data-xx'),1);paint();var mq=document.getElementById('_cqMsg'+n);if(mq){mq.textContent='Cargo quitado de esta cuadrilla';mq.style.color='#9db4d6'}}});
    try{var _dg=document.getElementById('_cqDesig'+n);if(_dg){var _hoyL=_pdDesigList(todayISO()).filter(function(x){return _pdDiscDe(x.p,DISC0)===DISC0});
  if(_hoyL.length){_dg.innerHTML='<div style="font-weight:800;color:#9db4d6;font-size:12px;margin-bottom:4px">🧑‍🔧 Designados HOY ('+DISC0+') — toca ＋ para meterlos a esta cuadrilla</div>'+_hoyL.map(function(x){var en=x.d.cuadrilla?(' · en C'+x.d.cuadrilla):'';return '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid #172033"><span style="flex:1;color:#cfe3ff;font-size:12.5px">'+esc(x.p.nombre)+' <span style="color:#9db4d6">('+esc(x.p.cargo||'—')+')'+en+'</span></span>'+(String(x.d.cuadrilla)===String(n)?'<span style="color:#7fd7a5;font-weight:800">✓ aquí</span>':'<button data-pdadd="'+x.p.pid+'" style="background:#1E7A46;color:#fff;border:0;border-radius:7px;width:28px;height:28px;font-weight:900">＋</button>')+'</div>'}).join('')+'<button id="_cqPedir'+n+'" style="margin-top:6px;background:#33406a;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800;font-size:12px">🙋 Solicitar persona del padrón…</button>';
@@ -2154,10 +2261,9 @@ function _showCuadrillas(nFoco){if(typeof _gateW==='function'&&!_gateW())return;
    var meter=function(){var cg=String(p.cargo||'').trim()||'Otro';var slot=null;for(var i2=0;i2<cargos.length;i2++){if(String(cargos[i2].cargo).toLowerCase()===cg.toLowerCase()){slot=cargos[i2];break}}
     if(!slot){slot={cargo:cg,cant:0,nombres:[]};cargos.push(slot)}
     var nm=String(p.nombre).trim();if(!slot.nombres.some(function(x2){return String(x2).trim().toLowerCase()===nm.toLowerCase()})){slot.nombres.push(nm);slot.cant=Math.max((slot.cant||0)+1,slot.nombres.length)}
-    _pdDiaSet(pid,todayISO(),{estado:'designado',cuadrilla:String(n)});
-    if(otra)_pdQuitarDeCuadDef(p.nombre,otra,DISC0);
+    if(otra)_pendQuitar[pid]=otra;   /* se aplica al GUARDAR */
     paint()};
-   if(otra){if(confirm('¿Desea usar este personal?\n\n'+p.nombre+' actualmente está trabajando en la cuadrilla C'+otra+'.\n\nAl aceptar se quita de esa cuadrilla (solo HOY) y pasa aquí. Los reportes ya guardados NO se tocan.'))meter()}else meter()}});
+   if(otra){if(confirm('¿Desea quitar a '+p.nombre+' de la cuadrilla C'+otra+'?\n\nSe pasará a la Cuadrilla '+n+' al GUARDAR. Los reportes ya guardados NO se tocan.'))meter()}else meter()}});
   var _pq2=document.getElementById('_cqPedir'+n);if(_pq2)_pq2.onclick=function(){_pdPedirPrompt(n,DISC0)};
  }else{_dg.innerHTML='<div style="color:#8b949e;font-size:11.5px">Sin personal designado hoy para '+DISC0+' — se sigue escribiendo los nombres como siempre. El designador puede cargarlo en 📊 Personal → 🧑‍🔧 Designar.</div>'}}}catch(_pde){}
  var bo=document.getElementById('_cqOtro'+n);if(bo)bo.onclick=function(){var inp=document.getElementById('_cqNuevo'+n);var nm=(inp&&inp.value||'').trim();var mq=document.getElementById('_cqMsg'+n);if(!nm){if(mq){mq.textContent='⚠ Escribe el nombre del cargo en la casilla de al lado';mq.style.color='#FFD27A'}return}if(cargos.some(function(g){return g.cargo.toLowerCase()===nm.toLowerCase()})){if(mq){mq.textContent='⚠ Ese cargo ya está en la lista';mq.style.color='#FFD27A'}return}cargos.push({cargo:nm,cant:1,nombres:[]});paint();var m2=document.getElementById('_cqMsg'+n);if(m2){m2.textContent='✓ Cargo "'+nm+'" agregado — ponle cantidad y nombres';m2.style.color='#7fd7a5'}};
@@ -2176,6 +2282,13 @@ function _showCuadrillas(nFoco){if(typeof _gateW==='function'&&!_gateW())return;
     if(prev){try{await fetch(sbBase()+'/rest/v1/cuadrillas?id=eq.'+encodeURIComponent(prev.id),{method:'PATCH',headers:sbHead({'Prefer':'return=minimal'}),body:JSON.stringify({activa:false,updated_at:new Date().toISOString()})});if(state.cuadrillas[prev.id])state.cuadrillas[prev.id].activa=false;store.set(KCU,state.cuadrillas)}catch(e){}}
     toast(subio?('✅ Cuadrilla '+n+' guardada en la base (v'+ver+') ✓'):('✅ Cuadrilla '+n+' guardada en el equipo — se subirá al reconectar'));
     if(typeof logCambio==='function')logCambio('CUADRILLA',DISC0+'_c'+n,'definida v'+ver+' ('+DISC0+'): '+_cuadResumen(row)+(_cuadNombres(row).length?(' · '+_cuadNombres(row).join(', ')):''));
+    /* --- personal designado: aplicar la cuadrilla del DÍA (nunca toca días pasados) --- */
+    try{if(typeof _pdDiaSet==='function'){var _hoy2=todayISO();var _enCuad={};
+     personal.forEach(function(g){(g.nombres||[]).forEach(function(nm){var _p=_pdPersonaPorNombre(nm);if(_p){_enCuad[_p.pid]=1;_pdDiaSet(_p.pid,_hoy2,{estado:'designado',cuadrilla:String(n)})}})});
+     Object.keys(_pendQuitar).forEach(function(_pid){var _pp=state.personal[_pid];if(_pp)_pdQuitarDeCuadDef(_pp.nombre,_pendQuitar[_pid],DISC0)});
+     _pdDesigList(_hoy2).forEach(function(x){if(String(x.d.cuadrilla)===String(n)&&!_enCuad[x.p.pid])_pdDiaSet(x.p.pid,_hoy2,{cuadrilla:''})});
+     _pendQuitar={};
+    }}catch(_pe2){}
     draw();try{renderCuadPick()}catch(e){}};
   }
   paint()}
@@ -2303,7 +2416,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260709e8';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260709e9';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -2781,7 +2894,7 @@ async function _backup(){
  /* 0) sincronizar primero para que también el caché del equipo quede fresco */
  try{est.textContent='sincronizando…';await syncNow(true);linea('⟳ Sincronizado con el servidor antes de copiar','#9db4d6')}catch(e){linea('⟳ (no se pudo pre-sincronizar, sigo con la copia)','#FFD27A')}
  /* 1) TODAS LAS TABLAS, pedidas al servidor en este momento */
- var TABLAS=['personal','personal_dia','metrados','partes','fotos','programacion','borrados','pendientes','cambios','conflictos','nuevas','calendario','restricciones_partida','dias_habilitados','dispositivos','app_config','bitacora','ediciones','reinicios','reportabilidad','restricciones_generales','tormenta','roles_usuarios','cuadrillas','roles_permisos','fotos_borradas','avance_semana','metas_semana','prog_semana','razones_noavance','semanas'];
+ var TABLAS=['personal','personal_dia','personal_esp','metrados','partes','fotos','programacion','borrados','pendientes','cambios','conflictos','nuevas','calendario','restricciones_partida','dias_habilitados','dispositivos','app_config','bitacora','ediciones','reinicios','reportabilidad','restricciones_generales','tormenta','roles_usuarios','cuadrillas','roles_permisos','fotos_borradas','avance_semana','metas_semana','prog_semana','razones_noavance','semanas'];
  var db={},filasTot=0,dbBytes=0,tablasOk=0,tablasErr=[];
  for(var ti=0;ti<TABLAS.length;ti++){var t=TABLAS[ti];est.textContent='tabla '+(ti+1)+'/'+TABLAS.length+': '+t+'…';
   try{var rows=[],from=0,page=1000;
@@ -2876,7 +2989,7 @@ async function _backup(){
  try{var _bf=TABLAS.map(function(_t){return db[_t]?{tabla:_t,ok:db[_t].length,total:db[_t].length}:{tabla:_t,ok:0,total:0,err:true,nota:'no se pudo leer'}});_bf.push({tabla:'fotos (archivos)',ok:okF,total:_allF.length,nota:((nHuerf?(nHuerf+' sin asignar incluidas'):'')+(intMal?((nHuerf?' · ':'')+intMal+' con integridad dudosa'):''))||undefined});window._bkExcluir={};_cartillaIO((tablasErr.length||failF)?'Backup total \u2014 con avisos':'Backup total listo','Esto tiene la copia \u00b7 '+filasTot+' filas \u00b7 desc\u00e1rgala con el bot\u00f3n verde',_bf,'La copia NO se guarda sola: desc\u00e1rgala y gu\u00e1rdala en un lugar seguro.','Cerrar',null,{items:_fotoItems.map(function(_it){return {path:_it.path,name:_it.name,size:_it.size,asignada:_it.asignada,url:(files[_it.idx]?URL.createObjectURL(new Blob([files[_it.idx].data],{type:/\.png$/i.test(_it.path)?'image/png':'image/jpeg'})):fotoPublicUrl(_it.path))}}),excluir:window._bkExcluir,editable:true});}catch(_ce){}
 }
 /* === 📥 RESTAURAR BACKUP (admin): lee el ZIP del "Backup TOTAL" (o la carpeta descomprimida) y deja el servidor EXACTAMENTE como esa copia === */
-function _impPk(t){return ({personal:'proyecto,pid',personal_dia:'proyecto,fecha,pid',metrados:'proyecto,partida_id',partes:'client_id',fotos:'foto_id',programacion:'proyecto,partida_id',borrados:'client_id',pendientes:'id',cambios:'id',conflictos:'id',nuevas:'proyecto,partida_id',calendario:'proyecto,fecha',restricciones_partida:'partida_id',dias_habilitados:'proyecto,fecha',bitacora:'nombre,dia',ediciones:'proyecto,partida_id',reinicios:'rid',reportabilidad:'rid',restricciones_generales:'id',tormenta:'id',roles_usuarios:'nombre',cuadrillas:'id',roles_permisos:'rol',fotos_borradas:'id',avance_semana:'proyecto,semana_id,partida_id',metas_semana:'proyecto,semana_id,partida_id',prog_semana:'proyecto,semana_id,partida_id',razones_noavance:'proyecto,semana_id,partida_id,fecha',semanas:'proyecto,semana_id',interf_log:'id',presencia_lapsos:'id',fotos_migra:'id',partida_nombres:'id'})[t]||null}
+function _impPk(t){return ({personal:'proyecto,pid',personal_dia:'proyecto,fecha,pid',personal_esp:'proyecto,nombre',metrados:'proyecto,partida_id',partes:'client_id',fotos:'foto_id',programacion:'proyecto,partida_id',borrados:'client_id',pendientes:'id',cambios:'id',conflictos:'id',nuevas:'proyecto,partida_id',calendario:'proyecto,fecha',restricciones_partida:'partida_id',dias_habilitados:'proyecto,fecha',bitacora:'nombre,dia',ediciones:'proyecto,partida_id',reinicios:'rid',reportabilidad:'rid',restricciones_generales:'id',tormenta:'id',roles_usuarios:'nombre',cuadrillas:'id',roles_permisos:'rol',fotos_borradas:'id',avance_semana:'proyecto,semana_id,partida_id',metas_semana:'proyecto,semana_id,partida_id',prog_semana:'proyecto,semana_id,partida_id',razones_noavance:'proyecto,semana_id,partida_id,fecha',semanas:'proyecto,semana_id',interf_log:'id',presencia_lapsos:'id',fotos_migra:'id',partida_nombres:'id'})[t]||null}
 var _IMP_SKIP={app_config:'configuración viva del server (versión mínima · modo prueba)',dispositivos:'registro vivo de equipos conectados'};
 function _unzipDir(buf){var u8=new Uint8Array(buf),dv=new DataView(buf);var eo=-1;
  for(var i=u8.length-22;i>=Math.max(0,u8.length-22-65557);i--){if(dv.getUint32(i,true)===0x06054b50){eo=i;break}}
