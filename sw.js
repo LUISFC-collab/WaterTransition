@@ -1,7 +1,7 @@
 /* Service worker — Parte de obra (Water Transition II)
    Guarda la app en el telefono y la abre SIN conexion, pero SIEMPRE trae la version
    mas nueva cuando hay internet. Cambia CACHE en cada despliegue para no servir data vieja. */
-const CACHE = 'wtrans-v20260714e2';
+const CACHE = 'wtrans-v20260714e3';
 const SHELL = ['./', './index.html', './config.js', './manifest.json', './icon-192.png', './icon-512.png', './heic2any.min.js'];
 
 self.addEventListener('install', function (e) {
