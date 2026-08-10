@@ -2677,7 +2677,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260809a8';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260809a9';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -5141,18 +5141,18 @@ function _ganttExcel(ini,fin,scope){try{
   var E=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
   var Q=function(n){return (typeof qty==='function')?qty(n):(n==null?'':n);};
   var COL={base:{bg:'#DCE9FB',tx:'#1F3864',cell:'#C3D9F6'},real:{bg:'#DFF4E7',tx:'#0F6E37',cell:'#BFE9CF'},fore:{bg:'#FBE3EE',tx:'#A83A6B',cell:'#F6CBDE'}};
-  var ncols=7+days.length+2;
+  var ncols=8+days.length+2;
   var thDays=days.map(function(dd){var pp=dd.split('-');return '<th style="background:#F4F7FB;border:1px solid #C7D2E0">'+pp[2]+'/'+pp[1]+'</th>';}).join('');
   var html='<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;font-family:Calibri,Arial;font-size:11px">'
     +'<thead><tr>'
-    +['N°','Código original','Actividad','Línea','Unidad','Metrado','Antes de '+ini].map(function(h){return '<th style="background:#1F3864;color:#fff;border:1px solid #16294d">'+E(h)+'</th>';}).join('')
+    +['N°','Código original','Actividad','Alcance','Línea','Unidad','Metrado','Antes de '+ini].map(function(h){return '<th style="background:#1F3864;color:#fff;border:1px solid #16294d">'+E(h)+'</th>';}).join('')
     +thDays
     +'<th style="background:#EAF2FF;border:1px solid #B4C6E0">Acumulado final</th>'
     +'<th style="background:#EAF2FF;border:1px solid #B4C6E0">% final</th>'
     +'</tr></thead><tbody>';
   function fila(col,num,cod,nom,linea,u,metTot,antesTxt,cells,acumTxt,pctTxt){
     var b='border:1px solid #E1E7EF;background:'+col.bg+';color:'+col.tx+';';
-    return '<tr><td style="'+b+'font-weight:bold">'+E(num)+'</td><td style="'+b+'font-weight:bold">'+E(cod)+'</td><td style="'+b+'">'+E(nom)+'</td><td style="'+b+'font-weight:bold;text-align:center">'+E(linea)+'</td><td style="'+b+'text-align:center">'+E(u)+'</td><td style="'+b+'text-align:right">'+E(metTot)+'</td><td style="'+b+'text-align:right;font-weight:bold">'+E(antesTxt)+'</td>'+cells+'<td style="border:1px solid #B4C6E0;text-align:right;background:'+col.bg+';color:'+col.tx+'">'+E(acumTxt)+'</td><td style="border:1px solid #B4C6E0;text-align:right;background:'+col.bg+';color:'+col.tx+';font-weight:bold">'+E(pctTxt)+'</td></tr>';
+    return '<tr><td style="'+b+'font-weight:bold">'+E(num)+'</td><td style="'+b+'font-weight:bold">'+E(cod)+'</td><td style="'+b+'">'+E(nom)+'</td><td style="'+b+'text-align:center;font-weight:bold">'+E(window._xlAlcTxt||'')+'</td><td style="'+b+'font-weight:bold;text-align:center">'+E(linea)+'</td><td style="'+b+'text-align:center">'+E(u)+'</td><td style="'+b+'text-align:right">'+E(metTot)+'</td><td style="'+b+'text-align:right;font-weight:bold">'+E(antesTxt)+'</td>'+cells+'<td style="border:1px solid #B4C6E0;text-align:right;background:'+col.bg+';color:'+col.tx+'">'+E(acumTxt)+'</td><td style="border:1px solid #B4C6E0;text-align:right;background:'+col.bg+';color:'+col.tx+';font-weight:bold">'+E(pctTxt)+'</td></tr>';
   }
   function celdas(col,map){return days.map(function(dd){var v=map[dd];var has=(v!=null&&v>0.0001);return '<td style="text-align:center;border:1px solid #E1E7EF;background:'+(has?col.cell:col.bg)+';color:'+col.tx+';'+(has?'font-weight:bold':'')+'">'+(has?Q(v):'')+'</td>';}).join('');}
   sysOrd.forEach(function(s){
@@ -5162,7 +5162,7 @@ function _ganttExcel(ini,fin,scope){try{
       var glb=(u==='glb');var tot=glb?100:((m&&m.total>0)?m.total:0);
       var num=(window._cardNum&&window._cardNum[p.id])||'';
       var cod=(typeof codeOf==='function')?codeOf(p):p.id;
-      var nom=(typeof pNom==='function')?pNom(p):(p.nombre||'');
+      var nom=(typeof pNom==='function')?pNom(p):(p.nombre||'');try{window._xlAlcTxt=(typeof _alcDe==='function'&&typeof _alcInfo==='function')?_alcInfo(_alcDe(p.id)).n:''}catch(_ax){window._xlAlcTxt=''}
       var metTot=m?(glb?'100%':Q(m.total)):'';
       if(bk){
         var bs=bkByPid[p.id];var baseMap={};var antesB='—',acumB='—',pctB='—';
