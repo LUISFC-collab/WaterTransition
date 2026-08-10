@@ -1022,7 +1022,8 @@ function _rtOnCambio(tabla){
  if(tabla==='wbs_extra'){_rtRefrescarWbsX();return}
  if(tabla==='personal'||tabla==='personal_dia'||tabla==='personal_esp'){try{_pdRT()}catch(e){}return}
  if(tabla==='cuadrillas'){try{if(typeof _pullCuadrillas==='function')_pullCuadrillas()}catch(e){}try{_pdRT()}catch(e){}return}
- if(tabla==='nuevas'){try{if(typeof syncNow==='function')syncNow()}catch(e){}}
+ if(tabla==='crono_cuadrillas_create_090826'){try{if(typeof _ccPull==='function')_ccPull()}catch(e){}return}
+  if(tabla==='nuevas'){try{if(typeof syncNow==='function')syncNow()}catch(e){}}
 }
 function _rtStop(){try{if(_RT.hb)clearInterval(_RT.hb)}catch(e){}try{if(_RT.ws)_RT.ws.close()}catch(e){}_RT.ws=null;_RT.hb=null;_RT.alive=false}
 function _rtPollOn(){if(_RT.poll)return;_RT.poll=setInterval(function(){if(!_RT.alive){_rtRefrescarWbsX();try{_pdRefrescar()}catch(e){}}},15000)}
@@ -1036,7 +1037,7 @@ function _rtInit(){
   _RT.ws=ws;
   ws.onopen=function(){
    _RT.tries=0;
-   ws.send(JSON.stringify({topic:'realtime:obf_wbs',event:'phx_join',ref:'1',join_ref:'1',payload:{config:{broadcast:{ack:false,self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'wbs_extra'},{event:'*',schema:'public',table:'nuevas'},{event:'*',schema:'public',table:'personal'},{event:'*',schema:'public',table:'personal_dia'},{event:'*',schema:'public',table:'personal_esp'},{event:'*',schema:'public',table:'cuadrillas'}]}}}));
+   ws.send(JSON.stringify({topic:'realtime:obf_wbs',event:'phx_join',ref:'1',join_ref:'1',payload:{config:{broadcast:{ack:false,self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'wbs_extra'},{event:'*',schema:'public',table:'nuevas'},{event:'*',schema:'public',table:'personal'},{event:'*',schema:'public',table:'personal_dia'},{event:'*',schema:'public',table:'personal_esp'},{event:'*',schema:'public',table:'cuadrillas'},{event:'*',schema:'public',table:'crono_cuadrillas_create_090826'}]}}}));
    _RT.hb=setInterval(function(){try{ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(++_RT.ref)}))}catch(e){}},22000);
   };
   ws.onmessage=function(m){try{var d=JSON.parse(m.data);
@@ -2676,7 +2677,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260809a2';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260809a3';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -4166,12 +4167,70 @@ if($('btnCronoPdf'))$('btnCronoPdf').onclick=cronoExport;
 if($('progGantt'))$('progGantt').onclick=function(){if(typeof _ganttDirecto==='function')_ganttDirecto(progDisc||(state.user&&state.user.disc)||null)};
 /* ===== Cuadrillas del CRONOGRAMA: etiquetas visuales (C1, C2…) para agrupar las partidas asignadas en cuadros de color. Independientes de las cuadrillas reales. Guardado local por disciplina. ===== */
 var _CC_COLORS=['#1F6FEB','#E8821A','#1E7A46','#8A3FA0','#B42318','#0C8577','#B0177A','#5B3A8A','#7A4A00','#2E5496'];
-function _cronoCuadAll(){if(window._bkcSrc&&window._bkcSrc.cronocuad)return window._bkcSrc.cronocuad;if(!state.cronoCuad){try{state.cronoCuad=JSON.parse(localStorage.getItem('wtt4_cronocuad')||'{}')||{}}catch(e){state.cronoCuad={}}try{var _ch=false;Object.keys(state.cronoCuad||{}).forEach(function(_d){var _x=state.cronoCuad[_d]||{};var _us={};Object.keys(_x.asig||{}).forEach(function(_p){_us[_x.asig[_p]]=1});var _b=(_x.grupos||[]).length;_x.grupos=(_x.grupos||[]).filter(function(_g){return _us[_g.id]||_g.id===window._cronoActivo});if(_x.grupos.length!==_b)_ch=true});if(_ch)localStorage.setItem('wtt4_cronocuad',JSON.stringify(state.cronoCuad))}catch(e){}}if(!state.cronoCuad)state.cronoCuad={};return state.cronoCuad;}
-function _cronoCuadGet(){var all=_cronoCuadAll();var k=(typeof progDisc!=='undefined'&&progDisc)||'_';if(!all[k])all[k]={grupos:[],asig:{}};if(!all[k].grupos)all[k].grupos=[];if(!all[k].asig)all[k].asig={};return all[k];}
-function _cronoCuadSave(){if(window._bkcSrc)return;try{localStorage.setItem('wtt4_cronocuad',JSON.stringify(_cronoCuadAll()))}catch(e){}}
-function _cronoAddCuad(){if(window._bkcSrc)return;var cc=_cronoCuadGet();var n=cc.grupos.length+1;var g={id:'g'+Date.now().toString(36)+n,nombre:'C'+n,color:_CC_COLORS[(n-1)%_CC_COLORS.length]};cc.grupos.push(g);_cronoCuadSave();window._cronoActivo=g.id;renderCal();}
-function _cronoEditCuad(id){if(window._bkcSrc)return;var cc=_cronoCuadGet();var g=cc.grupos.filter(function(x){return x.id===id})[0];if(!g)return;var nv=prompt('Nombre de la cuadrilla (déjalo vacío para BORRARLA):',g.nombre);if(nv==null)return;nv=nv.trim();if(!nv){if(!confirm('¿Borrar la cuadrilla "'+g.nombre+'"? Sus partidas quedan sin cuadrilla.'))return;cc.grupos=cc.grupos.filter(function(x){return x.id!==id});Object.keys(cc.asig).forEach(function(p){if(cc.asig[p]===id)delete cc.asig[p]});if(window._cronoActivo===id)window._cronoActivo='';}else{g.nombre=nv}_cronoCuadSave();renderCal();}
-function _cronoAsignar(pid){if(window._bkcSrc)return;var cc=_cronoCuadGet();var act=window._cronoActivo;if(!act)return;if(cc.asig[pid]===act){delete cc.asig[pid]}else if(cc.asig[pid]){if(typeof toast==='function')toast('⚠ Esa actividad ya tiene cuadrilla — quítala primero tocándola en su cuadrilla');return}else{cc.asig[pid]=act}_cronoCuadSave();renderCal();}
+/* === CUADRILLAS DEL CRONOGRAMA — ahora viven en la base ===
+   Una fila por cuadrilla en 'crono_cuadrillas_create_090826', con sus partidas en 'asig'.
+   Arbitra la HORA de la accion (ts): gana el ultimo, igual que la programacion.
+   No se borran: se APAGAN (eliminado=true) para que el borrado viaje a todos
+   y se pueda deshacer. Realtime avisa al resto en ~1 s. */
+function _cronoCuadAll(){if(window._bkcSrc&&window._bkcSrc.cronocuad)return window._bkcSrc.cronocuad;if(!state.cronoCuad){try{state.cronoCuad=JSON.parse(localStorage.getItem('wtt4_cronocuad')||'{}')||{}}catch(e){state.cronoCuad={}}}if(!state.cronoCuad)state.cronoCuad={};return state.cronoCuad;}
+function _cronoCuadGet(){var all=_cronoCuadAll();var k=(typeof progDisc!=='undefined'&&progDisc)||'_';if(!all[k])all[k]={};var x=all[k];if(!x.grupos)x.grupos=[];if(!x.asig)x.asig={};if(!x.del)x.del={};if(!x._ts)x._ts={};if(!x._ca)x._ca={};return x;}
+/* sella la hora de la accion sobre ESA cuadrilla (lo que decide quien gana) */
+function _ccStamp(x,gid){if(!gid)return;x._ts=x._ts||{};x._ca=x._ca||{};x._ts[gid]=(typeof nowSrv==='function'?nowSrv():Date.now());x._ca[gid]=Date.now();}
+function _cronoCuadSave(tocadas){if(window._bkcSrc)return;var x=_cronoCuadGet();
+/* adopcion: las cuadrillas que ya existian SOLO en este equipo (sin sello) se sellan
+   en la primera edicion, para que suban y las vea el resto */
+(x.grupos||[]).forEach(function(g){if(!x._ts[g.id])_ccStamp(x,g.id)});
+(tocadas||[]).forEach(function(g){_ccStamp(x,g)});try{localStorage.setItem('wtt4_cronocuad',JSON.stringify(_cronoCuadAll()))}catch(e){}try{if(typeof syncNow==='function')syncNow(true)}catch(e){}}
+function _cronoAddCuad(){if(window._bkcSrc)return;var cc=_cronoCuadGet();var n=cc.grupos.length+1;var g={id:'g'+Date.now().toString(36)+n,nombre:'C'+n,color:_CC_COLORS[(n-1)%_CC_COLORS.length]};cc.grupos.push(g);_cronoCuadSave([g.id]);window._cronoActivo=g.id;renderCal();}
+function _cronoEditCuad(id){if(window._bkcSrc)return;var cc=_cronoCuadGet();var g=cc.grupos.filter(function(x){return x.id===id})[0];if(!g)return;var nv=prompt('Nombre de la cuadrilla (déjalo vacío para BORRARLA):',g.nombre);if(nv==null)return;nv=nv.trim();
+if(!nv){if(!confirm('¿Borrar la cuadrilla "'+g.nombre+'"? Sus partidas quedan sin cuadrilla.'))return;
+cc.grupos=cc.grupos.filter(function(x){return x.id!==id});Object.keys(cc.asig).forEach(function(p){if(cc.asig[p]===id)delete cc.asig[p]});
+cc.del[id]={nombre:g.nombre,color:g.color,elim_por:((state.user&&state.user.supervisor)||''),elim_ts:(typeof nowSrv==='function'?nowSrv():Date.now())};
+if(window._cronoActivo===id)window._cronoActivo='';}
+else{g.nombre=nv}
+_cronoCuadSave([id]);renderCal();}
+function _cronoAsignar(pid){if(window._bkcSrc)return;var cc=_cronoCuadGet();var act=window._cronoActivo;if(!act)return;var antes=cc.asig[pid]||'';
+if(cc.asig[pid]===act){delete cc.asig[pid]}
+else if(cc.asig[pid]){if(typeof toast==='function')toast('⚠ Esa actividad ya tiene cuadrilla — quítala primero tocándola en su cuadrilla');return}
+else{cc.asig[pid]=act}
+_cronoCuadSave([act,antes]);renderCal();}
+/* ---- filas que van a la base (una por cuadrilla, viva o apagada) ---- */
+function _ccPushRows(){var all=_cronoCuadAll();var out=[];var proy=DATA.proyecto;var quien=(state.user&&state.user.supervisor)||'';
+Object.keys(all||{}).forEach(function(d){if(!d||d==='_')return;var x=all[d]||{};var _ts=x._ts||{},_ca=x._ca||{};
+var porG={};Object.keys(x.asig||{}).forEach(function(p){var g=x.asig[p];if(g)(porG[g]=porG[g]||[]).push(p)});
+(x.grupos||[]).forEach(function(g){if(!_ts[g.id])return; /* sin sello nunca se toco: no la subo */
+out.push({proyecto:proy,id:g.id,disc:d,nombre:g.nombre||'',color:g.color||'',asig:(porG[g.id]||[]).sort(),quien:quien,ts:Number(_ts[g.id])||0,cell_at:Number(_ca[g.id])||0,eliminado:false,elim_por:'',elim_ts:0})});
+Object.keys(x.del||{}).forEach(function(gid){var dd=x.del[gid]||{};
+out.push({proyecto:proy,id:gid,disc:d,nombre:dd.nombre||'',color:dd.color||'',asig:[],quien:quien,ts:Number(_ts[gid])||Number(dd.elim_ts)||0,cell_at:Number(_ca[gid])||0,eliminado:true,elim_por:dd.elim_por||'',elim_ts:Number(dd.elim_ts)||0})});
+});return out}
+async function _ccPush(){if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;
+var rows=_ccPushRows();if(!rows.length)return;
+rows=onlyChanged('crono_cuadrillas_create_090826',rows,function(r){return r.disc+'|'+r.id});
+if(!rows.length)return;
+await sbUpsert('crono_cuadrillas_create_090826',rows,'proyecto,id');commitSent(rows);
+try{if(typeof _logDet==='function')_logDet('⬆ SUBIÓ','cuadrillas del cronograma',rows.map(function(r){return r.disc+' '+r.nombre+(r.eliminado?' (apagada)':' · '+(r.asig||[]).length+' part.')}))}catch(e){}}
+async function _ccPull(){if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;if(window._bkcSrc)return;
+var CC=await sbSelect('crono_cuadrillas_create_090826','select=*&proyecto=eq.'+encodeURIComponent(DATA.proyecto));
+var all=_cronoCuadAll();var ahora=(typeof nowSrv==='function'?nowSrv():Date.now());var cambio=false;
+(CC||[]).forEach(function(r){if(!r||!r.disc||!r.id)return;
+var x=all[r.disc]=all[r.disc]||{};if(!x.grupos)x.grupos=[];if(!x.asig)x.asig={};if(!x.del)x.del={};if(!x._ts)x._ts={};if(!x._ca)x._ca={};
+var lts=Number(x._ts[r.id])||0,sts=Number(r.ts)||0;
+if(lts>sts)return; /* lo mio es mas nuevo: manda lo mio */
+if(lts&&lts===sts&&(ahora-lts)<120000)return; /* recien puesto aca y el server aun no lo refleja */
+cambio=true;
+x.grupos=x.grupos.filter(function(g){return g.id!==r.id});delete x.del[r.id];
+Object.keys(x.asig).forEach(function(p){if(x.asig[p]===r.id)delete x.asig[p]});
+if(r.eliminado){x.del[r.id]={nombre:r.nombre||'',color:r.color||'',elim_por:r.elim_por||'',elim_ts:Number(r.elim_ts)||0}}
+else{x.grupos.push({id:r.id,nombre:r.nombre||'',color:r.color||''});
+var ar=r.asig;if(typeof ar==='string'){try{ar=JSON.parse(ar)}catch(e){ar=[]}}
+(ar||[]).forEach(function(p){x.asig[p]=r.id})}
+x._ts[r.id]=sts;x._ca[r.id]=Number(r.cell_at)||0;});
+if(!cambio)return;
+state.cronoCuad=all;try{localStorage.setItem('wtt4_cronocuad',JSON.stringify(all))}catch(e){}
+try{var sp=$('scrProg');if(sp&&!sp.classList.contains('hidden')&&typeof renderCal==='function')renderCal()}catch(e){}}
+/* ---- enganche al motor de siempre (sin tocar syncPush/syncPull por dentro) ---- */
+try{var _ccPushBase=syncPush;syncPush=async function(){try{await _ccPush()}catch(e){}return await _ccPushBase.apply(this,arguments)};
+var _ccPullBase=syncPull;syncPull=async function(){var r=await _ccPullBase.apply(this,arguments);try{await _ccPull()}catch(e){}return r};}catch(_cw){}
 function _ccTint(hex){try{var h=String(hex||'').replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return 'rgba('+r+','+g+','+b+',.06)'}catch(e){return 'transparent'}}
 function _ccFill(hex){try{var h=String(hex||'').replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return 'rgba('+r+','+g+','+b+',.16)'}catch(e){return 'transparent'}}
 function _ccPartCard(pr,color){var _m=metaOf(pr.partida_id);var _met=_m?(qty(_m.total)+' '+(_m.unidad||'')+(_m.rend?(' · rend '+_m.rend):'')):'sin metrado';var _dd=occupiedDays(pr.start,pr.dias||1);var _r=_dd.length?(_dd[0].slice(5)+(_dd.length>1?(' → '+_dd[_dd.length-1].slice(5)):'')):'';return '<div class="_ccPart" data-pid="'+esc(pr.partida_id)+'" style="border:1px solid '+(color||'var(--line)')+';border-radius:8px;padding:7px 9px;margin-bottom:6px;cursor:pointer;background:#fff"><b>'+esc(pr.codigo||pr.partida_id)+'</b> · '+esc(pr.nombre||'')+'<div style="font-size:11px;color:var(--muted)">'+esc(_met)+' · '+(pr.dias||1)+' día'+((pr.dias||1)>1?'s':'')+' · '+esc(_r)+'</div></div>';}
