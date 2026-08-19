@@ -620,7 +620,7 @@ body.webmode #scrBita .scroll>*,body.webmode #scrPend .scroll>*,body.webmode #sc
         <button type="button" class="expTile" onclick="_showDispositivos()"><span class="ico" style="background:#E8EDF6;color:#1F3864"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/></svg></span><span class="lbl" style="color:#1F3864">Dispositivos</span></button>
         <button type="button" class="expTile" onclick="_backup()"><span class="ico" style="background:#FBEFDD;color:#8A4B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v12c0 1.7 3.6 3 8 3s8-1.3 8-3v-12"/><path d="M4 11.5c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><span class="lbl" style="color:#8A4B00">Backup total</span></button>
         <button type="button" class="expTile" onclick="_importBackup()"><span class="ico" style="background:#FBEFDD;color:#8A4B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/></svg></span><span class="lbl" style="color:#8A4B00">Restaurar</span></button>
-        <button type="button" class="expTile" onclick="_showAlcPaquetes()"><span class="ico" style="background:#FCEFD9;color:#9A5B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg></span><span class="lbl" style="color:#9A5B00">Alcances</span></button><button type="button" class="expTile" onclick="_showActEliminadas()"><span class="ico" style="background:#F6DCE8;color:#8a3a5e"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lbl" style="color:#8a3a5e">Eliminadas</span></button>
+        <button type="button" class="expTile" onclick="_showRenum()"><span class="ico" style="background:#DCE7F6;color:#1F3864"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/><path d="M18 15v6"/><path d="M15 18h6"/></svg></span><span class="lbl" style="color:#1F3864">Renumerar</span></button><button type="button" class="expTile" onclick="_showAlcPaquetes()"><span class="ico" style="background:#FCEFD9;color:#9A5B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg></span><span class="lbl" style="color:#9A5B00">Alcances</span></button><button type="button" class="expTile" onclick="_showActEliminadas()"><span class="ico" style="background:#F6DCE8;color:#8a3a5e"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lbl" style="color:#8a3a5e">Eliminadas</span></button>
         <button type="button" class="expTile" onclick="_exportFotos()"><span class="ico" style="background:#EBE8FA;color:#4A3AA7"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><polyline points="8 7 12 3 16 7"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg></span><span class="lbl" style="color:#4A3AA7">Exportar fotos</span></button>
       </div>
     </div>
@@ -750,7 +750,10 @@ function _visVe(p){try{if(typeof esAdmin==='function'&&esAdmin())return true;var
  return _puedeVer('alc',(typeof _alcDe==='function')?_alcDe(p.id):'')&&_puedeVer('act',p.id)&&_puedeVer('sys',a+'§'+(p.sistema||''))&&_puedeVer('area',a)}catch(e){return true}}
 function _visVeId(id,sis){try{var bp=(DATA._byId&&DATA._byId[id])||((state.nuevas||[]).filter(function(n){return n&&n.id===id})[0]);var pp=bp?((typeof applyEdit==='function')?applyEdit(Object.assign({},bp)):bp):{id:id,sistema:sis||''};return _visVe(pp)}catch(e){return true}}
 function acts(d){return DATA.partidas.concat(state.nuevas).map(applyEdit).filter(function(p){return p.esp===d&&!(typeof tombHas==='function'&&tombHas('partida',p.id))&&_visVe(p)})}
-function codeOf(p){return p.codigo||p.id}
+function _codeOfBase(p){return p.codigo||p.id}
+/* el cable de la renumeracion: si esta activada, muestra el codigo nuevo;
+   si no, el de siempre. partida_id NUNCA cambia. */
+function codeOf(p){try{if(typeof _rnmOn==='function'&&_rnmOn()){var m=_rnmAll()[p.id];if(m&&m.nuevo)return m.nuevo}}catch(e){}return _codeOfBase(p)}
 function pNom(p){if(p&&p.nombre&&typeof p.nombre==='string')return p.nombre;var id=(p&&p.id)||((typeof p==='string')?p:'');/* ← si p.id es null NO caer al objeto entero (daba "[object Object]") */var bp=id&&((DATA._byId&&DATA._byId[id])||((state.nuevas||[]).filter(function(n2){return n2&&n2.id===id})[0]));if(bp){var n=(typeof applyEdit==='function')?(applyEdit(bp).nombre||bp.nombre):bp.nombre;if(n)return n;}var cg=(p&&p.codigo&&typeof p.codigo==='string')?p.codigo:'';return cg||(typeof id==='string'?id:'')||'';}
 var BASE_FECHA='2026-06-28';
 function isoLocal(ts){var d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -2681,7 +2684,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819a8';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819a9';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -2844,6 +2847,108 @@ function _showAlcPaquetes(){
  document.getElementById('_alcX').onclick=function(){ov.remove()};
  ov.querySelectorAll('._alcT').forEach(function(b){b.onclick=function(){
   _alcPaqToggle(b.getAttribute('data-k'), b.getAttribute('data-off')!=='1')}});
+}
+/* === 🔢 RENUMERACION VISIBLE (admin) ===
+   C0001 / M0001 / E0001 seguido de " - Alc1..Alc5".
+   NO toca partida_id ni ninguna tabla existente: la numeracion vieja queda
+   intacta y se guarda como codigo_anterior. Un boton la cablea o la quita.
+   Se guarda en la tabla NUEVA codigos_create_190826 (si aun no existe, queda
+   en este equipo y se sube sola cuando la tabla este creada). */
+var KRNM='wtt4_codnew', KRNMON='wtt4_codnew_on';
+var _ALC_NUM={INI:1,A2:2,A3:3,A4:4,A5:5};
+var _DISC_PFX={Civil:'C',Mecanica:'M',Electrica:'E'};
+function _rnmAll(){try{return JSON.parse(localStorage.getItem(KRNM)||'{}')}catch(e){return {}}}
+function _rnmSave(o){try{localStorage.setItem(KRNM,JSON.stringify(o||{}))}catch(e){}}
+function _rnmOn(){try{return localStorage.getItem(KRNMON)==='1'}catch(e){return false}}
+function _rnmSetOn(v){try{localStorage.setItem(KRNMON,v?'1':'0')}catch(e){}}
+function _rnmGenerar(){
+ var out={};
+ var DS=(typeof DISC!=='undefined'&&DISC.length)?DISC.slice():['Mecanica','Electrica','Civil'];
+ DS.forEach(function(d){
+  var pfx=_DISC_PFX[d]||String(d||'X').slice(0,1).toUpperCase();
+  var A=[];try{A=(typeof acts==='function')?acts(d).slice():[]}catch(e){A=[]}
+  A.sort(function(x,y){return String(_codeOfBase(x)).localeCompare(String(_codeOfBase(y)),'es',{numeric:true})});
+  var n=0;
+  A.forEach(function(p){if(!p||!p.id)return;n++;
+   var alc=(typeof _alcDe==='function')?_alcDe(p.id):'INI';
+   out[p.id]={nuevo:pfx+('000'+n).slice(-4)+' - Alc'+(_ALC_NUM[alc]||1),
+              anterior:_codeOfBase(p),pfx:pfx,num:n,disc:d,alc:alc}});
+ });
+ return out;
+}
+async function _rnmPush(map,lote){
+ if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return {ok:false,msg:'sin conexión'};
+ var proy=DATA.proyecto,quien=(state.user&&state.user.supervisor)||'',ts=(typeof nowSrv==='function'?nowSrv():Date.now());
+ var rows=Object.keys(map).map(function(id){var m=map[id];
+  return {id:proy+'|'+id,proyecto:proy,partida_id:id,codigo_nuevo:m.nuevo,codigo_anterior:m.anterior,
+          prefijo:m.pfx,correlativo:m.num,disciplina:m.disc,alcance:m.alc,lote:lote,aplicado:_rnmOn(),
+          quien:quien,ts:ts,cell_at:Date.now(),updated_at:new Date().toISOString()}});
+ if(!rows.length)return {ok:false,msg:'nada que guardar'};
+ try{
+  var r=await fetch(sbBase()+'/rest/v1/codigos_create_190826?on_conflict=proyecto,partida_id',
+   {method:'POST',headers:sbHead({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(rows)});
+  if(r.status===404)return {ok:false,msg:'falta_tabla'};
+  if(!r.ok&&r.status!==201&&r.status!==204)return {ok:false,msg:'HTTP '+r.status};
+  return {ok:true,n:rows.length};
+ }catch(e){return {ok:false,msg:(e&&e.message)||'error'}}
+}
+async function _rnmPull(){
+ try{
+  if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;
+  var r=await fetch(sbBase()+'/rest/v1/codigos_create_190826?select=*&proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&limit=5000',{headers:sbHead()});
+  if(!r.ok)return;var rows=await r.json();if(!Array.isArray(rows)||!rows.length)return;
+  var m={};rows.forEach(function(x){if(x&&x.partida_id)m[x.partida_id]={nuevo:x.codigo_nuevo,anterior:x.codigo_anterior,pfx:x.prefijo,num:x.correlativo,disc:x.disciplina,alc:x.alcance}});
+  _rnmSave(m);
+ }catch(e){}
+}
+function _showRenum(){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ var ov=document.getElementById('_rnmOv');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='_rnmOv';
+ ov.style.cssText='position:fixed;inset:0;z-index:2147483300;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';
+ ov.onclick=function(e){if(e.target===ov)ov.remove()};
+ var guardado=_rnmAll(),on=_rnmOn();
+ var prev=Object.keys(guardado).length?guardado:_rnmGenerar();
+ var porDisc={};Object.keys(prev).forEach(function(id){var m=prev[id];(porDisc[m.disc]=porDisc[m.disc]||[]).push(m)});
+ var resumen=Object.keys(porDisc).map(function(d){var a=porDisc[d].slice().sort(function(x,y){return x.num-y.num});
+  return '<div style="border:1px solid #E1E7F0;border-radius:11px;padding:10px 12px;margin-bottom:8px">'
+   +'<div style="font-weight:800;font-size:13px;color:#1F3864;margin-bottom:5px">'+esc(d)+' <span style="color:#8A94A6;font-weight:700">· '+a.length+' actividades · prefijo '+esc(a[0]?a[0].pfx:'')+'</span></div>'
+   +a.slice(0,4).map(function(m){return '<div style="font-size:11.5px;color:#5C6779;padding:1px 0"><span style="color:#8A94A6">'+esc(m.anterior)+'</span> <span style="color:#1F3864">→</span> <b style="color:#0C5132">'+esc(m.nuevo)+'</b></div>'}).join('')
+   +(a.length>4?('<div style="font-size:11px;color:#8A94A6;margin-top:3px">… y '+(a.length-4)+' más</div>'):'')
+   +'</div>'}).join('');
+ ov.innerHTML='<div style="background:#fff;width:100%;max-width:580px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
+  +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">🔢 Renumerar códigos</b>'
+  +'<button id="_rnmX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
+  +'<div style="font-size:12px;color:#5C6779;margin-bottom:11px">Numera por especialidad (C civil · M mecánica · E eléctrica) con su alcance. <b>La llave interna no cambia</b>: el código anterior queda guardado y se puede volver a él cuando quieras.</div>'
+  +'<div style="background:'+(on?'#EAF6EE':'#FFF7E6')+';border:1px solid '+(on?'#B9E0C8':'#EFC98A')+';border-radius:10px;padding:9px 11px;margin-bottom:11px;font-size:12.5px;font-weight:800;color:'+(on?'#0C5132':'#8A5A00')+'">'
+   +(on?'✓ Cableado: la app está mostrando la numeración NUEVA':'La app está mostrando la numeración ANTERIOR')+'</div>'
+  +resumen
+  +'<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">'
+   +'<button id="_rnmGen" style="flex:1;min-width:150px;background:#1F3864;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:13px">🔄 Generar y guardar</button>'
+   +'<button id="_rnmTog" style="flex:1;min-width:150px;background:'+(on?'#B42318':'#0C5132')+';color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:13px">'+(on?'↩ Volver a los anteriores':'🔌 Cablear la nueva')+'</button>'
+  +'</div>'
+  +'<div id="_rnmMsg" style="font-size:11.5px;font-weight:700;margin-top:9px"></div></div>';
+ document.body.appendChild(ov);
+ document.getElementById('_rnmX').onclick=function(){ov.remove()};
+ document.getElementById('_rnmGen').onclick=async function(){
+  var m=_rnmGenerar();_rnmSave(m);
+  var msg=document.getElementById('_rnmMsg');
+  msg.innerHTML='<span style="color:#1F3864">Guardado en este equipo ('+Object.keys(m).length+' actividades). Subiendo…</span>';
+  var r=await _rnmPush(m,'lote '+(new Date()).toISOString().slice(0,10));
+  if(r.ok)msg.innerHTML='<span style="color:#0C5132">✓ Guardado y sincronizado — '+r.n+' códigos en la base.</span>';
+  else if(r.msg==='falta_tabla')msg.innerHTML='<span style="color:#B42318">⚠ Falta crear la tabla <b>codigos_create_190826</b> en Supabase (corre el SQL). Por ahora la numeración queda SOLO en este equipo.</span>';
+  else msg.innerHTML='<span style="color:#B42318">No se pudo subir: '+esc(r.msg||'')+' — queda en este equipo.</span>';
+  try{renderList()}catch(e){}
+ };
+ document.getElementById('_rnmTog').onclick=function(){
+  var nuevo=!_rnmOn();
+  if(nuevo&&!Object.keys(_rnmAll()).length){toast('Primero genera la numeración');return}
+  _rnmSetOn(nuevo);
+  if(typeof logCambio==='function')try{logCambio('CODIGOS','',nuevo?'cableada la numeración nueva':'vuelto a los códigos anteriores')}catch(e){}
+  toast(nuevo?'🔌 Numeración nueva cableada':'↩ De vuelta a los códigos anteriores');
+  try{renderList()}catch(e){}
+  ov.remove();_showRenum();
+ };
 }
 async function _showActEliminadas(){if(!(typeof esAdmin==='function'&&esAdmin())){if(typeof _gateAcc==='function'&&!_gateAcc('act_ver_elim','Ver actividades eliminadas'))return;}
  var ov=document.getElementById('_aeOv');if(ov)ov.remove();ov=document.createElement('div');ov.id='_aeOv';ov.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#0b1220;color:#cfe3ff;font:13px system-ui,-apple-system,Segoe UI,Roboto,Arial;display:flex;flex-direction:column;padding:12px;box-sizing:border-box';
@@ -4104,6 +4209,7 @@ function _pullVisib(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator
   state.visib=m;try{localStorage.setItem(KVIS,JSON.stringify(m))}catch(_e){}
   try{if($('scrList')&&!$('scrList').classList.contains('hidden'))renderList()}catch(_e2){}}).catch(function(){})}catch(e){}}
 setTimeout(_pullVisib,2800);
+try{setTimeout(function(){if(typeof _rnmPull==='function')_rnmPull()},3200)}catch(_e){}
 function _visSave(t,activo,permitidos,quienLbl,metricas){try{
  var row={proyecto:DATA.proyecto,tipo:t.tipo,clave:t.clave,activo:!!activo,permitidos:permitidos||[],metricas:(metricas!==false),quien:(state.user&&state.user.supervisor)||'',ts:(typeof nowSrv==='function'?nowSrv():Date.now()),updated_at:new Date().toISOString()};
  state.visib=state.visib||{};state.visib[_visKey(t.tipo,t.clave)]={activo:row.activo,permitidos:row.permitidos,metricas:row.metricas,quien:row.quien};
