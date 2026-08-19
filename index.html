@@ -1938,10 +1938,12 @@ function _pdFiltraCuadHoy(def,disc){try{if(!def||!_pdActivoHoy(disc))return (def
 function _pdPersonaPorNombre(nm){var t=String(nm||'').trim().toLowerCase();var o=null;_pdVivos().forEach(function(p){if(!o&&String(p.nombre).trim().toLowerCase()===t)o=p});return o}
 try{if(!state.personal)state.personal=store.get(KPD)||{}}catch(e){state.personal={}}
 try{if(!state.persDia)state.persDia=store.get(KPDIA)||{}}catch(e){state.persDia={}}
-function _pdPuedo(){try{if(typeof esAdminReal==='function'&&esAdminReal()&&!window._impRol)return true;return (typeof puedeAcc==='function'&&puedeAcc('pers_designar'))}catch(e){return false}}
-function _pdVivos(){var o=[];for(var k in (state.personal||{})){var r=state.personal[k];if(r&&!r.eliminado)o.push(r)}o.sort(function(a,b){return String(a.nombre).localeCompare(String(b.nombre))});return o}
+function _pdPuedo(){try{if(typeof esAdminReal==='function'&&esAdminReal()&&!window._impRol)return true;if(typeof puedeAcc==='function'&&puedeAcc('pers_designar'))return true;/* todo supervisor con especialidad entra a Designar, pero SOLO ve la suya (_pdSoloMiEsp) */return !!(state&&state.user&&state.user.disc)}catch(e){return false}}
+/* fuera del admin, el personal se acota a la especialidad del supervisor */
+function _pdSoloMiEsp(){try{if(typeof esAdmin==='function'&&esAdmin())return '';return String((state&&state.user&&state.user.disc)||'')}catch(e){return ''}}
+function _pdVivos(){var _mi=_pdSoloMiEsp();var o=[];for(var k in (state.personal||{})){var r=state.personal[k];if(r&&!r.eliminado&&(!_mi||String(r.especialidad||'')===_mi))o.push(r)}o.sort(function(a,b){return String(a.nombre).localeCompare(String(b.nombre))});return o}
 function _pdHoy(f){f=f||todayISO();return (state.persDia&&state.persDia[f])||{}}
-function _pdDesigList(f){f=f||todayISO();var m=_pdHoy(f),o=[];for(var k in m){var d=m[k];if(d&&d.estado==='designado'&&state.personal[k]&&!state.personal[k].eliminado)o.push({d:d,p:state.personal[k]})}o.sort(function(a,b){return String(a.p.nombre).localeCompare(String(b.p.nombre))});return o}
+function _pdDesigList(f){f=f||todayISO();var m=_pdHoy(f),o=[];var _mi=_pdSoloMiEsp();for(var k in m){var d=m[k];if(d&&d.estado==='designado'&&state.personal[k]&&!state.personal[k].eliminado&&(!_mi||String(state.personal[k].especialidad||'')===_mi))o.push({d:d,p:state.personal[k]})}o.sort(function(a,b){return String(a.p.nombre).localeCompare(String(b.p.nombre))});return o}
 function _pdAddDias(iso,n){try{var d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return (typeof isoOf==='function')?isoOf(d):d.toISOString().slice(0,10)}catch(e){return iso}}
 var _pdRTt=null,_pdBusy=false,_pdAgain=false;
 function _pdSig(){try{
@@ -2677,7 +2679,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819a5';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819a6';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -2701,10 +2703,104 @@ async function _actElimSnap(p){try{if(!(typeof sbReady==='function'&&sbReady()&&
  return up.ok;
 }catch(e){return false}}
 async function _actElimList(){try{var r=await fetch(sbBase()+'/storage/v1/object/list/obra-fotos',{method:'POST',headers:sbHead({'Content-Type':'application/json'}),body:JSON.stringify({prefix:'_actelim/'+safeName(DATA.proyecto)+'/',limit:1000,sortBy:{column:'name',order:'desc'}})});var j=await r.json();return (j||[]).filter(function(x){return x&&x.name&&x.id!==null&&/\.json$/.test(x.name)}).map(function(x){return '_actelim/'+safeName(DATA.proyecto)+'/'+x.name})}catch(e){return[]}}
+/* === ELIMINADAS: ademas de las actividades, el personal y las fotos ===
+   Ver: cualquiera que entre al panel. Restablecer o borrar definitivo: SOLO admin. */
+function _aeAdm(){try{return typeof esAdmin==='function'&&esAdmin()}catch(e){return false}}
+function _aeBtn(cls,attrs,bg,txt){return '<button class="'+cls+'" '+attrs+' style="background:'+bg+';color:#fff;border:0;border-radius:8px;padding:7px 11px;font-weight:800;font-size:11.5px;cursor:pointer">'+txt+'</button>'}
+async function _aePersBorrar(pid,nombre,ov){
+ if(!_aeAdm()){toast('Solo el administrador puede borrar definitivamente');return}
+ if(!confirm('⛔ ¿Borrar DEFINITIVAMENTE a '+nombre+'?\n\nYa no se podrá restablecer.'))return;
+ try{
+  if(typeof sbReady==='function'&&sbReady()&&navigator.onLine){
+   var r=await fetch(sbBase()+'/rest/v1/personal?proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&pid=eq.'+encodeURIComponent(pid),{method:'DELETE',headers:sbHead({'Prefer':'return=minimal'})});
+   if(!r.ok&&r.status!==204)throw new Error('HTTP '+r.status);
+  }
+  delete state.personal[pid];try{store.set(KPD,state.personal)}catch(_e){}
+  if(typeof logCambio==='function')logCambio('PERSONAL',pid,'borrado DEFINITIVAMENTE por admin: '+nombre);
+  toast('⛔ Eliminado para siempre');
+  if(ov){ov.remove();_showActEliminadas()}
+ }catch(e){toast('No se pudo borrar: '+((e&&e.message)||e))}
+}
+function _aePersRestaurar(pid,nombre,ov){
+ if(!_aeAdm()){toast('Solo el administrador puede restablecer');return}
+ if(!confirm('♻ ¿Restablecer a '+nombre+'?'))return;
+ try{_pdRestaurarP(pid);
+  if(typeof logCambio==='function')logCambio('PERSONAL',pid,'restablecido por admin: '+nombre);
+  toast('♻ Restablecido ✓');
+  if(ov){ov.remove();_showActEliminadas()}
+ }catch(e){toast('No se pudo restablecer')}
+}
+async function _aeExtras(ov){
+ var adm=_aeAdm();
+ var soloAdm='<div style="font-size:11px;color:#8b6b7a;margin-top:6px">Solo el administrador puede restablecer o borrar definitivamente.</div>';
+ var body=document.getElementById('_aeBody');
+ var sub=body?body.previousElementSibling:null;   /* la bajada es de actividades */
+ /* ---------- pestañas: cada cosa en la suya ---------- */
+ var bar=document.getElementById('_aeTabs');
+ if(!bar){bar=document.createElement('div');bar.id='_aeTabs';bar.style.cssText='display:flex;gap:7px;margin:2px 0 10px';
+  if(body&&body.parentNode)body.parentNode.insertBefore(bar,body);else ov.appendChild(bar)}
+ var boxP=document.getElementById('_aePersBox');
+ if(!boxP){boxP=document.createElement('div');boxP.id='_aePersBox';ov.appendChild(boxP)}
+ var boxF=document.getElementById('_aeFotBox');
+ if(!boxF){boxF=document.createElement('div');boxF.id='_aeFotBox';ov.appendChild(boxF)}
+ boxP.innerHTML='';boxF.innerHTML='';
+ function tb(id,txt,on){return '<button id="'+id+'" style="flex:1;padding:9px 6px;border:0;border-radius:9px;font-weight:800;font-size:12px;cursor:pointer;background:'+(on?'#8a3a5e':'#241019')+';color:'+(on?'#fff':'#c79ab0')+'">'+txt+'</button>'}
+ function pinta(t){
+  window._aeTab=t;
+  bar.innerHTML=tb('_aeTA','🗂 Actividades',t==='act')+tb('_aeTP','🧑‍🔧 Personal',t==='per')+tb('_aeTF','📷 Fotos',t==='fot');
+  if(body)body.style.display=(t==='act')?'':'none';
+  if(sub)sub.style.display=(t==='act')?'':'none';
+  boxP.style.display=(t==='per')?'':'none';
+  boxF.style.display=(t==='fot')?'':'none';
+  var a=document.getElementById('_aeTA'),p=document.getElementById('_aeTP'),f=document.getElementById('_aeTF');
+  if(a)a.onclick=function(){pinta('act')};
+  if(p)p.onclick=function(){pinta('per')};
+  if(f)f.onclick=function(){pinta('fot')};
+ }
+ pinta(window._aeTab||'act');
+ /* ---------- PERSONAL ELIMINADO ---------- */
+ var del=[];for(var k in (state.personal||{})){var r=state.personal[k];if(r&&r.eliminado)del.push(r)}
+ del.sort(function(a,b){return (b.elim_ts||0)-(a.elim_ts||0)});
+ boxP.innerHTML='<div style="font-size:11.5px;color:#c79ab0;margin-bottom:8px">Conservan su historial. Restablecer los devuelve a la lista de Designar.</div>'
+  +'<div style="font-weight:800;color:#f5b8d4;font-size:12.5px;margin:0 0 6px">🧑‍🔧 Personal eliminado ('+del.length+')</div>'
+  +(del.length?del.map(function(p){
+   var f='';try{if(p.elim_ts)f=new Date(p.elim_ts).toLocaleDateString()}catch(e){}
+   return '<div style="border:1px solid #2e1622;border-radius:10px;padding:9px 10px;margin-bottom:8px;background:#1a0f16">'
+    +'<div style="font-weight:800;color:#ffd9ea">'+esc(p.nombre||'(sin nombre)')+'</div>'
+    +'<div style="font-size:11.5px;color:#c79ab0;margin-top:2px">'+esc(p.cargo||'—')+' · '+esc(p.especialidad||'—')
+      +(p.elim_por?(' · lo quitó: '+esc(p.elim_por)):'')+(f?(' · '+f):'')+'</div>'
+    +(adm?('<div style="display:flex;gap:7px;margin-top:8px">'
+      +_aeBtn('_aePR','data-pid="'+esc(p.pid)+'" data-n="'+esc(p.nombre||'')+'"','#1E7A46','♻ Restablecer')
+      +_aeBtn('_aePD','data-pid="'+esc(p.pid)+'" data-n="'+esc(p.nombre||'')+'"','#B42318','⛔ Borrar definitivo')
+      +'</div>'):soloAdm)
+    +'</div>'}).join('')
+  :'<div style="color:#8b6b7a;font-size:12px">No hay personal eliminado.</div>');
+ boxP.querySelectorAll('._aePR').forEach(function(b){b.onclick=function(){_aePersRestaurar(b.getAttribute('data-pid'),b.getAttribute('data-n'),ov)}});
+ boxP.querySelectorAll('._aePD').forEach(function(b){b.onclick=function(){_aePersBorrar(b.getAttribute('data-pid'),b.getAttribute('data-n'),ov)}});
+ /* ---------- FOTOS ELIMINADAS ---------- */
+ boxF.innerHTML='<div style="color:#8b6b7a;font-size:12px">Cargando fotos…</div>';
+ var fb=[];
+ try{fb=await (await fetch(sbBase()+'/rest/v1/fotos_borradas?select=id,partida_id,partida_nombre,fecha,disciplina,supervisor,borrado_por,borrado_ts,url_respaldo,url_original&order=borrado_ts.desc&limit=200',{headers:sbHead()})).json()}catch(e){fb=[]}
+ if(!Array.isArray(fb))fb=[];
+ var thumbs=fb.slice(0,24).map(function(x){
+  var u=x.url_respaldo||x.url_original||'';
+  return '<div style="width:78px;flex:none"><div style="width:78px;height:62px;border-radius:8px;overflow:hidden;background:#241019;border:1px solid #2e1622">'
+   +(u?('<img src="'+esc(u)+'" style="width:100%;height:100%;object-fit:cover" loading="lazy">'):'')
+   +'</div><div style="font-size:9px;color:#c79ab0;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.partida_id||'—')+'</div>'
+   +'<div style="font-size:8.5px;color:#8b6b7a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.fecha||'')+'</div></div>'}).join('');
+ boxF.innerHTML='<div style="font-weight:800;color:#f5b8d4;font-size:12.5px;margin:0 0 6px">📷 Fotos eliminadas ('+fb.length+')</div>'
+  +(fb.length?('<div style="display:flex;gap:7px;flex-wrap:wrap">'+thumbs+'</div>'
+    +'<div style="font-size:11.5px;color:#c79ab0;margin-top:8px">'+fb.length+' foto(s) en la papelera'+(fb.length>24?' · se muestran las 24 más recientes':'')+'.</div>'
+    +(adm?('<div style="margin-top:8px">'+_aeBtn('_aeFotGo','','#1F3864','📷 Abrir la papelera (restablecer / borrar definitivo)')+'</div>'):soloAdm))
+   :'<div style="color:#8b6b7a;font-size:12px">No hay fotos eliminadas.</div>');
+ var g=boxF.querySelector('._aeFotGo');
+ if(g)g.onclick=function(){ov.remove();if(typeof _showFotosSrv==='function')_showFotosSrv();else toast('No pude abrir la papelera')};
+}
 async function _showActEliminadas(){if(!(typeof esAdmin==='function'&&esAdmin())){if(typeof _gateAcc==='function'&&!_gateAcc('act_ver_elim','Ver actividades eliminadas'))return;}
  var ov=document.getElementById('_aeOv');if(ov)ov.remove();ov=document.createElement('div');ov.id='_aeOv';ov.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#0b1220;color:#cfe3ff;font:13px system-ui,-apple-system,Segoe UI,Roboto,Arial;display:flex;flex-direction:column;padding:12px;box-sizing:border-box';
- ov.innerHTML='<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><b style="font-size:15px;color:#f5b8d4">👁 Actividades eliminadas</b><button id="_aeX" style="margin-left:auto;background:#444;color:#fff;border:0;border-radius:8px;padding:8px 12px">✕ Cerrar</button></div><div style="font-size:11.5px;color:#9db4d6;margin-bottom:8px">Conservan sus metrados, cargas, restricciones y fotos. Restablecer las devuelve completas.</div><div id="_aeBody" style="flex:1;overflow:auto;background:#0d1117;border:1px solid #2e1622;border-radius:10px;padding:8px">Cargando…</div>';
+ ov.innerHTML='<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><b style="font-size:15px;color:#f5b8d4">👁 Eliminadas · actividades, personal y fotos</b><button id="_aeX" style="margin-left:auto;background:#444;color:#fff;border:0;border-radius:8px;padding:8px 12px">✕ Cerrar</button></div><div style="font-size:11.5px;color:#9db4d6;margin-bottom:8px">Conservan sus metrados, cargas, restricciones y fotos. Restablecer las devuelve completas.</div><div id="_aeBody" style="flex:1;overflow:auto;background:#0d1117;border:1px solid #2e1622;border-radius:10px;padding:8px">Cargando…</div>';
  document.body.appendChild(ov);document.getElementById('_aeX').onclick=function(){ov.remove()};
+ try{_aeExtras(ov)}catch(_ex){}
  var B=document.getElementById('_aeBody');if(!state.wbsX)state.wbsX=store.get('wtt4_wbsx')||[];var _wxDel=(state.wbsX||[]).filter(function(r){return r.eliminado});var _wxH=_wxDel.length?('<div style="font-weight:800;color:#f5b8d4;font-size:12.5px;margin:2px 0 6px">🗂 Sistemas y áreas eliminados</div>'+_wxDel.map(function(r,i){return '<div style="border:1px solid #4a1a2e;border-radius:10px;padding:8px 10px;margin-bottom:6px;background:#221019;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:0"><b style="color:#f5b8d4">'+(r.tipo==='area'?'📍 Área':'🔧 Sistema')+': '+esc(r.nombre)+'</b><div style="color:#9db4d6;font-size:11px">'+esc(r.disciplina)+(r.area?(' · área '+esc(r.area)):'')+' · elim. por '+esc(r.elim_por||'?')+'</div></div><button class="_wxRest" data-i="'+i+'" style="background:#1E7A46;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800">♻ Restablecer todo</button><button class="_wxKill" data-i="'+i+'" style="background:#7A1A1A;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800" title="Borrar definitivamente (las actividades quedan como snapshots individuales)">🗑</button></div>'}).join('')):'';function _wxWire(ovR){B.querySelectorAll('._wxRest').forEach(function(b){b.onclick=function(){var r=_wxDel[+b.getAttribute('data-i')];ovR.remove();_wbsXRest(r.tipo,r.nombre,r.disciplina,r.area||'')}});B.querySelectorAll('._wxKill').forEach(function(b){b.onclick=async function(){var r=_wxDel[+b.getAttribute('data-i')];if(!confirm('¿Borrar DEFINITIVAMENTE '+(r.tipo==='area'?'el área':'el sistema')+' "'+r.nombre+'" de eliminados?\n\nSus actividades eliminadas siguen recuperables una por una.'))return;try{await fetch(sbBase()+'/rest/v1/wbs_extra?proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&disciplina=eq.'+encodeURIComponent(r.disciplina)+'&tipo=eq.'+encodeURIComponent(r.tipo)+'&nombre=eq.'+encodeURIComponent(r.nombre)+'&area=eq.'+encodeURIComponent(r.area||''),{method:'DELETE',headers:sbHead({'Prefer':'return=minimal'})})}catch(_e){}state.wbsX=(state.wbsX||[]).filter(function(x){return !(x.tipo===r.tipo&&x.nombre===r.nombre&&x.disciplina===r.disciplina)});try{_wbsXDeriva()}catch(_e){}toast('Borrado de eliminados');_showActEliminadas()}})}var paths=await _actElimList();if(!paths.length){B.innerHTML=_wxH+'<div style="color:#7d8590;padding:14px;text-align:center">No hay actividades eliminadas.</div>';_wxWire(ov);return}
  var cards=[];for(var i=0;i<paths.length;i++){var snap=null;try{snap=await (await fetch(sbBase()+'/storage/v1/object/obra-fotos/'+paths[i]+'?nc='+Date.now(),{headers:sbHead()})).json()}catch(e){}if(!snap)continue;cards.push({path:paths[i],s:snap})}
  B.innerHTML=_wxH+cards.map(function(c){var s=c.s;var nf=s.fotos_files?Object.keys(s.fotos_files).length:0;return '<div style="border:1px solid #2e1622;border-radius:10px;padding:9px 10px;margin-bottom:8px;background:#1a0f16"><div style="font-weight:800;color:#f5b8d4;font-size:13px">['+esc(s.codigo||s.id)+'] '+esc(s.nombre||'')+'</div><div style="color:#9db4d6;font-size:11px;margin:2px 0 8px">'+esc(s.peru||'')+' · '+esc(s.disc||'')+' · '+((s.tablas&&s.tablas.partes&&s.tablas.partes.length)||0)+' carga(s) · '+nf+' foto(s) · elim. por '+esc(s.quien||'?')+'</div><div style="display:flex;gap:8px"><button class="_aeGo" data-go="'+esc(s.id||'')+'" style="background:#33406a;color:#fff;border:0;border-radius:8px;padding:9px 11px;font-weight:800" title="Ir a verla en la lista (rojo tenue)">📍 Ir</button><button class="_aeRest" data-p="'+esc(c.path)+'" style="flex:1;background:#1E7A46;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800">♻ Restablecer completa</button><button class="_aeDel" data-p="'+esc(c.path)+'" data-l="'+esc((s.codigo||s.id))+'" style="background:#7A1A1A;color:#fff;border:0;border-radius:8px;padding:9px 11px;font-weight:800" title="Borrar definitivamente de eliminadas">🗑</button></div></div>'}).join('')||'<div style="color:#7d8590">No hay actividades eliminadas.</div>';
