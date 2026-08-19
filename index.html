@@ -1296,7 +1296,7 @@ function leaf(p,num){const s=statusOf(p),m=metaOf(p.id),lp=partesOf(p.id).slice(
     (hAyer?('<div class="b2"><span class="b2l" style="font-size:10px" title="Avance hasta '+esc(fmtF(ayerD))+'">'+esc(ayerD.split('-').reverse().join('/'))+'</span><span class="b2bar"><i style="width:'+pAyer+'%;background:#1E7A46"></i></span><span class="b2v" style="color:#1E7A46">'+pAyer+'%'+((m&&m.unidad!=='glb')?' ('+qty(acumCantAt(p.id,yi))+' '+m.unidad+')':'')+'</span></div>'):'')+
     '</div>'+
     '<div class="pmeta"><span><span class="cuad-chip">'+esc(codeOf(p))+'</span>'+'</span><span class="pct tnum">'+((m&&m.unidad==='na')?'no aporta avance':(pct>=prog?'al día':(prog-pct)+'% atrasado'))+'</span></div>'+
-    '<div style="margin-top:8px;display:flex;gap:5px" onclick="event.stopPropagation()"><button class="_lfDato" title="Def Metrados (unidad·total·rend·inicial)" style="flex:1;background:#1F3864;color:#fff;border:0;border-radius:9px;padding:6px 3px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px"><span style="border:1.5px solid #fff;border-radius:6px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1;flex:none">⚙</span><span style="font-weight:800;font-size:11.5px;white-space:nowrap">UND</span></button><button class="_lfAv" title="Reportar metrado (cuadrilla·foto·obs)" style="flex:1;background:#1E7A46;color:#fff;border:0;border-radius:9px;padding:6px 3px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px"><span style="border:1.5px solid #fff;border-radius:6px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1;flex:none">⚙</span><span style="font-weight:800;font-size:11.5px;white-space:nowrap">MET</span></button><button class="_lfInt" title="Restricción interna" style="flex:1;background:#1F6FE0;color:#fff;border:0;border-radius:9px;padding:7px 0;font-size:16px;font-weight:900;cursor:pointer">!</button><button class="_lfMina" title="Restricción de mina" style="flex:1;background:#D8442F;color:#fff;border:0;border-radius:9px;padding:7px 0;font-size:16px;font-weight:900;cursor:pointer">!</button><button class="_lfCal" title="Días con avance reportado" style="flex:1;background:#fff;color:#1F6FE0;border:1.5px solid #1F6FE0;border-radius:9px;padding:6px 0;font-size:15px;cursor:pointer">📅</button></div>';
+    '<div style="margin-top:8px;display:flex;gap:5px" onclick="event.stopPropagation()">'+((typeof _alcRepOK==="function"&&!_alcRepOK(p))?'':('<button class="_lfDato" title="Def Metrados (unidad·total·rend·inicial)" style="flex:1;background:#1F3864;color:#fff;border:0;border-radius:9px;padding:6px 3px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px"><span style="border:1.5px solid #fff;border-radius:6px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1;flex:none">⚙</span><span style="font-weight:800;font-size:11.5px;white-space:nowrap">UND</span></button><button class="_lfAv" title="Reportar metrado (cuadrilla·foto·obs)" style="flex:1;background:#1E7A46;color:#fff;border:0;border-radius:9px;padding:6px 3px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px"><span style="border:1.5px solid #fff;border-radius:6px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1;flex:none">⚙</span><span style="font-weight:800;font-size:11.5px;white-space:nowrap">MET</span></button>'))+'<button class="_lfInt" title="Restricción interna" style="flex:1;background:#1F6FE0;color:#fff;border:0;border-radius:9px;padding:7px 0;font-size:16px;font-weight:900;cursor:pointer">!</button><button class="_lfMina" title="Restricción de mina" style="flex:1;background:#D8442F;color:#fff;border:0;border-radius:9px;padding:7px 0;font-size:16px;font-weight:900;cursor:pointer">!</button>'+((typeof _alcRepOK==="function"&&!_alcRepOK(p))?'':'<button class="_lfCal" title="Días con avance reportado" style="flex:1;background:#fff;color:#1F6FE0;border:1.5px solid #1F6FE0;border-radius:9px;padding:6px 0;font-size:15px;cursor:pointer">📅</button>')+'</div>';
   var _lg=el.querySelector('._lfGear');if(_lg)_lg.onclick=function(e){e.stopPropagation();openGear(p)};
   var _lmv=el.querySelector('._lfMove');if(_lmv)_lmv.onclick=function(e){e.stopPropagation();_wbsMover({tipo:'act',p:p})};
   var _ley=el.querySelector('._lfEye');if(_ley)_ley.onclick=function(e){e.stopPropagation();_visUI({tipo:'act',clave:p.id,label:'['+(typeof codeOf==='function'?codeOf(p):p.id)+'] '+((typeof pNom==='function'?pNom(p):p.nombre)||'')})};
@@ -2413,7 +2413,7 @@ function _pdFechaLbl(f){try{
 function _pdSupBody(){
  var f=_pdSupF(),hoy=(typeof todayISO==='function')?todayISO():'',esHoy=(f===hoy);
  /* editable: el dia en curso, o un dia pasado que el admin abrio con su check */
- var _edit=(typeof diaCerrado==='function')?!diaCerrado(f):esHoy;
+ var _edit=(typeof _diaPersOK==='function')?_diaPersOK(f):esHoy;
  var lista=(typeof _pdDesigList==='function')?_pdDesigList(f):[];
  var mi=(typeof _pdSoloMiEsp==='function')?_pdSoloMiEsp():'';
  var filas=lista.length?lista.map(function(x){
@@ -2434,7 +2434,7 @@ function _pdSupBody(){
    +'<button id="_pdSupCalBtn" title="Elegir día" style="flex:none;background:#1F3864;color:#fff;border:0;border-radius:9px;width:38px;height:38px;font-size:16px;cursor:pointer">📅</button>'
   +'</div>'
   +cal
-  +(esHoy?'':(_edit?'<div style="font-size:11.5px;color:#0C5132;background:#EAF6EE;border:1px solid #B9E0C8;border-radius:9px;padding:8px 10px;margin-bottom:9px;font-weight:700">El administrador habilitó este día: puedes corregir lo que esté mal.</div>':'<div style="font-size:11.5px;color:#8A5A00;background:#FFF7E6;border:1px solid #EFC98A;border-radius:9px;padding:8px 10px;margin-bottom:9px;font-weight:700">Día anterior — solo consulta. Si necesitas corregirlo, pide al administrador que lo habilite.</div>'))
+  +(esHoy?'':(_edit?'<div style="font-size:11.5px;color:#0C5132;background:#EAF6EE;border:1px solid #B9E0C8;border-radius:9px;padding:8px 10px;margin-bottom:9px;font-weight:700">El administrador abrió este día: puedes quitar a quien no estuvo.</div>':'<div style="font-size:11.5px;color:#8A5A00;background:#FFF7E6;border:1px solid #EFC98A;border-radius:9px;padding:8px 10px;margin-bottom:9px;font-weight:700">Día anterior — solo consulta. Si necesitas corregirlo, pide al administrador que lo habilite.</div>'))
   +filas
   +'</div>';
 }
@@ -2463,14 +2463,14 @@ function _pdSupCalHtml(f){
   +'<div style="font-size:10.5px;color:#5C6779;margin-top:7px">El número de abajo es cuánta gente hubo ese día.</div></div>';
 }
 function _pdSupWire(ov){
- function ir(f){_pdSupSet(f);_showPersonal('desig')}
+ function ir(f){_pdSupSet(f);_showPersonal(window._persTab==='dia'?'dia':'desig')}
  function addDias(iso,n){var d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);
   return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
  var f=_pdSupF(),hoy=(typeof todayISO==='function')?todayISO():'';
  var b;
  b=document.getElementById('_pdSupPrev');if(b)b.onclick=function(){ir(addDias(f,-1))};
  b=document.getElementById('_pdSupNext');if(b)b.onclick=function(){if(f<hoy)ir(addDias(f,1))};
- b=document.getElementById('_pdSupCalBtn');if(b)b.onclick=function(){window._pdSupCal=!window._pdSupCal;_showPersonal('desig')};
+ b=document.getElementById('_pdSupCalBtn');if(b)b.onclick=function(){window._pdSupCal=!window._pdSupCal;_showPersonal(window._persTab==='dia'?'dia':'desig')};
  b=document.getElementById('_pdSupMesPrev');if(b)b.onclick=function(){var d=new Date(f+'T00:00:00');d.setMonth(d.getMonth()-1);
   ir(d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-01')};
  b=document.getElementById('_pdSupMesNext');if(b)b.onclick=function(){var d=new Date(f+'T00:00:00');d.setMonth(d.getMonth()+1);
@@ -2482,12 +2482,12 @@ function _pdSupWire(ov){
   try{_pdDiaSet(pid,f,{estado:'retirado',cuadrilla:''});
    if(typeof logCambio==='function')logCambio('PERSONAL',pid,'quitado del día por '+((state.user&&state.user.supervisor)||''));
    if(typeof syncNow==='function')syncNow(true);
-   toast('Quitado del día ✓');_showPersonal('desig');
+   toast('Quitado del día ✓');_showPersonal(window._persTab==='dia'?'dia':'desig');
   }catch(e){toast('No se pudo quitar')}}});
 }
 function _showPersonal(tab){try{var _esAdm=(typeof esAdmin==='function')&&esAdmin();
   /* fuera del admin (incluido el admin en "actuar como") solo va el dia en curso */
-  var _tab=_esAdm?((tab==='trab')?'trab':((tab==='desig'&&_pdPuedo())?'desig':'obra')):'desig';window._persTab=_tab;
+  var _tab=_esAdm?((tab==='dia')?'dia':((tab==='trab')?'trab':((tab==='desig'&&_pdPuedo())?'desig':'obra'))):'desig';window._persTab=_tab;
   var roster=_persData();var total=roster.length;
   var byDisc={},byCargo={},byCuad={};
   roster.forEach(function(r){byDisc[r.disc]=(byDisc[r.disc]||0)+1;byCargo[r.cargo]=(byCargo[r.cargo]||0)+1;var ck=String(r.disc).slice(0,3)+' C'+r.cuad;byCuad[ck]=(byCuad[ck]||0)+1});
@@ -2500,9 +2500,10 @@ function _showPersonal(tab){try{var _esAdm=(typeof esAdmin==='function')&&esAdmi
   function kpi(v,l,c){return '<div style="flex:1;background:'+c+';color:#fff;border-radius:11px;padding:11px 6px;text-align:center"><div style="font-size:22px;font-weight:800;line-height:1">'+v+'</div><div style="font-size:10px;opacity:.93;margin-top:3px">'+l+'</div></div>'}
   function sec(t,body){return '<div style="padding:13px 14px 5px;font-weight:800;color:#1F3864;font-size:13px">'+t+'</div><div style="padding:0 14px 6px">'+body+'</div>'}
   function _tbtn(id,t,on){return '<button id="'+id+'" style="flex:1;padding:9px 6px;border:0;border-radius:9px;font-weight:800;font-size:12px;cursor:pointer;background:'+(on?'#1F3864':'#EEF2F7')+';color:'+(on?'#fff':'#5C6779')+'">'+t+'</button>';}
-  var head='<div style="display:flex;align-items:center;gap:8px;padding:12px 14px 6px"><b style="font-size:15px;color:#1F3864">📊 Personal</b><button id="_persX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'+(_esAdm?('<div style="display:flex;gap:6px;padding:0 12px 6px;border-bottom:1px solid #eef2f7">'+_tbtn('_ptObra','👷 En obra',_tab==='obra')+_tbtn('_ptTrab','🔧 Trabajos vs Personal',_tab==='trab')+(_pdPuedo()?_tbtn('_ptDesig','🧑‍🔧 Designar',_tab==='desig'):'')+'</div>'):'');
+  var head='<div style="display:flex;align-items:center;gap:8px;padding:12px 14px 6px"><b style="font-size:15px;color:#1F3864">📊 Personal</b><button id="_persX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'+(_esAdm?('<div style="display:flex;gap:6px;padding:0 12px 6px;border-bottom:1px solid #eef2f7">'+_tbtn('_ptObra','👷 En obra',_tab==='obra')+_tbtn('_ptTrab','🔧 Trabajos vs Personal',_tab==='trab')+(_pdPuedo()?_tbtn('_ptDesig','🧑‍🔧 Designar',_tab==='desig'):'')+_tbtn('_ptDia','📅 Por día',_tab==='dia')+'</div>'):'');
   var bodyHtml;
-  if(_tab==='desig'){bodyHtml=_esAdm?_pdBodyHtml():_pdSupBody();}
+  if(_tab==='dia'){bodyHtml=_pdSupBody();}
+  else if(_tab==='desig'){bodyHtml=_esAdm?_pdBodyHtml():_pdSupBody();}
   else if(_tab==='trab'){bodyHtml=_trabBodyHtml();}
   else if(total===0){bodyHtml='<div style="padding:34px 22px;text-align:center;color:#8A94A6;font-size:13px">Aún no hay cuadrillas con personal definido.<br><br>Ve a <b>⚙ → Definir cuadrillas</b> y carga la gente (cargo y nombres) para ver aquí el tablero con gráficas y el desglose.</div>';}
   else{bodyHtml='<div style="display:flex;gap:8px;padding:12px 14px">'+kpi(total,'PERSONAS','#1E7A46')+kpi(Object.keys(byCuad).length,'CUADRILLAS','#1F3864')+kpi(Object.keys(byDisc).length,'ESPECIALID.','#8A4B00')+kpi(Object.keys(byCargo).length,'CARGOS','#5B3A8A')+'</div>'+sec('📊 Por especialidad',_persBars(discBars))+sec('👷 Por cargo (histograma)',_persBars(cargoBars))+sec('📅 Personal por día (barras por cargo)','<div id="_histWrap"></div>')+'<div style="height:8px;background:#f4f7fb"></div>'+'<div style="padding:13px 14px 5px;font-weight:800;color:#1F3864;font-size:13px">📋 Desglose — quiénes están en obra ('+total+')</div>'+'<div style="padding:0 14px 6px"><input id="_persQ" placeholder="Buscar por nombre, cargo o especialidad…" style="width:100%;box-sizing:border-box;border:1.5px solid #C9D2E0;border-radius:10px;padding:9px 11px;font-size:13px"></div>'+'<div id="_persList" style="padding:0 14px 14px"></div>';}
@@ -2511,7 +2512,8 @@ function _showPersonal(tab){try{var _esAdm=(typeof esAdmin==='function')&&esAdmi
   ov.onclick=function(e){if(e.target===ov)ov.remove()};
   document.getElementById('_persX').onclick=function(){ov.remove()};
   try{var _po=document.getElementById('_ptObra');if(_po)_po.onclick=function(){_showPersonal('obra')};var _pt=document.getElementById('_ptTrab');if(_pt)_pt.onclick=function(){_showPersonal('trab')};var _pd3=document.getElementById('_ptDesig');if(_pd3)_pd3.onclick=function(){_showPersonal('desig')};if(_tab==='desig'){try{_pdWire(ov)}catch(_e){}}}catch(_e){}
-  if(!_esAdm){try{_pdSupWire(ov)}catch(_es){}}
+  if(!_esAdm||_tab==='dia'){try{_pdSupWire(ov)}catch(_es){}}
+  try{var _pdi=document.getElementById('_ptDia');if(_pdi)_pdi.onclick=function(){_showPersonal('dia')}}catch(_ed){}
   var _rp=document.getElementById('_persRep');if(_rp)_rp.onclick=function(){ov.remove();try{reporteDia(activeDate)}catch(e){}};
   if(_tab==='trab'){try{_trabWire()}catch(_e){}}
   function renderList(q){var el=document.getElementById('_persList');if(!el)return;q=String(q||'').trim().toLowerCase();var flt=roster.filter(function(r){return !q||(r.nombre+' '+r.cargo+' '+r.disc+' C'+r.cuad).toLowerCase().indexOf(q)>=0});var byD={};flt.forEach(function(r){(byD[r.disc]=byD[r.disc]||[]).push(r)});var html=Object.keys(byD).sort().map(function(d){var arr=byD[d].slice().sort(function(a,b){return (_cargoRank(a.cargo)-_cargoRank(b.cargo))||(a.cuad-b.cuad)||String(a.nombre).localeCompare(String(b.nombre))});return '<div style="margin-top:8px;font-weight:800;font-size:12px;color:#fff;background:'+dcol(d)+';border-radius:7px;padding:4px 9px">'+esc(d)+' ('+arr.length+')</div>'+arr.map(function(r){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #f0f3f7"><span style="width:9px;height:9px;border-radius:50%;background:'+_cargoCol(r.cargo)+';flex:none"></span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#1B2433;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.nombre)+'</div></div><span style="font-size:10.5px;color:#fff;background:'+_cargoCol(r.cargo)+';border-radius:20px;padding:1px 8px;font-weight:700;flex:none">'+esc(r.cargo)+'</span><span style="font-size:10.5px;color:#5C6779;font-weight:800;flex:none">C'+r.cuad+'</span></div>'}).join('')}).join('')||'<div style="padding:14px;text-align:center;color:#8A94A6;font-size:12px">Sin resultados</div>';el.innerHTML=html;}
@@ -2769,7 +2771,7 @@ $('fabAdd').onclick=function(){_fabMenu();};
 function _fabMenu(){var ov=document.getElementById('_fabOv');if(ov)ov.remove();ov=document.createElement('div');ov.id='_fabOv';ov.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box"><div style="font-weight:800;color:#1F3864;font-size:15px;margin-bottom:12px">➕ Añadir</div><button id="_fbSys" style="width:100%;background:#EEF1F6;border:1px solid #C7D2E0;border-radius:11px;padding:14px;font-weight:800;font-size:14px;color:#1F3864;margin-bottom:9px;text-align:left;cursor:pointer">🔧 Nuevo sistema</button><button id="_fbArea" style="width:100%;background:#EAF3EC;border:1px solid #BFD8C6;border-radius:11px;padding:14px;font-weight:800;font-size:14px;color:#0C5132;margin-bottom:12px;text-align:left;cursor:pointer">📍 Nueva área</button><button id="_fbX" style="width:100%;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button></div>';document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};document.getElementById('_fbX').onclick=function(){ov.remove()};document.getElementById('_fbArea').onclick=function(){ov.remove();_addArea();};document.getElementById('_fbSys').onclick=function(){ov.remove();_addSistema();};}
 function _addArea(){if(!state.areasExtra)state.areasExtra=store.get(KAX)||[];var ov=document.createElement('div');ov.id='_areaOv';ov.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box"><div style="font-weight:800;color:#0C5132;font-size:15px;margin-bottom:10px">📍 Nueva área</div><input id="_arNm" placeholder="Nombre del área (ej. La Quinua 1-7)" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:9px;padding:10px;font-size:14px;margin-bottom:12px"><div style="display:flex;gap:8px"><button id="_arX" style="flex:1;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button><button id="_arOk" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800">Crear</button></div></div>';document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};try{document.getElementById('_arNm').focus()}catch(e){}document.getElementById('_arX').onclick=function(){ov.remove()};document.getElementById('_arOk').onclick=function(){var nm=document.getElementById('_arNm').value.trim();if(!nm){toast('Escribe el nombre');return;}if(AREAS.indexOf(nm)>-1||state.areasExtra.indexOf(nm)>-1){toast('Esa área ya existe');return;}state.areasExtra.push(nm);store.set(KAX,state.areasExtra);try{_wbsXSet('area',nm,state.user.disc,{})}catch(_e){}openArea[nm]=true;ov.remove();renderList();toast('📍 Área añadida ✓');};}
 function _addSistema(){if(!state.areasExtra)state.areasExtra=store.get(KAX)||[];if(!state.sysExtra)state.sysExtra=store.get(KSX)||[];var areas=[AREAS[0],AREAS[1]].concat(state.areasExtra);var opts=areas.map(function(a){return '<option value="'+esc(a)+'">'+esc(a)+'</option>';}).join('');var ov=document.createElement('div');ov.id='_sisOv';ov.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box"><div style="font-weight:800;color:#1F3864;font-size:15px;margin-bottom:10px">🔧 Nuevo sistema</div><label style="font-size:12px;color:#5C6779;font-weight:700;display:block;margin-bottom:3px">Área</label><select id="_siAr" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:9px;padding:10px;font-size:14px;margin-bottom:10px">'+opts+'</select><label style="font-size:12px;color:#5C6779;font-weight:700;display:block;margin-bottom:3px">Nombre del sistema</label><input id="_siNm" placeholder="Ej. Sistema de bombeo X" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:9px;padding:10px;font-size:14px;margin-bottom:12px"><div style="display:flex;gap:8px"><button id="_siX" style="flex:1;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button><button id="_siOk" style="flex:1;background:#1F3864;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800">Crear</button></div></div>';document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};document.getElementById('_siX').onclick=function(){ov.remove()};document.getElementById('_siOk').onclick=function(){var nm=document.getElementById('_siNm').value.trim();var ar=document.getElementById('_siAr').value;if(!nm){toast('Escribe el nombre del sistema');return;}var dup=(state.sysExtra||[]).some(function(x){return x.sistema===nm&&x.area===ar&&x.disc===state.user.disc})||acts(state.user.disc).some(function(p){return p.sistema===nm&&areaOf(p)===ar});if(dup){toast('Ese sistema ya existe en esa área');return;}state.sysExtra.push({sistema:nm,area:ar,disc:state.user.disc});store.set(KSX,state.sysExtra);try{_wbsXSet('sistema',nm,state.user.disc,{area:ar},ar)}catch(_e){}openArea[ar]=true;openSys[nm]=true;ov.remove();renderList();toast('🔧 Sistema añadido ✓');};}
-$('aSave').onclick=()=>{if(typeof _gateW==='function'&&!_gateW())return;if(typeof _gateAcc==='function'&&!_gateAcc('act_crear','Crear actividad nueva'))return;const id=$('aId').value.trim(),name=$('aName').value.trim();if(!id||!name){toast('Completa código y nombre');return}var _alcV=($('aAlc')&&$('aAlc').value)||'';if(!_alcV){toast('Elige el alcance de la actividad');return}if(DATA.partidas.concat(state.nuevas).some(p=>String(p.id).toLowerCase()===id.toLowerCase())){toast('Ya existe ese código en el proyecto (revisa también otras especialidades)');return}if(typeof tombHas==='function'&&tombHas('partida',id)){toast('Ese código perteneció a una actividad eliminada — usa otro');return}var sis,area;if(_addLockSys){sis=_addLockSys;area=_addLockArea||AREAS[0];}else{sis=$('aSys').value;if(sis==='Otro / nuevo sistema'){sis=$('aSysNew').value.trim();if(!sis){toast('Escribe el nombre del nuevo sistema');return}}area=($('aArea')&&$('aArea').value)||AREAS[0];/* el área la elige el usuario (antes quedaba clavada en Carachugo 1-9) */}var cua=$('aCuad').value;if(cua==='Otra'){cua=$('aCuadNew').value.trim()||'Otra'}state.nuevas.push({id,nombre:name,esp:state.user.disc,cuadrilla:cua,sistema:sis,area:area,inicio:'',fin:'',ini:0,plan:0,nueva:true,quien:state.user.supervisor,ts:(typeof nowSrv==='function'?nowSrv():Date.now())});store.set(KN,state.nuevas);try{if(typeof _alcSet==='function')_alcSet(id,_alcV)}catch(_ae){}closeSheet('mAdd');openSys[sis]=true;if(area)openArea[area]=true;_addLockSys=null;_addLockArea=null;renderList();toast('Actividad añadida ✓')};
+$('aSave').onclick=()=>{if(typeof _gateW==='function'&&!_gateW())return;if(typeof _gateAcc==='function'&&!_gateAcc('act_crear','Crear actividad nueva'))return;const id=$('aId').value.trim(),name=$('aName').value.trim();if(!id||!name){toast('Completa código y nombre');return}var _alcV=($('aAlc')&&$('aAlc').value)||'';if(!_alcV){toast('Elige el alcance de la actividad');return}if(typeof _alcNewOK==='function'&&!_alcNewOK(_alcV)){toast('El '+((typeof _ALC_LBL!=='undefined'&&_ALC_LBL[_alcV])||_alcV)+' esta cerrado: no se pueden crear actividades ahi');return}if(DATA.partidas.concat(state.nuevas).some(p=>String(p.id).toLowerCase()===id.toLowerCase())){toast('Ya existe ese código en el proyecto (revisa también otras especialidades)');return}if(typeof tombHas==='function'&&tombHas('partida',id)){toast('Ese código perteneció a una actividad eliminada — usa otro');return}var sis,area;if(_addLockSys){sis=_addLockSys;area=_addLockArea||AREAS[0];}else{sis=$('aSys').value;if(sis==='Otro / nuevo sistema'){sis=$('aSysNew').value.trim();if(!sis){toast('Escribe el nombre del nuevo sistema');return}}area=($('aArea')&&$('aArea').value)||AREAS[0];/* el área la elige el usuario (antes quedaba clavada en Carachugo 1-9) */}var cua=$('aCuad').value;if(cua==='Otra'){cua=$('aCuadNew').value.trim()||'Otra'}state.nuevas.push({id,nombre:name,esp:state.user.disc,cuadrilla:cua,sistema:sis,area:area,inicio:'',fin:'',ini:0,plan:0,nueva:true,quien:state.user.supervisor,ts:(typeof nowSrv==='function'?nowSrv():Date.now())});store.set(KN,state.nuevas);try{if(typeof _alcSet==='function')_alcSet(id,_alcV)}catch(_ae){}closeSheet('mAdd');openSys[sis]=true;if(area)openArea[area]=true;_addLockSys=null;_addLockArea=null;renderList();toast('Actividad añadida ✓')};
 $('aSys').onchange=function(){$('aSysNewWrap').classList.toggle('hidden',$('aSys').value!=='Otro / nuevo sistema')};
 $('aCuad').onchange=function(){$('aCuadNewWrap').classList.toggle('hidden',$('aCuad').value!=='Otra')};
 
@@ -2810,7 +2812,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819b4';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819b5';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -2933,6 +2935,25 @@ async function _aeExtras(ov){
    · metricas=false -> NO cuenta para el avance ni la reportabilidad.
    El admin siempre lo sigue viendo (asi puede volver a mostrarlo). */
 var _ALC_LBL={INI:'Dentro de alcance inicial',A2:'Alcance 2',A3:'Alcance 3',A4:'Alcance 4',A5:'Alcance 5'};
+/* === PERMISOS POR ALCANCE (admin) ===
+   Sobre que alcances se puede REPORTAR metrados y en cuales se pueden CREAR
+   actividades. Se guarda en `visibilidad`, que ya existe y ya viaja en
+   realtime: tipo='alc_rep' (reportar bloqueado) y tipo='alc_new' (crear
+   bloqueado), clave = INI/A2/A3/A4/A5, activo=true significa BLOQUEADO.
+   No hizo falta ninguna columna ni tabla nueva. */
+function _alcRepBloq(k){try{var r=_visRule('alc_rep',String(k||''));return !!(r&&r.activo)}catch(e){return false}}
+function _alcNewBloq(k){try{var r=_visRule('alc_new',String(k||''));return !!(r&&r.activo)}catch(e){return false}}
+/* de una actividad: se puede reportar avance/metrado? */
+function _alcRepOK(p){try{
+ var k=(typeof _alcDe==='function')?_alcDe(p&&p.id):'';return !_alcRepBloq(k)}catch(e){return true}}
+function _alcNewOK(k){return !_alcNewBloq(k)}
+function _alcPermToggle(tipo,k,bloquear){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ var lbl=(_ALC_LBL[k]||k)+(tipo==='alc_rep'?' · reportar':' · crear');
+ _visSave({tipo:tipo,clave:k},!!bloquear,[],lbl,true);   /* metricas NO se toca aqui */
+ try{if(typeof syncNow==='function')syncNow(true)}catch(e){}
+ _showAlcPaquetes();
+}
 function _alcPaqOculto(k){try{var r=_visRule('alc',k);return !!(r&&r.activo)}catch(e){return false}}
 function _alcPaqCuenta(){
  var out={INI:0,A2:0,A3:0,A4:0,A5:0};
@@ -2950,21 +2971,21 @@ function _alcPaqToggle(k,ocultar){
  try{if(typeof syncNow==='function')syncNow(true)}catch(e){}
  _showAlcPaquetes();
 }
-/* === 📆 DÍAS HABILITADOS (admin) ===
-   Un check por día para definir cuáles pueden modificar los supervisores.
-   Escribe en `dias_habilitados` con la funcion de siempre (setDiaOpen), que
-   ya guarda local y sube a Supabase; la tabla ya viaja en realtime. */
-function _dhDias(n){
- var out=[],hoy=(typeof todayISO==='function')?todayISO():'';
- var d=new Date(hoy+'T00:00:00');
- for(var i=0;i<n;i++){
-  var iso=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
-  out.push(iso);d.setDate(d.getDate()-1);
- }
- return out;
+/* === 📆 DÍAS PARA CORREGIR PERSONAL (admin) ===
+   Calendario con un check por día: en cuáles puede el supervisor QUITAR gente.
+   Es aparte del check de las tarjetas del Main, que sigue siendo para las
+   cargas de actividades y no se toca.
+   Se guarda en `visibilidad` (tipo='dia_pers', clave=fecha, activo=true), que
+   ya existe, ya tiene updated_at/ts y ya viaja en realtime. */
+function _diaPersOK(f){try{
+ var hoy=(typeof todayISO==='function')?todayISO():'';
+ if(!f||f>=hoy)return true;                       /* hoy siempre se puede */
+ var r=_visRule('dia_pers',f);return !!(r&&r.activo)}catch(e){return false}}
+function _diaPersSet(f,on){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ _visSave({tipo:'dia_pers',clave:f},!!on,[],'Personal '+f,true);
+ try{if(typeof syncNow==='function')syncNow(true)}catch(e){}
 }
-function _dhRegistros(f){try{
- var n=0;(state.partes||[]).forEach(function(p){if(p&&p.fecha===f)n++});return n}catch(e){return 0}}
 function _showDiasHab(){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
  var ov=document.getElementById('_dhOv');if(ov)ov.remove();
@@ -2972,40 +2993,56 @@ function _showDiasHab(){
  ov.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';
  ov.onclick=function(e){if(e.target===ov)ov.remove()};
  var hoy=(typeof todayISO==='function')?todayISO():'';
- var D=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
- function lbl(f){try{var d=new Date(f+'T00:00:00');return D[d.getDay()]+' '+d.getDate()+' '+M[d.getMonth()]}catch(e){return f}}
- var dias=_dhDias(45);
- var abiertos=dias.filter(function(f){return f<hoy&&state.diasOpen&&state.diasOpen[f]}).length;
- var filas=dias.map(function(f){
-  var esHoy=(f===hoy),fut=(f>hoy),on=!!(state.diasOpen&&state.diasOpen[f]),reg=_dhRegistros(f);
-  var abierto=esHoy||fut||on;
-  return '<label style="display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid '+(on?'#B9E0C8':'#E1E7F0')+';border-radius:11px;margin-bottom:7px;background:'+(on?'#F1FBF5':'#fff')+';cursor:'+(esHoy?'default':'pointer')+'">'
-   +'<input type="checkbox" class="_dhChk" data-f="'+f+'" '+(abierto?'checked':'')+' '+(esHoy?'disabled':'')+' style="width:19px;height:19px;flex:none">'
-   +'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13.5px;color:#1B2433">'+lbl(f)+(esHoy?' · Hoy':'')+'</div>'
-   +'<div style="font-size:11.5px;color:#5C6779;margin-top:2px">'+reg+' registro(s)'
-     +(esHoy?' · siempre abierto':(on?' · <b style="color:#0C5132">abierto para supervisores</b>':' · cerrado'))+'</div></div></label>'}).join('');
+ var base=window._dhMes||hoy;
+ var b=new Date(base+'T00:00:00'),y=b.getFullYear(),m=b.getMonth();
+ var MES=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+ var ini=new Date(y,m,1).getDay(),dias=new Date(y,m+1,0).getDate();
+ var cel='',abiertos=0;
+ for(var i=0;i<ini;i++)cel+='<div></div>';
+ for(var d=1;d<=dias;d++){
+  var iso=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+d).slice(-2);
+  var esHoy=(iso===hoy),fut=(iso>hoy);
+  var on=esHoy||fut||!!(_visRule('dia_pers',iso)||{}).activo;
+  if(on&&!esHoy&&!fut)abiertos++;
+  var n=(typeof _pdCuentaDia==='function')?_pdCuentaDia(iso):0;
+  cel+='<label class="_dhCell" style="height:58px;border:1px solid '+(on?'#B9E0C8':'#E1E7F0')+';border-radius:9px;'
+   +'background:'+(esHoy?'#1F3864':(on?'#F1FBF5':'#fff'))+';color:'+(esHoy?'#fff':(fut?'#C3CBD6':'#1B2433'))+';'
+   +'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:'+((esHoy||fut)?'default':'pointer')+'">'
+   +'<input type="checkbox" class="_dhChk" data-f="'+iso+'" '+(on?'checked':'')+' '+((esHoy||fut)?'disabled':'')+' style="width:15px;height:15px;margin:0">'
+   +'<span style="font-size:11.5px;font-weight:800">'+d+'</span>'
+   +'<span style="font-size:10px;font-weight:900;color:'+(esHoy?'#CFE0F5':(n?'#0C5132':'#C3CBD6'))+'">'+(n||'·')+'</span></label>';
+ }
  ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
-  +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">📆 Días habilitados</b>'
+  +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">📆 Días para corregir personal</b>'
   +'<button id="_dhX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
-  +'<div style="font-size:12px;color:#5C6779;margin-bottom:11px">Marca qué días pueden modificar los supervisores. El día de hoy siempre está abierto. Ahora hay <b>'+abiertos+'</b> día(s) anteriores abiertos.</div>'
-  +'<div style="display:flex;gap:8px;margin-bottom:11px">'
-   +'<button id="_dhNone" style="flex:1;background:#B42318;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:12.5px">Cerrar todos</button>'
+  +'<div style="font-size:12px;color:#5C6779;margin-bottom:11px">Marca en qué días el supervisor puede <b>quitar gente</b> que no estuvo en obra. Hoy siempre está abierto. El número de abajo es cuánta gente hubo ese día.<br><span style="color:#8A94A6">El check de las tarjetas del inicio es otra cosa: ese habilita las cargas de actividades y sigue igual.</span></div>'
+  +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'
+   +'<button id="_dhMesPrev" style="background:#EEF2F7;border:0;border-radius:8px;width:34px;height:34px;font-weight:900;color:#1F3864;cursor:pointer">‹</button>'
+   +'<div style="flex:1;text-align:center;font-weight:900;font-size:13px;color:#1F3864;letter-spacing:.06em">'+MES[m]+' '+y+'</div>'
+   +'<button id="_dhMesNext" style="background:#EEF2F7;border:0;border-radius:8px;width:34px;height:34px;font-weight:900;color:#1F3864;cursor:pointer">›</button></div>'
+  +'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:5px">'
+   +['D','L','M','M','J','V','S'].map(function(x){return '<div style="text-align:center;font-size:10px;font-weight:800;color:#8A94A6">'+x+'</div>'}).join('')+'</div>'
+  +'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">'+cel+'</div>'
+  +'<div style="display:flex;gap:8px;margin-top:11px">'
+   +'<button id="_dhNone" style="flex:1;background:#B42318;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:12.5px">Cerrar el mes</button>'
    +'<button id="_dhWeek" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:12.5px">Abrir últimos 7</button></div>'
-  +filas
-  +'<div style="font-size:11px;color:#8A94A6;margin-top:6px">Se guarda en <b>dias_habilitados</b> y llega al instante a todos los equipos.</div></div>';
+  +'<div style="font-size:11px;color:#8A94A6;margin-top:8px">'+abiertos+' día(s) abiertos en este mes · se guarda en <b>visibilidad</b> y llega al instante.</div></div>';
  document.body.appendChild(ov);
  document.getElementById('_dhX').onclick=function(){ov.remove()};
- function set(f,on){try{setDiaOpen(f,on)}catch(e){}}
- Array.prototype.forEach.call(ov.querySelectorAll('._dhChk'),function(c){
-  c.onchange=function(){var f=c.getAttribute('data-f');set(f,c.checked);
-   if(typeof logCambio==='function')try{logCambio('DIAS',f,c.checked?'habilitado para supervisores':'cerrado')}catch(e){}
-   toast(c.checked?('📆 '+f+' abierto'):('🔒 '+f+' cerrado'));_showDiasHab()}});
+ function mes(n){var d=new Date(y,m+n,1);window._dhMes=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-01';_showDiasHab()}
+ document.getElementById('_dhMesPrev').onclick=function(){mes(-1)};
+ document.getElementById('_dhMesNext').onclick=function(){mes(1)};
+ ov.querySelectorAll('._dhChk').forEach(function(c){c.onchange=function(){
+  var f=c.getAttribute('data-f');_diaPersSet(f,c.checked);
+  toast(c.checked?('📆 '+f+': el supervisor ya puede corregir'):('🔒 '+f+' cerrado'));_showDiasHab()}});
  document.getElementById('_dhNone').onclick=function(){
-  if(!confirm('¿Cerrar TODOS los días anteriores?'))return;
-  dias.forEach(function(f){if(f<hoy&&state.diasOpen&&state.diasOpen[f])set(f,false)});
-  toast('🔒 Días anteriores cerrados');_showDiasHab()};
+  if(!confirm('¿Cerrar todos los días de '+MES[m]+'?'))return;
+  ov.querySelectorAll('._dhChk').forEach(function(c){if(!c.disabled&&c.checked)_diaPersSet(c.getAttribute('data-f'),false)});
+  toast('🔒 Mes cerrado');_showDiasHab()};
  document.getElementById('_dhWeek').onclick=function(){
-  dias.slice(0,8).forEach(function(f){if(f<hoy)set(f,true)});
+  var d=new Date(hoy+'T00:00:00');
+  for(var i=1;i<=7;i++){d.setDate(d.getDate()-1);
+   _diaPersSet(d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2),true)}
   toast('📆 Últimos 7 días abiertos');_showDiasHab()};
 }
 function _showAlcPaquetes(){
@@ -3015,22 +3052,26 @@ function _showAlcPaquetes(){
  ov.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';
  ov.onclick=function(e){if(e.target===ov)ov.remove()};
  var cnt=_alcPaqCuenta();
+ function _alcSw(tipo,k,bloq,txt){return '<button class="_alcSw" data-t="'+tipo+'" data-k="'+k+'" data-b="'+(bloq?'1':'0')+'" style="flex:1;background:'+(bloq?'#FDECEC':'#EAF6EE')+';color:'+(bloq?'#B42318':'#0C5132')+';border:1px solid '+(bloq?'#F0C8C8':'#B9E0C8')+';border-radius:8px;padding:7px 6px;font-weight:800;font-size:11px;cursor:pointer">'+(bloq?'✖ ':'✓ ')+txt+'</button>'}
  var filas=Object.keys(_ALC_LBL).map(function(k){
-  var off=_alcPaqOculto(k);var n=cnt[k]||0;
+  var off=_alcPaqOculto(k);var n=cnt[k]||0;var rb=_alcRepBloq(k),nb=_alcNewBloq(k);
   return '<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid '+(off?'#F0C8C8':'#E1E7F0')+';border-radius:11px;margin-bottom:8px;background:'+(off?'#FDF2F2':'#fff')+'">'
    +'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13.5px;color:'+(off?'#B42318':'#1B2433')+'">'+esc(_ALC_LBL[k])+'</div>'
    +'<div style="font-size:11.5px;color:#5C6779;margin-top:2px">'+n+' actividad(es)'+(off?' · oculto y fuera del avance':' · visible y cuenta para el avance')+'</div></div>'
-   +'<button class="_alcT" data-k="'+k+'" data-off="'+(off?'1':'0')+'" style="flex:none;background:'+(off?'#1E7A46':'#B42318')+';color:#fff;border:0;border-radius:9px;padding:9px 13px;font-weight:800;font-size:12px;cursor:pointer">'+(off?'👁 Mostrar':'🚫 Ocultar')+'</button></div>'}).join('');
+   +'<button class="_alcT" data-k="'+k+'" data-off="'+(off?'1':'0')+'" style="flex:none;background:'+(off?'#1E7A46':'#B42318')+';color:#fff;border:0;border-radius:9px;padding:9px 13px;font-weight:800;font-size:12px;cursor:pointer">'+(off?'👁 Mostrar':'🚫 Ocultar')+'</button></div>'
+   +'<div style="display:flex;gap:7px;margin:-2px 0 8px 2px">'+_alcSw('alc_rep',k,rb,'Reportar metrados')+_alcSw('alc_new',k,nb,'Crear actividades')+'</div>'}).join('');
  ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
   +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">📦 Paquetes de alcance</b>'
   +'<button id="_alcX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
-  +'<div style="font-size:12px;color:#5C6779;margin-bottom:12px">Ocultar un paquete lo saca de las cartillas de todos los supervisores <b>y lo descuenta del % de avance y de la reportabilidad</b>. El administrador lo sigue viendo para poder devolverlo.</div>'
+  +'<div style="font-size:12px;color:#5C6779;margin-bottom:12px">Ocultar un paquete lo saca de las cartillas de todos los supervisores <b>y lo descuenta del % de avance y de la reportabilidad</b>. El administrador lo sigue viendo para poder devolverlo.<br>Debajo de cada uno: si se puede <b>reportar metrados</b> (si no, en esas actividades solo quedan los dos botones de restricción) y si se pueden <b>crear actividades</b> en ese alcance.</div>'
   +filas
   +'<div style="font-size:11px;color:#8A94A6;margin-top:6px">Viaja a todos los equipos al instante (tabla <b>visibilidad</b>, en realtime).</div></div>';
  document.body.appendChild(ov);
  document.getElementById('_alcX').onclick=function(){ov.remove()};
  ov.querySelectorAll('._alcT').forEach(function(b){b.onclick=function(){
   _alcPaqToggle(b.getAttribute('data-k'), b.getAttribute('data-off')!=='1')}});
+ ov.querySelectorAll('._alcSw').forEach(function(b){b.onclick=function(){
+  _alcPermToggle(b.getAttribute('data-t'), b.getAttribute('data-k'), b.getAttribute('data-b')!=='1')}});
 }
 /* === 🔢 RENUMERACION VISIBLE (admin) ===
    C0001 / M0001 / E0001 seguido de " - Alc1..Alc5".
