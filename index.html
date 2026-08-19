@@ -2677,7 +2677,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260809b1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819a1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -5440,6 +5440,100 @@ function _exParseWB(rd,rs,fname){try{
 }catch(e){return null}}
 function _exData(){try{return JSON.parse(localStorage.getItem('wtt4_exdata')||'null')}catch(e){return null}}
 function _exDataSet(o){try{if(o)localStorage.setItem('wtt4_exdata',JSON.stringify(o));else localStorage.removeItem('wtt4_exdata')}catch(e){}}
+/* === 📄 REPORTES DIARIOS (PDF del DR) — fuente de los histogramas ===
+   Lee la PRIMERA hoja del "REPORTE DIARIO (DAILY REPORT)" y saca, por día:
+   mano de obra directa, operadores, staff y los 3 bloques de equipos, con sus
+   TOTAL HH / TOTAL HM. Entrega la MISMA estructura que el Excel de carga
+   (_exData), así que los histogramas y los rankings funcionan igual.
+   Validado contra el consolidado de la semana 9: 49/47/51/45/44/39 personas,
+   2,732 HH y 5,011 HM — día por día y en los rankings de cargos y equipos. */
+function _pdfjsLoad(){return new Promise(function(res,rej){
+ if(window.pdfjsLib){res(window.pdfjsLib);return}
+ var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+ s.onload=function(){try{window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'}catch(e){}res(window.pdfjsLib)};
+ s.onerror=function(){rej(new Error('Sin señal: no pude cargar el lector de PDF'))};
+ document.head.appendChild(s)})}
+function _drNorm(s){try{return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase()}catch(e){return String(s||'').replace(/\s+/g,' ').trim().toUpperCase()}}
+function _drNum(t){var s=String(t||'').replace(/,/g,'').trim();return /^-?\d+(\.\d+)?$/.test(s)?parseFloat(s):null}
+/* agrupa los fragmentos de texto en FILAS por cercanía vertical y reparte por columnas (x) */
+function _drRows(it,x0,x1,labX,c0,c1,h0){
+ var ws=it.filter(function(w){return w.x>=x0&&w.x<x1&&String(w.s).trim()});
+ ws.sort(function(a,b){return (a.y-b.y)||(a.x-b.x)});
+ var G=[];
+ ws.forEach(function(w){var g=G[G.length-1];
+  if(g&&Math.abs(w.y-g.y)<=3){g.w.push(w);g.y=(g.y*(g.w.length-1)+w.y)/g.w.length}
+  else G.push({y:w.y,w:[w]})});
+ return G.map(function(g){
+  var r=g.w.slice().sort(function(a,b){return a.x-b.x});var lab='',c=null,h=null;
+  r.forEach(function(w){
+   if(w.x<labX){lab+=(lab?' ':'')+String(w.s).trim();return}
+   var v=_drNum(w.s);if(v===null)return;
+   if(w.x>=c0&&w.x<c1)c=v;else if(w.x>=h0)h=v});
+  lab=lab.replace(/\s+/g,' ').trim();
+  return {lab:lab,key:_drNorm(lab),c:c,h:h}})}
+/* una hoja 1 de DR -> {fecha, directa, operadores, staff, equipos, tot} */
+function _drParseOne(items,W,fname){
+ var MES={ENERO:1,FEBRERO:2,MARZO:3,ABRIL:4,MAYO:5,JUNIO:6,JULIO:7,AGOSTO:8,SETIEMBRE:9,SEPTIEMBRE:9,OCTUBRE:10,NOVIEMBRE:11,DICIEMBRE:12};
+ var txt=_drNorm(items.map(function(i){return i.s}).join(' '));
+ var fecha='',m=txt.match(/(\d{1,2})\s+DE\s+([A-ZÑ]+)\s+DE\s+(\d{4})/);
+ if(m&&MES[m[2]])fecha=m[3]+'-'+('0'+MES[m[2]]).slice(-2)+'-'+('0'+m[1]).slice(-2);
+ if(!fecha){var b=String(fname||'').match(/(\d{2})(\d{2})(\d{2})/);if(b)fecha='20'+b[1]+'-'+b[2]+'-'+b[3]}
+ var k=(W||612)/612;
+ var L=_drRows(items,0,265*k,160*k,160*k,210*k,210*k);
+ var R=_drRows(items,265*k,1e6,460*k,460*k,520*k,520*k);
+ var res={fecha:fecha,directa:{},operadores:{},staff:{},equipos:{},tot:{},campo:null};
+ var sec=null,i;
+ for(i=0;i<L.length;i++){var r=L[i];
+  if(r.key.indexOf('MANO DE OBRA DIRECTA')===0){sec='directa';continue}
+  if(r.key.indexOf('MANO DE OBRA INDIRECTA - OPERADORES')===0){sec='operadores';continue}
+  if(r.key.indexOf('TOTAL HH')===0){if(sec)res.tot[sec]={n:r.c,hh:r.h};sec=null;continue}
+  if(sec&&r.lab&&r.c&&r.h&&r.key.indexOf('CUADRILLA')!==0&&r.key.indexOf('PERSONAL ADICIONAL')!==0){
+   var e=res[sec][r.lab]||(res[sec][r.lab]={n:0,hh:0});e.n+=r.c;e.hh+=r.h}}
+ sec=null;var eqH=0,eqC=0;
+ for(i=0;i<R.length;i++){var q=R[i];
+  if(q.key==='EQUIPOS'||q.key==='EQUIPO MENORES'||q.key==='OTROS EQUIPOS'){sec='equipos';continue}
+  if(q.key.indexOf('MANO DE OBRA INDIRECTA STAFF')===0){sec='staff';continue}
+  if(q.key.indexOf('TOTAL HM')===0){if(q.h)eqH+=q.h;if(q.c)eqC+=q.c;sec=null;continue}
+  if(q.key.indexOf('TOTAL HH')===0){if(sec==='staff')res.tot.staff={n:q.c,hh:q.h};sec=null;continue}
+  if(q.key.indexOf('TRABAJO EN ')===0)continue;
+  if(sec&&q.lab&&q.h){var e2=res[sec][q.lab]||(res[sec][q.lab]={n:0,hh:0});e2.n+=(q.c||0);e2.hh+=q.h}}
+ res.tot.equipos={c:eqC,hm:eqH};
+ var mc=txt.match(/TRABAJADORES EN CAMPO:\s*(\d+)/);if(mc)res.campo=parseInt(mc[1],10);
+ return res}
+/* lee N archivos PDF y los mezcla con lo ya cargado, en el formato de _exData */
+function _drParseFiles(files){
+ return _pdfjsLoad().then(function(PJ){
+  var arr=[].slice.call(files||[]);
+  return Promise.all(arr.map(function(f){
+   return f.arrayBuffer().then(function(buf){
+    return PJ.getDocument({data:new Uint8Array(buf)}).promise.then(function(pdf){
+     return pdf.getPage(1).then(function(pg){
+      var vp=pg.getViewport({scale:1});
+      return pg.getTextContent().then(function(tc){
+       var items=tc.items.map(function(t){return {x:t.transform[4],y:vp.height-t.transform[5],s:t.str}});
+       return _drParseOne(items,vp.width,f.name)})})})})}))
+  .then(function(days){
+   days=days.filter(function(d){return d&&d.fecha&&d.tot&&d.tot.directa});
+   if(!days.length)throw new Error('no pude leer la hoja de recursos');
+   var prev=_exData();var ex=(prev&&prev.src==='dr'&&prev.dias)?prev:{src:'dr',archivo:'',rango:'',dias:{},cargos:{directo:{},staff:{},equipos:{}}};
+   ex.src='dr';ex.cargos=ex.cargos||{directo:{},staff:{},equipos:{}};
+   days.forEach(function(d){
+    var td=d.tot.directa||{},to=d.tot.operadores||{},ts=d.tot.staff||{},te=d.tot.equipos||{};
+    ex.dias[d.fecha]={directo:{c:(td.n||0)+(to.n||0),h:(td.hh||0)+(to.hh||0)},
+                      staff:{c:(ts.n||0),h:(ts.hh||0)},
+                      equipos:{c:(te.c||0),h:(te.hm||0)}};
+    /* el ranking de MO DIRECTA sigue al reporte modelo: los operadores suman en el
+       total del día ("MO Directa (+operadores)") pero no entran a la lista de cargos */
+    [['directo',d.directa],['staff',d.staff],['equipos',d.equipos]].forEach(function(pr){
+     var g=pr[0];Object.keys(pr[1]).forEach(function(n){
+      var e=ex.cargos[g][n]||(ex.cargos[g][n]={dia:{}});e.dia=e.dia||{};
+      e.dia[d.fecha]={c:pr[1][n].n,h:pr[1][n].hh}})})});
+   var ks=Object.keys(ex.dias).sort();
+   function dm2(s){return s.slice(8,10)+'/'+s.slice(5,7)}
+   ex.rango=ks.length?(ks.length===1?dm2(ks[0]):(dm2(ks[0])+' – '+dm2(ks[ks.length-1]))):'';
+   ex.archivo=ks.length+' reporte(s) diario(s) PDF';
+   _exDataSet(ex);
+   return {dias:ks.length,nuevos:days.length,rango:ex.rango}})})}
 function _exParseFile(file){return _xlsxLoad().then(function(X){return new Promise(function(res,rej){var rd=new FileReader();rd.onload=function(){try{var wb=X.read(new Uint8Array(rd.result),{type:'array'});var sh1=null,sh2=null;wb.SheetNames.forEach(function(n){var k=_exKey(n);if(k.indexOf('reportes')>=0&&!sh1)sh1=n;if(k.indexOf('resumen')>=0&&!sh2)sh2=n});sh1=sh1||wb.SheetNames[0];sh2=sh2||wb.SheetNames[1]||wb.SheetNames[0];
  var j1=X.utils.sheet_to_json(wb.Sheets[sh1],{header:1,raw:true,defval:null});var j2=X.utils.sheet_to_json(wb.Sheets[sh2],{header:1,raw:true,defval:null});
  res(_exParseWB(j1,j2,file.name))}catch(e){rej(e)}};rd.onerror=function(){rej(new Error('lectura'))};rd.readAsArrayBuffer(file)})})}
@@ -5645,8 +5739,9 @@ function _repConsol(){
   +'<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex:1"><label style="font-size:11.5px;font-weight:800;color:#1F3864;display:block;margin-bottom:3px">📅 Cronograma · Desde</label><input id="_rcCrI" type="date" value="'+crI+'" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:13px"></div><div style="flex:1"><label style="font-size:11.5px;font-weight:800;color:#1F3864;display:block;margin-bottom:3px">Hasta</label><input id="_rcCrF" type="date" value="'+hoy+'" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:13px"></div></div>'
   +'<label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12.5px;color:#1F3864;font-weight:700;cursor:pointer"><input type="checkbox" id="_rcFore" style="width:16px;height:16px"> Cronogramas: incluir FORECAST (por ejecutar)</label>'
   +'<div style="border:1px solid #B4C9E8;background:#F3F8FF;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:4px">📘 Línea Base 0 (XER de Primavera P6)</div><div id="_rcXerSt" style="font-size:11.5px;color:#44506B;margin-bottom:7px">—</div><input type="file" id="_rcXerIn" accept=".xer,.XER" style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcXerBtn" style="flex:1;background:#1F3864;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar / reemplazar XER…</button><button type="button" id="_rcXerDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Quitar</button></div></div>'
+  +'<div style="border:1px solid #B4D5EE;background:#F2F8FD;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0E2440;margin-bottom:4px">📄 Reportes diarios (PDF del DR) — fuente de los histogramas</div><div id="_rcDrSt" style="font-size:11.5px;color:#31506E;margin-bottom:7px">—</div><input type="file" id="_rcDrIn" accept=".pdf" multiple style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcDrBtn" style="flex:1;background:#0E2440;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar reportes diarios…</button><button type="button" id="_rcDrDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#4A6076;margin-top:5px">Selecciona los PDF de los días de la semana (uno por día). Se leen solos: mano de obra directa, operadores, staff y equipos (HM). El rango de la semana (arriba) define qué días entran.</div></div>'
   +'<div style="border:1px solid #B9E0C8;background:#F1FBF5;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0C5132;margin-bottom:4px">👷 Personal e histogramas — Excel de carga (MO directa, staff y equipos)</div><div id="_rcExSt" style="font-size:11.5px;color:#356149;margin-bottom:7px">—</div><input type="file" id="_rcExIn" accept=".xlsx,.xls" style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcExBtn" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar Excel de carga…</button><button type="button" id="_rcExDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#5C7A66;margin-top:5px">Hoja REPORTES DIARIOS: col A = puesto, fila 2 = fechas (#fecha = cantidades, fecha normal = HH). Hoja RESUMEN PERSONAL separa staff / directa / equipos — solo eso se incluye. El rango de la semana (arriba) define qué días entran.</div></div>'
-  +'<div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:6px">¿Qué incluir en el reporte?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">'+ck('_rcP','🏁 Portada + Plan/Real/Var/SPI',true)+ck('_rcR','📊 Resumen por especialidad',true)+ck('_rcW','🗂 Actividades por estado (WBS) + fotos de la semana',true)+ck('_rcPers','👷 Personal e histogramas (Excel)',true)+ck('_rcC','📅 Cronogramas Gantt',true)+ck('_rcMina','⛰ Restricciones de mina',true)+ck('_rcRi','⚠ Riesgos y alertas',true)+'</div>'
+  +'<div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:6px">¿Qué incluir en el reporte?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">'+ck('_rcP','🏁 Portada + Plan/Real/Var/SPI',true)+ck('_rcR','📊 Resumen por especialidad',true)+ck('_rcW','🗂 Actividades por estado (WBS) + fotos de la semana',true)+ck('_rcPers','👷 Personal e histogramas (reportes diarios)',true)+ck('_rcC','📅 Cronogramas Gantt',true)+ck('_rcMina','⛰ Restricciones de mina',true)+ck('_rcRi','⚠ Riesgos y alertas',true)+'</div>'
   +'<div style="display:flex;gap:8px"><button id="_rcX" style="flex:1;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button><button id="_rcGo" style="flex:2;background:#0E2440;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800">📑 Generar PDF</button></div></div>';
  document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};document.getElementById('_rcX').onclick=function(){ov.remove()};
  /* XER LB0: estado + adjuntar + quitar (queda guardado en este equipo) */
@@ -5667,6 +5762,19 @@ function _repConsol(){
  if(_eDel)_eDel.onclick=function(){_exDataSet(null);_rcExUpd();toast('Excel de carga vaciado')};
  if(_eIn)_eIn.onchange=function(e){var f=e.target.files&&e.target.files[0];if(!f)return;toast('Leyendo Excel…');
   _exParseFile(f).then(function(r){if(!r){toast('No pude leer el Excel (¿tiene las hojas REPORTES DIARIOS y RESUMEN PERSONAL?)');return}_exDataSet(r);_rcExUpd();toast('👷 Carga leída: '+Object.keys(r.dias).length+' día(s) ✓')}).catch(function(err){toast('No se pudo leer: '+((err&&err.message)||err))})};
+ /* Reportes diarios (PDF del DR): estado + adjuntar + vaciar */
+ function _rcDrUpd(){var st=document.getElementById('_rcDrSt');if(!st)return;var ex=_exData();
+  if(ex&&ex.src==='dr'&&ex.dias){var k=Object.keys(ex.dias).sort();
+   st.innerHTML='✓ <b style="color:#0E2440">Cargados:</b> '+k.length+' día(s) ('+esc(ex.rango||'')+') — mano de obra, staff y equipos leídos de los PDF.'}
+  else if(ex&&ex.dias)st.innerHTML='Hay un Excel de carga adjunto. Si adjuntas los PDF, pasan a ser la fuente.';
+  else st.innerHTML='Sin reportes diarios. Adjunta los PDF del DR (uno por día) para armar los histogramas.'}
+ _rcDrUpd();
+ var _dBtn=document.getElementById('_rcDrBtn'),_dIn=document.getElementById('_rcDrIn'),_dDel=document.getElementById('_rcDrDel');
+ if(_dBtn)_dBtn.onclick=function(){if(_dIn){_dIn.value='';_dIn.click()}};
+ if(_dDel)_dDel.onclick=function(){_exDataSet(null);_rcDrUpd();try{_rcExUpd()}catch(_e){}toast('Reportes diarios vaciados')};
+ if(_dIn)_dIn.onchange=function(e){var fs=e.target.files;if(!fs||!fs.length)return;toast('Leyendo '+fs.length+' reporte(s) diario(s)…');
+  _drParseFiles(fs).then(function(r){_rcDrUpd();try{_rcExUpd()}catch(_e){}toast('📄 '+r.nuevos+' día(s) leído(s) · total '+r.dias+' ✓')})
+  .catch(function(err){toast('No pude leer los PDF: '+((err&&err.message)||err))})};
  document.getElementById('_rcGo').onclick=function(){
   var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
   if(!cfg.cutIni||!cfg.cutFin){toast('Elegí las fechas de la semana');return}
