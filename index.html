@@ -1822,6 +1822,9 @@ function _showConfig(){
   /* MODO PRUEBAS */
   H+='<div style="border:2px solid '+(window._modoPrueba?'#FFD100':'#7A1A1A')+';border-radius:12px;padding:12px;margin-bottom:12px;background:'+(window._modoPrueba?'#3a3000':'#1a0d0d')+'">'
    +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b style="color:#fff;font-size:14px">🧪 MODO PRUEBAS del servidor</b><span style="color:#9db4d6;font-size:12px">todo se ve real, pero NINGÚN cambio cuenta (solo en este equipo)</span></div>'
+   +'<div style="margin-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b style="color:#fff;font-size:14px">📦 ALCANCES Y CÓDIGOS</b><span style="color:#9db4d6;font-size:12px">ocultar paquetes del avance · renumerar C / M / E</span></div>'
+   +'<button id="_cfgAlc" style="margin-top:10px;width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;font-size:14.5px;cursor:pointer;background:#9A5B00;color:#fff">📦 PAQUETES DE ALCANCE</button>'
+   +'<button id="_cfgRnm" style="margin-top:10px;width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;font-size:14.5px;cursor:pointer;background:#1F3864;color:#fff">🔢 RENUMERAR CÓDIGOS</button>'
    +'<button id="_cfgMP" style="margin-top:10px;width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;font-size:14.5px;cursor:pointer;background:'+(window._modoPrueba?'#FFD100':'#C81E1E')+';color:'+(window._modoPrueba?'#231A00':'#fff')+'">'+(window._modoPrueba?'⚠️ FINALIZAR MODO PRUEBAS y volver a lo real':'🔴 ACTIVAR MODO PRUEBAS')+'</button></div>';
   /* ROLES */
   H+='<div style="border:1px solid #243a5e;border-radius:12px;padding:12px;margin-bottom:12px;background:#101a30"><b style="color:#fff;font-size:14px">👥 Roles</b><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">';
@@ -1867,6 +1870,8 @@ function _showConfig(){
    var row={rol:key,nombre:nombre,permisos:{},fijo:false,orden:50,proyecto:DATA.proyecto,quien:(state.user&&state.user.supervisor)||'',ts:(typeof nowSrv==='function'?nowSrv():Date.now()),cell_at:Date.now(),updated_at:new Date().toISOString()};
    var okd=false;try{var rr=await fetch(sbBase()+'/rest/v1/roles_permisos?on_conflict=rol',{method:'POST',headers:sbHead({'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify([row])});okd=rr.ok}catch(e){}
    state.rolperms[key]=row;store.set(KRP,state.rolperms);draw();var m2=document.getElementById('_cfgRolMsg');if(m2){m2.textContent=okd?('✓ Rol "'+nombre+'" creado — márcale sus accesos y guarda'):'✓ creado en este equipo (se subirá al reconectar)';m2.style.color='#7fd7a5'}};
+  var bal=document.getElementById('_cfgAlc');if(bal)bal.onclick=function(){if(typeof _showAlcPaquetes==='function')_showAlcPaquetes()};
+  var brn=document.getElementById('_cfgRnm');if(brn)brn.onclick=function(){if(typeof _showRenum==='function')_showRenum()};
   var bmp=document.getElementById('_cfgMP');if(bmp)bmp.onclick=function(){_mpToggle();setTimeout(draw,300)};
   updSaveBtn();
  }
@@ -2684,7 +2689,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819a9';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819b1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
