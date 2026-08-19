@@ -2677,7 +2677,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819a3';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819a4';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -5676,14 +5676,35 @@ function _repConsolBuild(cfg){
   _arOrd.forEach(function(a){var p=+_pz[a]||0;if(p>0){_sumP+=p;_accP+=p*(_agA[a].n?(_agA[a].sr/_agA[a].n):0)}});
   /* si hay pesos definidos, SOLO se consideran las areas con peso > 0 */
   var _arShow=(_sumP>0)?_arOrd.filter(function(a){return (+_pz[a]||0)>0}):_arOrd;
+  /* PLAN FORECAST = lo que se DEFINIO hacer, tomado del BACK_CRONOGRAMA elegido
+     (cfg.fcSrc). Sin snapshot elegido cae al cronograma vigente de la app.
+     Se pondera con los MISMOS pesos de area que el REAL, para que sean comparables. */
+  var _idxA={};DISCS.forEach(function(d){M[d].rows.forEach(function(r){_idxA[r.p.id]={area:r.area||'(sin area)'}})});
+  var _bkFC=null;try{if(cfg.fcSrc)_bkFC=(state.backcron||[]).filter(function(b){return String(b.id)===String(cfg.fcSrc)})[0]||null}catch(_e){}
+  var _agP={};
+  if(_bkFC){
+   DISCS.forEach(function(d){((_bkFC.snap&&_bkFC.snap[d])||[]).forEach(function(a){
+    var id=a.partida_id||a._id;if(!id||!a.start)return;
+    var ix=_idxA[id];if(!ix)return;
+    var occ=(typeof occupiedDays==='function')?occupiedDays(a.start,a.dias||1):[];
+    var oh=occ.filter(function(x){return x<=cut}).length;
+    var pl=occ.length?Math.round(oh/occ.length*100):0;
+    var e=_agP[ix.area]||(_agP[ix.area]={n:0,sp:0});e.n++;e.sp+=pl})});
+  }else{
+   DISCS.forEach(function(d){M[d].rows.forEach(function(r){
+    var e=_agP[r.area||'(sin area)']||(_agP[r.area||'(sin area)']={n:0,sp:0});e.n++;e.sp+=r.plan})});
+  }
+  var _accPl=0,_sumPl=0;
+  _arShow.forEach(function(a){var p=+_pz[a]||0;var e=_agP[a];if(p>0&&e&&e.n){_sumPl+=p;_accPl+=p*(e.sp/e.n)}});
+  var planPond=_sumPl>0?Math.round(_accPl/_sumPl*10)/10:gPlan;
   var realPond=_sumP>0?Math.round(_accP/_sumP*10)/10:gReal;
   var vVar2=Math.round((realPond-basePlan)*10)/10;var vSPI2=basePlan>0?Math.round(realPond/basePlan*100)/100:0;
-  var fVar=Math.round((realPond-gPlan)*10)/10;var fSPI=gPlan>0?Math.round(realPond/gPlan*100)/100:0;
+  var fVar=Math.round((realPond-planPond)*10)/10;var fSPI=planPond>0?Math.round(realPond/planPond*100)/100:0;
   var kpi=function(lb,val,col){return '<div style="flex:1;border:.4mm solid '+col+';border-radius:2mm;overflow:hidden;text-align:center;min-width:0"><div style="background:'+col+';color:#fff;font-size:9.5px;font-weight:800;padding:1.8mm .5mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+lb+'</div><div style="font-size:19px;font-weight:900;color:'+col+';padding:2.6mm 0">'+val+'</div></div>'};
   var _cV=function(v){return v<0?'#C0392B':'#1E7A46'};
   var _cS=function(v){return v<0.95?'#C0392B':(v<1?'#C9A227':'#1E7A46')};
   var kpis=(LB&&lbG?kpi('PLAN LÍNEA BASE 0',lbG.pct+'%','#1F6FE0'):'')
-   +kpi('PLAN FORECAST',gPlan+'%','#1E7A46')
+   +kpi('PLAN FORECAST',planPond+'%','#1E7A46')
    +kpi('REAL PONDERADO',realPond+'%','#C0392B')
    +(LB&&lbG?kpi('VARIACIÓN vs LB0',(vVar2>0?'+':'')+vVar2+'%',_cV(vVar2)):'')
    +(LB&&lbG?kpi('SPI vs LB0',vSPI2.toFixed(2),_cS(vSPI2)):'')
@@ -5825,6 +5846,7 @@ function _repConsol(){
   +'<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex:1"><label style="font-size:11.5px;font-weight:800;color:#1F3864;display:block;margin-bottom:3px">📅 Cronograma · Desde</label><input id="_rcCrI" type="date" value="'+crI+'" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:13px"></div><div style="flex:1"><label style="font-size:11.5px;font-weight:800;color:#1F3864;display:block;margin-bottom:3px">Hasta</label><input id="_rcCrF" type="date" value="'+hoy+'" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:13px"></div></div>'
   +'<label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12.5px;color:#1F3864;font-weight:700;cursor:pointer"><input type="checkbox" id="_rcFore" style="width:16px;height:16px"> Cronogramas: incluir FORECAST (por ejecutar)</label>'
   +'<div style="border:1px solid #B4C9E8;background:#F3F8FF;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:4px">📘 Línea Base 0 (XER de Primavera P6)</div><div id="_rcXerSt" style="font-size:11.5px;color:#44506B;margin-bottom:7px">—</div><input type="file" id="_rcXerIn" accept=".xer,.XER" style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcXerBtn" style="flex:1;background:#1F3864;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar / reemplazar XER…</button><button type="button" id="_rcXerDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Quitar</button></div></div>'
+  +'<div id="_rcFcBox" style="border:1px solid #B9C9E8;background:#F5F8FE;border-radius:10px;padding:10px 11px;margin-bottom:12px"></div>'
   +'<div id="_rcPzBox" style="border:1px solid #E0CDA0;background:#FFFBF0;border-radius:10px;padding:10px 11px;margin-bottom:12px"></div>'
   +'<div style="border:1px solid #B4D5EE;background:#F2F8FD;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0E2440;margin-bottom:4px">📄 Reportes diarios (PDF del DR) — fuente de los histogramas</div><div id="_rcDrSt" style="font-size:11.5px;color:#31506E;margin-bottom:7px">—</div><input type="file" id="_rcDrIn" accept=".pdf" multiple style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcDrBtn" style="flex:1;background:#0E2440;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar reportes diarios…</button><button type="button" id="_rcDrDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#4A6076;margin-top:5px">Selecciona los PDF de los días de la semana (uno por día). Se leen solos: mano de obra directa, operadores, staff y equipos (HM). El rango de la semana (arriba) define qué días entran.</div></div>'
   +'<div style="border:1px solid #B9E0C8;background:#F1FBF5;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0C5132;margin-bottom:4px">👷 Personal e histogramas — Excel de carga (MO directa, staff y equipos)</div><div id="_rcExSt" style="font-size:11.5px;color:#356149;margin-bottom:7px">—</div><input type="file" id="_rcExIn" accept=".xlsx,.xls" style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcExBtn" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar Excel de carga…</button><button type="button" id="_rcExDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#5C7A66;margin-top:5px">Hoja REPORTES DIARIOS: col A = puesto, fila 2 = fechas (#fecha = cantidades, fecha normal = HH). Hoja RESUMEN PERSONAL separa staff / directa / equipos — solo eso se incluye. El rango de la semana (arriba) define qué días entran.</div></div>'
@@ -5849,6 +5871,18 @@ function _repConsol(){
  if(_eDel)_eDel.onclick=function(){_exDataSet(null);_rcExUpd();toast('Excel de carga vaciado')};
  if(_eIn)_eIn.onchange=function(e){var f=e.target.files&&e.target.files[0];if(!f)return;toast('Leyendo Excel…');
   _exParseFile(f).then(function(r){if(!r){toast('No pude leer el Excel (¿tiene las hojas REPORTES DIARIOS y RESUMEN PERSONAL?)');return}_exDataSet(r);_rcExUpd();toast('👷 Carga leída: '+Object.keys(r.dias).length+' día(s) ✓')}).catch(function(err){toast('No se pudo leer: '+((err&&err.message)||err))})};
+ /* Plan Forecast: contra que cronograma se mide (BACK_CRONOGRAMA guardado) */
+ (function(){var box=document.getElementById('_rcFcBox');if(!box)return;
+  var bks=(state.backcron||[]).slice().filter(function(b){return !b.deleted_at}).sort(function(a,b){return (b.ts||0)-(a.ts||0)});
+  var op='<option value="">Cronograma vigente de la app (lo que este programado hoy)</option>';
+  bks.forEach(function(b){var tot=0;try{(b.discs||[]).forEach(function(d){tot+=((b.snap&&b.snap[d])||[]).length})}catch(_e){}
+   op+='<option value="'+esc(b.id)+'">'+esc(b.nombre||'(sin nombre)')+' \u00b7 '+tot+' act \u00b7 '+esc(b.fecha||'')+'</option>'});
+  box.innerHTML='<div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:3px">\uD83D\uDCD0 Plan Forecast \u2014 cronograma de referencia</div>'
+   +'<div style="font-size:11px;color:#44506B;margin-bottom:7px">Contra que se compara el avance real. Elige el BACK_CRONOGRAMA de la semana: son las actividades que se definieron hacer.</div>'
+   +'<select id="_rcFcSel" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:9px;font-size:13px;font-weight:700">'+op+'</select>'
+   +(bks.length?'':'<div style="font-size:11px;color:#B42318;font-weight:700;margin-top:6px">No hay back_cronogramas guardados en este equipo.</div>');
+  try{var sv=localStorage.getItem('wtt4_rcfcsrc')||'';var el=document.getElementById('_rcFcSel');if(el&&sv)el.value=sv}catch(_e){}
+ })();
  /* Pesos por AREA vigente (portada): se listan las areas que hoy tienen actividades */
  (function(){var box=document.getElementById('_rcPzBox');if(!box)return;
   var vig=(typeof _rcAreasVig==='function')?_rcAreasVig():[];
@@ -5882,6 +5916,8 @@ function _repConsol(){
   .catch(function(err){toast('No pude leer los PDF: '+((err&&err.message)||err))})};
  document.getElementById('_rcGo').onclick=function(){
   var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
+  cfg.fcSrc=(function(){var el=document.getElementById('_rcFcSel');var v=el?el.value:'';
+   try{localStorage.setItem('wtt4_rcfcsrc',v||'')}catch(_e){}return v})();
   cfg.pesos=(function(){var o={},b=document.getElementById('_rcPzBox');if(!b)return o;
    [].slice.call(b.querySelectorAll('input[data-area]')).forEach(function(el){o[el.getAttribute('data-area')]=+el.value||0});
    _rcPesosSet(o);return o})();
