@@ -2679,7 +2679,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819a6';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819a7';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -6037,6 +6037,27 @@ function _repConsol(){
    +'<select id="_rcFcSel" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:9px;font-size:13px;font-weight:700">'+op+'</select>'
    +(bks.length?'':'<div style="font-size:11px;color:#B42318;font-weight:700;margin-top:6px">No hay back_cronogramas guardados en este equipo.</div>');
   try{var sv=localStorage.getItem('wtt4_rcfcsrc')||'';var el=document.getElementById('_rcFcSel');if(el&&sv)el.value=sv}catch(_e){}
+  box.insertAdjacentHTML('beforeend','<div id="_rcFcNota" style="font-size:11.5px;font-weight:700;margin-top:7px;line-height:1.35"></div>');
+  function _fcDm(x){return String(x).slice(8,10)+'/'+String(x).slice(5,7)}
+  function _fcNota(){
+   var el2=document.getElementById('_rcFcSel'),nt=document.getElementById('_rcFcNota');if(!nt)return;
+   var id=el2?el2.value:'';var ci=document.getElementById('_rcWkI'),cf=document.getElementById('_rcWkF');
+   var cut=(cf&&cf.value)||'';
+   if(!id){nt.innerHTML='<span style="color:#8A94A6">Se usara el cronograma vigente de la app.</span>';return}
+   var bk=bks.filter(function(b){return String(b.id)===String(id)})[0];
+   if(!bk){nt.innerHTML='';return}
+   var mn='',mx='';
+   (bk.discs||Object.keys(bk.snap||{})).forEach(function(d){((bk.snap&&bk.snap[d])||[]).forEach(function(a){
+    if(!a||!a.start)return;if(!mn||a.start<mn)mn=a.start;if(!mx||a.start>mx)mx=a.start})});
+   if(!mn){nt.innerHTML='<span style="color:#B42318">Ese respaldo no tiene fechas de inicio: el Plan no se puede calcular con el.</span>';return}
+   if(cut&&cut<mn)nt.innerHTML='<span style="color:#B42318">\u26a0 Sus actividades arrancan el '+_fcDm(mn)+', DESPUES de tu corte del '+_fcDm(cut)+': el Plan Forecast saldra 0%. Elige el respaldo de la semana anterior.</span>';
+   else if(cut&&cut>=mx)nt.innerHTML='<span style="color:#8A5A00">Al '+_fcDm(cut)+' todas sus actividades ya arrancaron: el Plan Forecast saldra 100%.</span>';
+   else nt.innerHTML='<span style="color:#0C5132">Sus actividades arrancan entre el '+_fcDm(mn)+' y el '+_fcDm(mx)+' \u2014 comparable con tu corte del '+(cut?_fcDm(cut):'\u2014')+'.</span>';
+  }
+  var _fs=document.getElementById('_rcFcSel');if(_fs)_fs.onchange=_fcNota;
+  var _wf=document.getElementById('_rcWkF');if(_wf)_wf.addEventListener('change',_fcNota);
+  var _wi=document.getElementById('_rcWkI');if(_wi)_wi.addEventListener('change',_fcNota);
+  _fcNota();
  })();
  /* Pesos por AREA vigente (portada): se listan las areas que hoy tienen actividades */
  (function(){var box=document.getElementById('_rcPzBox');if(!box)return;
