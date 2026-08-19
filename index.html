@@ -2677,7 +2677,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819a4';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819a5';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -5502,9 +5502,9 @@ function _drParseOne(items,W,fname){
  var mc=txt.match(/TRABAJADORES EN CAMPO:\s*(\d+)/);if(mc)res.campo=parseInt(mc[1],10);
  return res}
 /* lee N archivos PDF y los mezcla con lo ya cargado, en el formato de _exData */
-function _drParseFiles(files){
+function _drParseFiles(files,onProg){
  return _pdfjsLoad().then(function(PJ){
-  var arr=[].slice.call(files||[]);
+  var arr=[].slice.call(files||[]);var _hechos=0;
   return Promise.all(arr.map(function(f){
    return f.arrayBuffer().then(function(buf){
     return PJ.getDocument({data:new Uint8Array(buf)}).promise.then(function(pdf){
@@ -5512,7 +5512,7 @@ function _drParseFiles(files){
       var vp=pg.getViewport({scale:1});
       return pg.getTextContent().then(function(tc){
        var items=tc.items.map(function(t){return {x:t.transform[4],y:vp.height-t.transform[5],s:t.str}});
-       return _drParseOne(items,vp.width,f.name)})})})})}))
+       return _drParseOne(items,vp.width,f.name)})})})}).then(function(_r){_hechos++;if(onProg){try{onProg(_hechos,arr.length,f.name)}catch(_e){}}return _r})}))
   .then(function(days){
    days=days.filter(function(d){return d&&d.fecha&&d.tot&&d.tot.directa});
    if(!days.length)throw new Error('no pude leer la hoja de recursos');
@@ -5829,6 +5829,65 @@ function _repConsolBuild(cfg){
  var CSS='@page{size:338.7mm 190.5mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sl{width:338.7mm;height:190.5mm;overflow:hidden;page-break-after:always;display:flex;flex-direction:column;background:#fff}';
  return {css:CSS,body:SL.join(''),title:'Reporte Consolidado — '+proy+(cfg.semana?(' — '+cfg.semana):''),slides:SL.length};
 }
+/* === Adjuntar ARRASTRANDO + pantalla de carga con % y cierre con check ===
+   La pantalla no se puede cerrar mientras carga: recien al llegar a 100%
+   aparece el boton "Listo". Si algo falla, muestra el motivo y deja cerrar. */
+function _rcProgOpen(titulo,sub){
+ var ov=document.getElementById('_rcPgOv');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='_rcPgOv';
+ ov.style.cssText='position:fixed;inset:0;z-index:2147483400;background:rgba(8,14,26,.74);display:flex;align-items:center;justify-content:center;padding:18px';
+ ov.innerHTML='<div style="background:#fff;width:100%;max-width:430px;border-radius:16px;padding:18px;box-sizing:border-box;box-shadow:0 18px 50px rgba(0,0,0,.4)">'
+  +'<div style="font-size:15px;font-weight:900;color:#0E2440">'+esc(titulo||'Cargando')+'</div>'
+  +'<div id="_rcPgSub" style="font-size:12px;color:#5C6779;margin:3px 0 13px">'+esc(sub||'')+'</div>'
+  +'<div style="height:12px;background:#E9EEF5;border-radius:99px;overflow:hidden"><div id="_rcPgBar" style="height:100%;width:0%;background:linear-gradient(90deg,#1F6FE0,#1E7A46);transition:width .25s"></div></div>'
+  +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px">'
+   +'<div id="_rcPgTxt" style="font-size:12.5px;font-weight:900;color:#1F3864;flex:none">0%</div>'
+   +'<div id="_rcPgDet" style="font-size:11px;color:#8A94A6;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div></div>'
+  +'<div id="_rcPgFoot" style="margin-top:14px"></div></div>';
+ /* mientras carga NO se cierra: se traga el clic de fondo */
+ ov.addEventListener('click',function(e){e.stopPropagation()});
+ document.body.appendChild(ov);
+ function $p(id){return document.getElementById(id)}
+ function cerrar(txt,col){var f=$p('_rcPgFoot');if(!f)return;
+  f.innerHTML='<button type="button" id="_rcPgOk" style="width:100%;background:'+col+';color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;font-size:14px">'+txt+'</button>';
+  var ok=$p('_rcPgOk');if(ok)ok.onclick=function(){ov.remove()}}
+ var api={
+  set:function(p,det){p=Math.max(0,Math.min(100,Math.round(p)));
+   var b=$p('_rcPgBar');if(b)b.style.width=p+'%';
+   var t=$p('_rcPgTxt');if(t)t.textContent=p+'%';
+   var d=$p('_rcPgDet');if(d&&det!=null)d.textContent=det},
+  done:function(msg){api.set(100);var s=$p('_rcPgSub');
+   if(s)s.innerHTML='<b style="color:#0C5132">'+esc(msg||'Listo')+'</b>';
+   cerrar('✓ Listo','#0C5132')},
+  fail:function(msg){var b=$p('_rcPgBar');if(b)b.style.background='#B42318';
+   var s=$p('_rcPgSub');if(s)s.innerHTML='<b style="color:#B42318">'+esc(msg||'No se pudo leer')+'</b>';
+   cerrar('Cerrar','#5C6779')},
+  close:function(){ov.remove()}
+ };
+ return api;
+}
+/* convierte un bloque del dialogo en zona para soltar archivos */
+function _rcDropZone(box,exts,onFiles,label){
+ if(!box||box._dz)return;box._dz=1;
+ var bg=box.style.background,bd=box.style.borderColor;
+ var hint=document.createElement('div');
+ hint.style.cssText='font-size:10.5px;color:#5C6779;font-weight:800;margin-top:7px;text-align:center;border:1.5px dashed #A9BCD8;border-radius:8px;padding:7px';
+ hint.innerHTML='⇩ o arrastra '+esc(label||'los archivos')+' hasta aquí';
+ box.appendChild(hint);
+ function mark(on){box.style.background=on?'#E7F0FE':bg;box.style.borderColor=on?'#1F6FE0':bd;
+  hint.style.borderColor=on?'#1F6FE0':'#A9BCD8';hint.style.color=on?'#1F3864':'#5C6779'}
+ ['dragenter','dragover'].forEach(function(ev){box.addEventListener(ev,function(e){
+  e.preventDefault();e.stopPropagation();try{e.dataTransfer.dropEffect='copy'}catch(_e){}mark(true)})});
+ ['dragleave','dragend'].forEach(function(ev){box.addEventListener(ev,function(e){
+  e.preventDefault();e.stopPropagation();mark(false)})});
+ box.addEventListener('drop',function(e){
+  e.preventDefault();e.stopPropagation();mark(false);
+  var fs=[].slice.call((e.dataTransfer&&e.dataTransfer.files)||[]);
+  var ok=fs.filter(function(f){var n=String(f.name||'').toLowerCase();
+   return exts.some(function(x){return n.slice(-x.length)===x})});
+  if(!ok.length){toast('Ahí va '+exts.join(' o ')+' — ese archivo no corresponde a este recuadro');return}
+  onFiles(ok)});
+}
 function _repConsol(){
  var hoy=(typeof todayISO==='function')?todayISO():new Date().toISOString().slice(0,10);
  var sel=(typeof repSelectedDays==='function')?repSelectedDays():[];sel=sel.slice().sort();
@@ -5914,6 +5973,65 @@ function _repConsol(){
  if(_dIn)_dIn.onchange=function(e){var fs=e.target.files;if(!fs||!fs.length)return;toast('Leyendo '+fs.length+' reporte(s) diario(s)…');
   _drParseFiles(fs).then(function(r){_rcDrUpd();try{_rcExUpd()}catch(_e){}toast('📄 '+r.nuevos+' día(s) leído(s) · total '+r.dias+' ✓')})
   .catch(function(err){toast('No pude leer los PDF: '+((err&&err.message)||err))})};
+ /* --- Arrastrar y soltar en los 3 recuadros, con pantalla de carga --- */
+ (function(){
+  /* que soltar fuera de una zona no abra el archivo en el navegador */
+  ['dragover','drop'].forEach(function(ev){ov.addEventListener(ev,function(e){e.preventDefault()})});
+
+  /* 1) Reportes diarios (PDF del DR) — varios archivos */
+  function cargaDR(fs){
+   var pg=_rcProgOpen('Leyendo reportes diarios',fs.length+' archivo(s) PDF');
+   pg.set(3,'preparando el lector…');
+   _drParseFiles(fs,function(hechos,total,nombre){
+    pg.set(6+(hechos/total)*90,hechos+' de '+total+' · '+nombre);
+   }).then(function(r){
+    _rcDrUpd();try{_rcExUpd()}catch(_e){}
+    pg.done(r.nuevos+' día(s) leído(s) · '+r.dias+' en total ('+r.rango+')');
+   }).catch(function(err){pg.fail('No pude leer los PDF: '+((err&&err.message)||err))});
+  }
+  if(_dIn)_dIn.onchange=function(e){var fs=[].slice.call(e.target.files||[]);if(fs.length)cargaDR(fs)};
+  _rcDropZone(document.getElementById('_rcDrSt').parentNode,['.pdf'],cargaDR,'los PDF de los días');
+
+  /* 2) Excel de carga — un archivo */
+  function cargaEx(fs){
+   var f=fs[0];if(!f)return;
+   var pg=_rcProgOpen('Leyendo el Excel de carga',esc(f.name));
+   pg.set(15,'abriendo el archivo…');
+   setTimeout(function(){pg.set(45,'buscando las hojas…')},250);
+   _exParseFile(f).then(function(r){
+    if(!r){pg.fail('No pude leer el Excel (¿tiene las hojas REPORTES DIARIOS y RESUMEN PERSONAL?)');return}
+    pg.set(90,'ordenando los días…');
+    _exDataSet(r);_rcExUpd();try{_rcDrUpd()}catch(_e){}
+    pg.done(Object.keys(r.dias||{}).length+' día(s) de carga leídos');
+   }).catch(function(err){pg.fail('No se pudo leer: '+((err&&err.message)||err))});
+  }
+  if(_eIn)_eIn.onchange=function(e){var fs=[].slice.call(e.target.files||[]);if(fs.length)cargaEx(fs)};
+  _rcDropZone(document.getElementById('_rcExSt').parentNode,['.xlsx','.xls'],cargaEx,'el Excel');
+
+  /* 3) XER de Primavera — un archivo */
+  function cargaXer(fs){
+   var f=fs[0];if(!f)return;
+   var pg=_rcProgOpen('Leyendo la Línea Base 0',esc(f.name));
+   var rd=new FileReader();
+   rd.onprogress=function(ev){if(ev&&ev.lengthComputable)pg.set(5+(ev.loaded/ev.total)*65,'leyendo el archivo…')};
+   rd.onerror=function(){pg.fail('No se pudo leer el archivo')};
+   rd.onload=function(){
+    pg.set(78,'interpretando las tareas…');
+    setTimeout(function(){
+     try{
+      var lb=_xerParse(rd.result,f.name);
+      if(!lb||!lb.tasks.length){pg.fail('No pude leer el XER (¿es un export de Primavera?)');return}
+      pg.set(95,'guardando en este equipo…');
+      _xerLBSet(lb);_rcXerUpd();
+      pg.done('Línea Base 0 cargada · '+lb.tasks.length+' tareas');
+     }catch(err){pg.fail('No pude leer el XER: '+((err&&err.message)||err))}
+    },60);
+   };
+   rd.readAsText(f);
+  }
+  if(_xIn)_xIn.onchange=function(e){var fs=[].slice.call(e.target.files||[]);if(fs.length)cargaXer(fs)};
+  _rcDropZone(document.getElementById('_rcXerSt').parentNode,['.xer'],cargaXer,'el XER');
+ })();
  document.getElementById('_rcGo').onclick=function(){
   var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
   cfg.fcSrc=(function(){var el=document.getElementById('_rcFcSel');var v=el?el.value:'';
