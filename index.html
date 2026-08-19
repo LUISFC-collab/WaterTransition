@@ -620,7 +620,7 @@ body.webmode #scrBita .scroll>*,body.webmode #scrPend .scroll>*,body.webmode #sc
         <button type="button" class="expTile" onclick="_showDispositivos()"><span class="ico" style="background:#E8EDF6;color:#1F3864"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/></svg></span><span class="lbl" style="color:#1F3864">Dispositivos</span></button>
         <button type="button" class="expTile" onclick="_backup()"><span class="ico" style="background:#FBEFDD;color:#8A4B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v12c0 1.7 3.6 3 8 3s8-1.3 8-3v-12"/><path d="M4 11.5c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><span class="lbl" style="color:#8A4B00">Backup total</span></button>
         <button type="button" class="expTile" onclick="_importBackup()"><span class="ico" style="background:#FBEFDD;color:#8A4B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/></svg></span><span class="lbl" style="color:#8A4B00">Restaurar</span></button>
-        <button type="button" class="expTile" onclick="_showRenum()"><span class="ico" style="background:#DCE7F6;color:#1F3864"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/><path d="M18 15v6"/><path d="M15 18h6"/></svg></span><span class="lbl" style="color:#1F3864">Renumerar</span></button><button type="button" class="expTile" onclick="_showAlcPaquetes()"><span class="ico" style="background:#FCEFD9;color:#9A5B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg></span><span class="lbl" style="color:#9A5B00">Alcances</span></button><button type="button" class="expTile" onclick="_showActEliminadas()"><span class="ico" style="background:#F6DCE8;color:#8a3a5e"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lbl" style="color:#8a3a5e">Eliminadas</span></button>
+        <button type="button" class="expTile" onclick="_showDiasHab()"><span class="ico" style="background:#DDF0E4;color:#0C5132"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span><span class="lbl" style="color:#0C5132">Días</span></button><button type="button" class="expTile" onclick="_showRenum()"><span class="ico" style="background:#DCE7F6;color:#1F3864"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/><path d="M18 15v6"/><path d="M15 18h6"/></svg></span><span class="lbl" style="color:#1F3864">Renumerar</span></button><button type="button" class="expTile" onclick="_showAlcPaquetes()"><span class="ico" style="background:#FCEFD9;color:#9A5B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg></span><span class="lbl" style="color:#9A5B00">Alcances</span></button><button type="button" class="expTile" onclick="_showActEliminadas()"><span class="ico" style="background:#F6DCE8;color:#8a3a5e"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lbl" style="color:#8a3a5e">Eliminadas</span></button>
         <button type="button" class="expTile" onclick="_exportFotos()"><span class="ico" style="background:#EBE8FA;color:#4A3AA7"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><polyline points="8 7 12 3 16 7"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg></span><span class="lbl" style="color:#4A3AA7">Exportar fotos</span></button>
       </div>
     </div>
@@ -1847,6 +1847,7 @@ function _showConfig(){
   H+='<div style="border:2px solid '+(window._modoPrueba?'#FFD100':'#7A1A1A')+';border-radius:12px;padding:12px;margin-bottom:12px;background:'+(window._modoPrueba?'#3a3000':'#1a0d0d')+'">'
    +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b style="color:#fff;font-size:14px">🧪 MODO PRUEBAS del servidor</b><span style="color:#9db4d6;font-size:12px">todo se ve real, pero NINGÚN cambio cuenta (solo en este equipo)</span></div>'
    +'<div style="margin-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b style="color:#fff;font-size:14px">📦 ALCANCES Y CÓDIGOS</b><span style="color:#9db4d6;font-size:12px">ocultar paquetes del avance · renumerar C / M / E</span></div>'
+   +'<button id="_cfgDias" style="margin-top:10px;width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;font-size:14.5px;cursor:pointer;background:#0C5132;color:#fff">📆 DÍAS HABILITADOS</button>'
    +'<button id="_cfgAlc" style="margin-top:10px;width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;font-size:14.5px;cursor:pointer;background:#9A5B00;color:#fff">📦 PAQUETES DE ALCANCE</button>'
    +'<button id="_cfgRnm" style="margin-top:10px;width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;font-size:14.5px;cursor:pointer;background:#1F3864;color:#fff">🔢 RENUMERAR CÓDIGOS</button>'
    +'<button id="_cfgMP" style="margin-top:10px;width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;font-size:14.5px;cursor:pointer;background:'+(window._modoPrueba?'#FFD100':'#C81E1E')+';color:'+(window._modoPrueba?'#231A00':'#fff')+'">'+(window._modoPrueba?'⚠️ FINALIZAR MODO PRUEBAS y volver a lo real':'🔴 ACTIVAR MODO PRUEBAS')+'</button></div>';
@@ -1894,6 +1895,7 @@ function _showConfig(){
    var row={rol:key,nombre:nombre,permisos:{},fijo:false,orden:50,proyecto:DATA.proyecto,quien:(state.user&&state.user.supervisor)||'',ts:(typeof nowSrv==='function'?nowSrv():Date.now()),cell_at:Date.now(),updated_at:new Date().toISOString()};
    var okd=false;try{var rr=await fetch(sbBase()+'/rest/v1/roles_permisos?on_conflict=rol',{method:'POST',headers:sbHead({'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify([row])});okd=rr.ok}catch(e){}
    state.rolperms[key]=row;store.set(KRP,state.rolperms);draw();var m2=document.getElementById('_cfgRolMsg');if(m2){m2.textContent=okd?('✓ Rol "'+nombre+'" creado — márcale sus accesos y guarda'):'✓ creado en este equipo (se subirá al reconectar)';m2.style.color='#7fd7a5'}};
+  var bdh=document.getElementById('_cfgDias');if(bdh)bdh.onclick=function(){if(typeof _showDiasHab==='function')_showDiasHab()};
   var bal=document.getElementById('_cfgAlc');if(bal)bal.onclick=function(){if(typeof _showAlcPaquetes==='function')_showAlcPaquetes()};
   var brn=document.getElementById('_cfgRnm');if(brn)brn.onclick=function(){if(typeof _showRenum==='function')_showRenum()};
   var bmp=document.getElementById('_cfgMP');if(bmp)bmp.onclick=function(){_mpToggle();setTimeout(draw,300)};
@@ -2808,7 +2810,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819b3';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819b4';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -2947,6 +2949,64 @@ function _alcPaqToggle(k,ocultar){
  _visSave({tipo:'alc',clave:k},!!ocultar,[],(_ALC_LBL[k]||k),ocultar?false:true);
  try{if(typeof syncNow==='function')syncNow(true)}catch(e){}
  _showAlcPaquetes();
+}
+/* === 📆 DÍAS HABILITADOS (admin) ===
+   Un check por día para definir cuáles pueden modificar los supervisores.
+   Escribe en `dias_habilitados` con la funcion de siempre (setDiaOpen), que
+   ya guarda local y sube a Supabase; la tabla ya viaja en realtime. */
+function _dhDias(n){
+ var out=[],hoy=(typeof todayISO==='function')?todayISO():'';
+ var d=new Date(hoy+'T00:00:00');
+ for(var i=0;i<n;i++){
+  var iso=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  out.push(iso);d.setDate(d.getDate()-1);
+ }
+ return out;
+}
+function _dhRegistros(f){try{
+ var n=0;(state.partes||[]).forEach(function(p){if(p&&p.fecha===f)n++});return n}catch(e){return 0}}
+function _showDiasHab(){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ var ov=document.getElementById('_dhOv');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='_dhOv';
+ ov.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';
+ ov.onclick=function(e){if(e.target===ov)ov.remove()};
+ var hoy=(typeof todayISO==='function')?todayISO():'';
+ var D=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+ function lbl(f){try{var d=new Date(f+'T00:00:00');return D[d.getDay()]+' '+d.getDate()+' '+M[d.getMonth()]}catch(e){return f}}
+ var dias=_dhDias(45);
+ var abiertos=dias.filter(function(f){return f<hoy&&state.diasOpen&&state.diasOpen[f]}).length;
+ var filas=dias.map(function(f){
+  var esHoy=(f===hoy),fut=(f>hoy),on=!!(state.diasOpen&&state.diasOpen[f]),reg=_dhRegistros(f);
+  var abierto=esHoy||fut||on;
+  return '<label style="display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid '+(on?'#B9E0C8':'#E1E7F0')+';border-radius:11px;margin-bottom:7px;background:'+(on?'#F1FBF5':'#fff')+';cursor:'+(esHoy?'default':'pointer')+'">'
+   +'<input type="checkbox" class="_dhChk" data-f="'+f+'" '+(abierto?'checked':'')+' '+(esHoy?'disabled':'')+' style="width:19px;height:19px;flex:none">'
+   +'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13.5px;color:#1B2433">'+lbl(f)+(esHoy?' · Hoy':'')+'</div>'
+   +'<div style="font-size:11.5px;color:#5C6779;margin-top:2px">'+reg+' registro(s)'
+     +(esHoy?' · siempre abierto':(on?' · <b style="color:#0C5132">abierto para supervisores</b>':' · cerrado'))+'</div></div></label>'}).join('');
+ ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
+  +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">📆 Días habilitados</b>'
+  +'<button id="_dhX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
+  +'<div style="font-size:12px;color:#5C6779;margin-bottom:11px">Marca qué días pueden modificar los supervisores. El día de hoy siempre está abierto. Ahora hay <b>'+abiertos+'</b> día(s) anteriores abiertos.</div>'
+  +'<div style="display:flex;gap:8px;margin-bottom:11px">'
+   +'<button id="_dhNone" style="flex:1;background:#B42318;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:12.5px">Cerrar todos</button>'
+   +'<button id="_dhWeek" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:12.5px">Abrir últimos 7</button></div>'
+  +filas
+  +'<div style="font-size:11px;color:#8A94A6;margin-top:6px">Se guarda en <b>dias_habilitados</b> y llega al instante a todos los equipos.</div></div>';
+ document.body.appendChild(ov);
+ document.getElementById('_dhX').onclick=function(){ov.remove()};
+ function set(f,on){try{setDiaOpen(f,on)}catch(e){}}
+ Array.prototype.forEach.call(ov.querySelectorAll('._dhChk'),function(c){
+  c.onchange=function(){var f=c.getAttribute('data-f');set(f,c.checked);
+   if(typeof logCambio==='function')try{logCambio('DIAS',f,c.checked?'habilitado para supervisores':'cerrado')}catch(e){}
+   toast(c.checked?('📆 '+f+' abierto'):('🔒 '+f+' cerrado'));_showDiasHab()}});
+ document.getElementById('_dhNone').onclick=function(){
+  if(!confirm('¿Cerrar TODOS los días anteriores?'))return;
+  dias.forEach(function(f){if(f<hoy&&state.diasOpen&&state.diasOpen[f])set(f,false)});
+  toast('🔒 Días anteriores cerrados');_showDiasHab()};
+ document.getElementById('_dhWeek').onclick=function(){
+  dias.slice(0,8).forEach(function(f){if(f<hoy)set(f,true)});
+  toast('📆 Últimos 7 días abiertos');_showDiasHab()};
 }
 function _showAlcPaquetes(){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
@@ -6823,7 +6883,7 @@ if(!window._tabBloqueada&&state.user){if(typeof puedeEsp==='function'&&state.use
 (function(){
  var ws=null,hb=null,tries=0,_deb={};
  /* OJO: tormenta NO va aquí (ya tiene su canal de 1s y cada push la re-toca — sería un bucle). dispositivos tampoco. bitacora/presencia_lapsos SÍ pero con handler barato (solo refresca presencia del admin, jamás syncNow). */
- var TABLAS_VIVO=['roles_usuarios','pendientes','roles_permisos','cuadrillas','app_config','partes','metrados','nuevas','reportabilidad','programacion','calendario','restricciones_generales','ediciones','reinicios','dias_habilitados','bitacora','presencia_lapsos','back_cron','back_cron_cuad','tormenta','visibilidad'];
+ var TABLAS_VIVO=['alcance_create_090826','fotos_borradas','borrados','roles_usuarios','pendientes','roles_permisos','cuadrillas','app_config','partes','metrados','nuevas','reportabilidad','programacion','calendario','restricciones_generales','ediciones','reinicios','dias_habilitados','bitacora','presencia_lapsos','back_cron','back_cron_cuad','tormenta','visibilidad'];
  function jala(t){if(!t||_deb[t])return;_deb[t]=setTimeout(function(){delete _deb[t];try{
    if(t==='roles_usuarios'){if(typeof _pullRoles==='function')_pullRoles()}
    else if(t==='roles_permisos'){if(typeof _pullPerms==='function')_pullPerms()}
