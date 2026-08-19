@@ -620,7 +620,7 @@ body.webmode #scrBita .scroll>*,body.webmode #scrPend .scroll>*,body.webmode #sc
         <button type="button" class="expTile" onclick="_showDispositivos()"><span class="ico" style="background:#E8EDF6;color:#1F3864"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/></svg></span><span class="lbl" style="color:#1F3864">Dispositivos</span></button>
         <button type="button" class="expTile" onclick="_backup()"><span class="ico" style="background:#FBEFDD;color:#8A4B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v12c0 1.7 3.6 3 8 3s8-1.3 8-3v-12"/><path d="M4 11.5c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><span class="lbl" style="color:#8A4B00">Backup total</span></button>
         <button type="button" class="expTile" onclick="_importBackup()"><span class="ico" style="background:#FBEFDD;color:#8A4B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/></svg></span><span class="lbl" style="color:#8A4B00">Restaurar</span></button>
-        <button type="button" class="expTile" onclick="_showActEliminadas()"><span class="ico" style="background:#F6DCE8;color:#8a3a5e"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lbl" style="color:#8a3a5e">Eliminadas</span></button>
+        <button type="button" class="expTile" onclick="_showAlcPaquetes()"><span class="ico" style="background:#FCEFD9;color:#9A5B00"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg></span><span class="lbl" style="color:#9A5B00">Alcances</span></button><button type="button" class="expTile" onclick="_showActEliminadas()"><span class="ico" style="background:#F6DCE8;color:#8a3a5e"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="lbl" style="color:#8a3a5e">Eliminadas</span></button>
         <button type="button" class="expTile" onclick="_exportFotos()"><span class="ico" style="background:#EBE8FA;color:#4A3AA7"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><polyline points="8 7 12 3 16 7"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg></span><span class="lbl" style="color:#4A3AA7">Exportar fotos</span></button>
       </div>
     </div>
@@ -747,7 +747,7 @@ const discIcon={"Mecanica":'<svg viewBox="0 0 24 24" fill="none" stroke="current
 function applyEdit(base){if(!state.restrPart){try{state.restrPart=JSON.parse(localStorage.getItem('wtt4_restrpart')||'{}')}catch(e){state.restrPart={}}}const e=state.edits[base.id];var p=Object.assign({},base);if(e){['nombre','cuadrilla','sistema','esp','inicio','fin'].forEach(function(k){if(e[k]!==undefined&&e[k]!=='')p[k]=e[k]});if(e.plan!==undefined&&e.plan!==null)p.plan=e.plan;p.codigo=(e.codigo&&e.codigo!=='')?e.codigo:base.id}else{p.codigo=base.id}if(state.restrPart&&state.restrPart[base.id]){var _rp=state.restrPart[base.id];if(_rp.activa===false){p.restriccion='';}else{if(_rp.texto!=null&&_rp.texto!=='')p.restriccion=_rp.texto;if(_rp.estado!=null&&_rp.estado!=='')p.estado=_rp.estado;}}return p}
 function _visVe(p){try{if(typeof esAdmin==='function'&&esAdmin())return true;var V=state.visib;if(!V)return true;var hay=false;for(var k in V){if(V[k]&&V[k].activo){hay=true;break}}if(!hay)return true;
  if(typeof _puedeVer!=='function')return true;var a=(typeof areaOf==='function'&&areaOf(p))||'';
- return _puedeVer('act',p.id)&&_puedeVer('sys',a+'§'+(p.sistema||''))&&_puedeVer('area',a)}catch(e){return true}}
+ return _puedeVer('alc',(typeof _alcDe==='function')?_alcDe(p.id):'')&&_puedeVer('act',p.id)&&_puedeVer('sys',a+'§'+(p.sistema||''))&&_puedeVer('area',a)}catch(e){return true}}
 function _visVeId(id,sis){try{var bp=(DATA._byId&&DATA._byId[id])||((state.nuevas||[]).filter(function(n){return n&&n.id===id})[0]);var pp=bp?((typeof applyEdit==='function')?applyEdit(Object.assign({},bp)):bp):{id:id,sistema:sis||''};return _visVe(pp)}catch(e){return true}}
 function acts(d){return DATA.partidas.concat(state.nuevas).map(applyEdit).filter(function(p){return p.esp===d&&!(typeof tombHas==='function'&&tombHas('partida',p.id))&&_visVe(p)})}
 function codeOf(p){return p.codigo||p.id}
@@ -1219,9 +1219,7 @@ function renderList(){
   if(window._dragging){if(Date.now()-(window._dragT0||0)>20000){window._dragging=0}else{window._reListPend=1;return}}
   if(!state.sysExtra)state.sysExtra=store.get(KSX)||[];if(!state.areasExtra)state.areasExtra=store.get(KAX)||[];if(!state.wbsX)state.wbsX=store.get('wtt4_wbsx')||[];var _admX=(typeof esAdminReal==='function'&&esAdminReal()&&!window._impRol);var _wxElimSys={},_wxElimArea={},_wxSysSet={},_wxAreaSet={};(state.wbsX||[]).forEach(function(r){if(r.disciplina!==state.user.disc)return;var _k6=r.nombre+'|'+(r.area||'');if(r.eliminado){if(r.tipo==='sistema')_wxElimSys[_k6]=r;else _wxElimArea[r.nombre]=r}else{if(r.tipo==='sistema')_wxSysSet[_k6]=1;else _wxAreaSet[r.nombre]=1}});if(!state.orden)state.orden=store.get('wtt4_ordenact')||{};window._cardNum={};
   const q=$('inSearch').value.trim().toLowerCase();let list=acts(state.user.disc);
-  if(!(typeof esAdmin==='function'&&esAdmin())&&state.visib&&Object.keys(state.visib).length){list=list.filter(function(p){var a=(typeof areaOf==='function'&&areaOf(p))||'';return _puedeVer('act',p.id)&&_puedeVer('sys',a+'§'+(p.sistema||''))&&_puedeVer('area',a)});}
-  const pcts=list.filter(function(p){return !esNA(p)&&_visMetricas(p)}).map(pctOf);$('sAv').textContent=(pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):0)+'%';
-  $('sTot').textContent=list.length;$('sNm').textContent=list.filter(p=>!metaOf(p.id)).length;
+  if(!(typeof esAdmin==='function'&&esAdmin())&&state.visib&&Object.keys(state.visib).length){list=list.filter(function(p){var a=(typeof areaOf==='function'&&areaOf(p))||'';return _puedeVer('alc',(typeof _alcDe==='function')?_alcDe(p.id):'')&&_puedeVer('act',p.id)&&_puedeVer('sys',a+'§'+(p.sistema||''))&&_puedeVer('area',a)});}
   /* SOLO ADMIN: las actividades eliminadas siguen visibles en su lugar, en rojo tenue (los promedios de arriba NO las cuentan) */
   if(typeof esAdminReal==='function'&&esAdminReal()&&!window._impRol){/* con "Actuar como" activo la vista es EXACTAMENTE la de ese rol: sin tarjetas rojas */try{var _elimL=DATA.partidas.concat(state.nuevas||[]).map(applyEdit).filter(function(p){return p.esp===state.user.disc&&(typeof tombHas==='function'&&tombHas('partida',p.id))&&!tombHas('permdel',p.id)});/* incluye NUEVAS eliminadas: mismo procedimiento que las del catálogo (rojo + zona) */_elimL.forEach(function(p){p._elim=true});if(_elimL.length)list=list.concat(_elimL)}catch(_ee){}}
   if(q)list=list.filter(p=>p.id.toLowerCase().includes(q)||p.nombre.toLowerCase().includes(q));
@@ -1236,6 +1234,10 @@ function renderList(){
     if(k==='prog'){var v=pctOf(p);return v>0&&v<100}
     if(k==='done')return pctOf(p)>=100;
     return false});});}
+  /* el avance se calcula AQUI, ya con los filtros aplicados: lo que el supervisor
+     filtra y lo que el admin oculta por paquete de alcance NO cuenta para el % */
+  const pcts=list.filter(function(p){return !p._elim&&!esNA(p)&&_visMetricas(p)}).map(pctOf);$('sAv').textContent=(pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):0)+'%';
+  $('sTot').textContent=list.filter(function(p){return !p._elim}).length;$('sNm').textContent=list.filter(function(p){return !p._elim&&!metaOf(p.id)}).length;
   var _pN=(/^\d+$/.test(String(window._fnum||'')))?parseInt(window._fnum,10):0;window.__chipsSnap=[];
   const wrap=$('list');wrap.innerHTML='';
   if(!list.length){wrap.innerHTML='<div class="empty">Sin actividades.</div>';return}
@@ -2679,7 +2681,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260819a7';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260819a8';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -2795,6 +2797,53 @@ async function _aeExtras(ov){
    :'<div style="color:#8b6b7a;font-size:12px">No hay fotos eliminadas.</div>');
  var g=boxF.querySelector('._aeFotGo');
  if(g)g.onclick=function(){ov.remove();if(typeof _showFotosSrv==='function')_showFotosSrv();else toast('No pude abrir la papelera')};
+}
+/* === 📦 PAQUETES DE ALCANCE (admin): ocultar un alcance completo ===
+   Se apoya en la tabla `visibilidad` que ya existe y ya viaja en realtime:
+   tipo='alc', clave='INI'|'A2'|... · activo=true + permitidos=[] -> nadie lo ve
+   · metricas=false -> NO cuenta para el avance ni la reportabilidad.
+   El admin siempre lo sigue viendo (asi puede volver a mostrarlo). */
+var _ALC_LBL={INI:'Dentro de alcance inicial',A2:'Alcance 2',A3:'Alcance 3',A4:'Alcance 4',A5:'Alcance 5'};
+function _alcPaqOculto(k){try{var r=_visRule('alc',k);return !!(r&&r.activo)}catch(e){return false}}
+function _alcPaqCuenta(){
+ var out={INI:0,A2:0,A3:0,A4:0,A5:0};
+ try{
+  var all=DATA.partidas.concat(state.nuevas||[]);
+  all.forEach(function(p){if(!p||!p.id)return;if(typeof esNA==='function'&&esNA(p))return;
+   var k=(typeof _alcDe==='function')?_alcDe(p.id):'INI';if(out[k]===undefined)out[k]=0;out[k]++});
+ }catch(e){}
+ return out;
+}
+function _alcPaqToggle(k,ocultar){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ /* ocultar: activo=true, nadie en permitidos, y fuera de metricas */
+ _visSave({tipo:'alc',clave:k},!!ocultar,[],(_ALC_LBL[k]||k),ocultar?false:true);
+ try{if(typeof syncNow==='function')syncNow(true)}catch(e){}
+ _showAlcPaquetes();
+}
+function _showAlcPaquetes(){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ var ov=document.getElementById('_alcOv');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='_alcOv';
+ ov.style.cssText='position:fixed;inset:0;z-index:2147483300;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';
+ ov.onclick=function(e){if(e.target===ov)ov.remove()};
+ var cnt=_alcPaqCuenta();
+ var filas=Object.keys(_ALC_LBL).map(function(k){
+  var off=_alcPaqOculto(k);var n=cnt[k]||0;
+  return '<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid '+(off?'#F0C8C8':'#E1E7F0')+';border-radius:11px;margin-bottom:8px;background:'+(off?'#FDF2F2':'#fff')+'">'
+   +'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13.5px;color:'+(off?'#B42318':'#1B2433')+'">'+esc(_ALC_LBL[k])+'</div>'
+   +'<div style="font-size:11.5px;color:#5C6779;margin-top:2px">'+n+' actividad(es)'+(off?' · oculto y fuera del avance':' · visible y cuenta para el avance')+'</div></div>'
+   +'<button class="_alcT" data-k="'+k+'" data-off="'+(off?'1':'0')+'" style="flex:none;background:'+(off?'#1E7A46':'#B42318')+';color:#fff;border:0;border-radius:9px;padding:9px 13px;font-weight:800;font-size:12px;cursor:pointer">'+(off?'👁 Mostrar':'🚫 Ocultar')+'</button></div>'}).join('');
+ ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
+  +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">📦 Paquetes de alcance</b>'
+  +'<button id="_alcX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
+  +'<div style="font-size:12px;color:#5C6779;margin-bottom:12px">Ocultar un paquete lo saca de las cartillas de todos los supervisores <b>y lo descuenta del % de avance y de la reportabilidad</b>. El administrador lo sigue viendo para poder devolverlo.</div>'
+  +filas
+  +'<div style="font-size:11px;color:#8A94A6;margin-top:6px">Viaja a todos los equipos al instante (tabla <b>visibilidad</b>, en realtime).</div></div>';
+ document.body.appendChild(ov);
+ document.getElementById('_alcX').onclick=function(){ov.remove()};
+ ov.querySelectorAll('._alcT').forEach(function(b){b.onclick=function(){
+  _alcPaqToggle(b.getAttribute('data-k'), b.getAttribute('data-off')!=='1')}});
 }
 async function _showActEliminadas(){if(!(typeof esAdmin==='function'&&esAdmin())){if(typeof _gateAcc==='function'&&!_gateAcc('act_ver_elim','Ver actividades eliminadas'))return;}
  var ov=document.getElementById('_aeOv');if(ov)ov.remove();ov=document.createElement('div');ov.id='_aeOv';ov.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#0b1220;color:#cfe3ff;font:13px system-ui,-apple-system,Segoe UI,Roboto,Arial;display:flex;flex-direction:column;padding:12px;box-sizing:border-box';
@@ -4047,7 +4096,7 @@ var KVIS='wtt4_visib';
 try{if(!state.visib)state.visib=JSON.parse(localStorage.getItem(KVIS)||'{}')}catch(e){state.visib={}}
 function _visKey(t,c){return t+'|'+c}
 function _visRule(t,c){return (state.visib||{})[_visKey(t,c)]}
-function _visMetricas(p){try{var a=(typeof areaOf==='function'&&areaOf(p))||'';var ks=[['act',p.id],['sys',a+'§'+(p.sistema||'')],['area',a]];for(var i=0;i<ks.length;i++){var r=_visRule(ks[i][0],ks[i][1]);if(r&&r.activo&&r.metricas===false)return false}return true}catch(e){return true}}
+function _visMetricas(p){try{var a=(typeof areaOf==='function'&&areaOf(p))||'';var _ak=(typeof _alcDe==='function')?_alcDe(p.id):'';var ks=[['act',p.id],['sys',a+'§'+(p.sistema||'')],['area',a]];if(_ak)ks.push(['alc',_ak]);for(var i=0;i<ks.length;i++){var r=_visRule(ks[i][0],ks[i][1]);if(r&&r.activo&&r.metricas===false)return false}return true}catch(e){return true}}
 function _puedeVer(t,c){try{if(typeof esAdmin==='function'&&esAdmin())return true;var r=_visRule(t,c);if(!r||!r.activo||!Array.isArray(r.permitidos))return true;var me=(state.user&&state.user.supervisor)||'';return r.permitidos.indexOf(me)>-1}catch(e){return true}}
 function _pullVisib(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;
  fetch(sbBase()+'/rest/v1/visibilidad?select=*&proyecto=eq.'+encodeURIComponent(DATA.proyecto),{headers:sbHead()}).then(function(r){return r.ok?r.json():null}).then(function(rows){if(!rows)return;
