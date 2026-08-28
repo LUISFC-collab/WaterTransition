@@ -2839,7 +2839,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820b2';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820b3';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -3259,19 +3259,22 @@ function _showAlcPaquetes(){
  ov.querySelectorAll('._alcSw').forEach(function(b){b.onclick=function(){
   _alcPermToggle(b.getAttribute('data-t'), b.getAttribute('data-k'), b.getAttribute('data-b')!=='1')}});
 }
-/* === 🔢 RENUMERACION VISIBLE (admin) ===
-   C0001 / M0001 / E0001 seguido de " - Alc1..Alc5".
-   NO toca partida_id ni ninguna tabla existente: la numeracion vieja queda
-   intacta y se guarda como codigo_anterior. Un boton la cablea o la quita.
-   Se guarda en la tabla NUEVA codigos_create_190826 (si aun no existe, queda
-   en este equipo y se sube sola cuando la tabla este creada). */
-var KRNM='wtt4_codnew', KRNMON='wtt4_codnew_on';
+/* === 🔢 RENUMERACIÓN VISIBLE (admin) ===
+   Se guarda en `wbs_extra` con tipo='codigo':
+       area = partida_id (la llave de SIEMPRE, no se toca)
+       nombre = código NUEVO   ·   disciplina = código ANTERIOR
+   Esa tabla ya existe, ya tiene ts, updated_at, borrado suave y viaja en el
+   sync, asi que la numeracion queda para todos los equipos.
+   El interruptor (cableado si/no) va en `visibilidad` (tipo='cfg',
+   clave='cod_nuevo'), que tambien viaja: se cablea para TODOS, no por equipo. */
 var _ALC_NUM={INI:1,A2:2,A3:3,A4:4,A5:5};
 var _DISC_PFX={Civil:'C',Mecanica:'M',Electrica:'E'};
-function _rnmAll(){try{return JSON.parse(localStorage.getItem(KRNM)||'{}')}catch(e){return {}}}
-function _rnmSave(o){try{localStorage.setItem(KRNM,JSON.stringify(o||{}))}catch(e){}}
-function _rnmOn(){try{return localStorage.getItem(KRNMON)==='1'}catch(e){return false}}
-function _rnmSetOn(v){try{localStorage.setItem(KRNMON,v?'1':'0')}catch(e){}}
+function _rnmRows(){try{return (state.wbsX||[]).filter(function(r){return r&&r.tipo==='codigo'&&!r.eliminado})}catch(e){return []}}
+function _rnmAll(){var o={};_rnmRows().forEach(function(r){var id=String(r.area||'');if(!id)return;
+ o[id]={nuevo:r.nombre||'',anterior:r.disciplina||''}});return o}
+function _rnmOn(){try{var r=_visRule('cfg','cod_nuevo');return !!(r&&r.activo)}catch(e){return false}}
+function _rnmSetOn(v){try{_visSave({tipo:'cfg',clave:'cod_nuevo'},!!v,[],'Numeración nueva',true);
+ if(typeof syncNow==='function')syncNow(true)}catch(e){}}
 function _rnmGenerar(){
  var out={};
  var DS=(typeof DISC!=='undefined'&&DISC.length)?DISC.slice():['Mecanica','Electrica','Civil'];
@@ -3287,30 +3290,32 @@ function _rnmGenerar(){
  });
  return out;
 }
-async function _rnmPush(map,lote){
- if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return {ok:false,msg:'sin conexión'};
- var proy=DATA.proyecto,quien=(state.user&&state.user.supervisor)||'',ts=(typeof nowSrv==='function'?nowSrv():Date.now());
- var rows=Object.keys(map).map(function(id){var m=map[id];
-  return {id:proy+'|'+id,proyecto:proy,partida_id:id,codigo_nuevo:m.nuevo,codigo_anterior:m.anterior,
-          prefijo:m.pfx,correlativo:m.num,disciplina:m.disc,alcance:m.alc,lote:lote,aplicado:_rnmOn(),
-          quien:quien,ts:ts,cell_at:Date.now(),updated_at:new Date().toISOString()}});
- if(!rows.length)return {ok:false,msg:'nada que guardar'};
+/* guarda la numeracion: local al instante, a la base en lotes */
+function _rnmAplicarLocal(map){
  try{
-  var r=await fetch(sbBase()+'/rest/v1/codigos_create_190826?on_conflict=proyecto,partida_id',
-   {method:'POST',headers:sbHead({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(rows)});
-  if(r.status===404)return {ok:false,msg:'falta_tabla'};
-  if(!r.ok&&r.status!==201&&r.status!==204)return {ok:false,msg:'HTTP '+r.status};
+  var proy=DATA.proyecto,quien=(state.user&&state.user.supervisor)||'',now=Date.now(),iso=new Date().toISOString();
+  var rows=Object.keys(map).map(function(id){return {proyecto:proy,disciplina:String(map[id].anterior||''),
+   tipo:'codigo',nombre:String(map[id].nuevo||''),area:String(id),eliminado:false,elim_por:'',elim_ts:null,
+   quien:quien,ts:now,updated_at:iso}});
+  state.wbsX=(state.wbsX||[]).filter(function(r){return !(r&&r.tipo==='codigo')}).concat(rows);
+  return rows;
+ }catch(e){return []}
+}
+var _rnmBusy=false;
+async function _rnmPush(rows){
+ if(_rnmBusy)return {ok:false,msg:'ya se está guardando'};
+ if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return {ok:false,msg:'sin conexión'};
+ _rnmBusy=true;
+ try{
+  var proy=DATA.proyecto;
+  await fetch(sbBase()+'/rest/v1/wbs_extra?tipo=eq.codigo&proyecto=eq.'+encodeURIComponent(proy),
+   {method:'DELETE',headers:sbHead({'Prefer':'return=minimal'})});
+  for(var i=0;i<rows.length;i+=150){
+   await sbUpsert('wbs_extra',rows.slice(i,i+150),'proyecto,disciplina,tipo,nombre,area');
+  }
   return {ok:true,n:rows.length};
  }catch(e){return {ok:false,msg:(e&&e.message)||'error'}}
-}
-async function _rnmPull(){
- try{
-  if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;
-  var r=await fetch(sbBase()+'/rest/v1/codigos_create_190826?select=*&proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&limit=5000',{headers:sbHead()});
-  if(!r.ok)return;var rows=await r.json();if(!Array.isArray(rows)||!rows.length)return;
-  var m={};rows.forEach(function(x){if(x&&x.partida_id)m[x.partida_id]={nuevo:x.codigo_nuevo,anterior:x.codigo_anterior,pfx:x.prefijo,num:x.correlativo,disc:x.disciplina,alc:x.alcance}});
-  _rnmSave(m);
- }catch(e){}
+ finally{_rnmBusy=false}
 }
 function _showRenum(){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
@@ -3319,11 +3324,15 @@ function _showRenum(){
  ov.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';
  ov.onclick=function(e){if(e.target===ov)ov.remove()};
  var guardado=_rnmAll(),on=_rnmOn();
- var prev=Object.keys(guardado).length?guardado:_rnmGenerar();
- var porDisc={};Object.keys(prev).forEach(function(id){var m=prev[id];(porDisc[m.disc]=porDisc[m.disc]||[]).push(m)});
- var resumen=Object.keys(porDisc).map(function(d){var a=porDisc[d].slice().sort(function(x,y){return x.num-y.num});
+ var hay=Object.keys(guardado).length;
+ var prev=hay?guardado:_rnmGenerar();
+ var porDisc={};
+ Object.keys(prev).forEach(function(id){var m=prev[id];
+  var d=m.disc||((/^C/.test(m.nuevo))?'Civil':(/^M/.test(m.nuevo)?'Mecanica':'Electrica'));
+  (porDisc[d]=porDisc[d]||[]).push(m)});
+ var resumen=Object.keys(porDisc).sort().map(function(d){var a=porDisc[d];
   return '<div style="border:1px solid #E1E7F0;border-radius:11px;padding:10px 12px;margin-bottom:8px">'
-   +'<div style="font-weight:800;font-size:13px;color:#1F3864;margin-bottom:5px">'+esc(d)+' <span style="color:#8A94A6;font-weight:700">· '+a.length+' actividades · prefijo '+esc(a[0]?a[0].pfx:'')+'</span></div>'
+   +'<div style="font-weight:800;font-size:13px;color:#1F3864;margin-bottom:5px">'+esc(d)+' <span style="color:#8A94A6;font-weight:700">· '+a.length+' actividades</span></div>'
    +a.slice(0,4).map(function(m){return '<div style="font-size:11.5px;color:#5C6779;padding:1px 0"><span style="color:#8A94A6">'+esc(m.anterior)+'</span> <span style="color:#1F3864">→</span> <b style="color:#0C5132">'+esc(m.nuevo)+'</b></div>'}).join('')
    +(a.length>4?('<div style="font-size:11px;color:#8A94A6;margin-top:3px">… y '+(a.length-4)+' más</div>'):'')
    +'</div>'}).join('');
@@ -3332,30 +3341,31 @@ function _showRenum(){
   +'<button id="_rnmX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
   +'<div style="font-size:12px;color:#5C6779;margin-bottom:11px">Numera por especialidad (C civil · M mecánica · E eléctrica) con su alcance. <b>La llave interna no cambia</b>: el código anterior queda guardado y se puede volver a él cuando quieras.</div>'
   +'<div style="background:'+(on?'#EAF6EE':'#FFF7E6')+';border:1px solid '+(on?'#B9E0C8':'#EFC98A')+';border-radius:10px;padding:9px 11px;margin-bottom:11px;font-size:12.5px;font-weight:800;color:'+(on?'#0C5132':'#8A5A00')+'">'
-   +(on?'✓ Cableado: la app está mostrando la numeración NUEVA':'La app está mostrando la numeración ANTERIOR')+'</div>'
+   +(on?'✓ Cableado: la app muestra la numeración NUEVA en todos los equipos':'La app muestra la numeración ANTERIOR')+'</div>'
+  +(hay?('<div style="font-size:11.5px;color:#0C5132;font-weight:700;margin-bottom:8px">✓ '+hay+' códigos guardados en la base</div>'):'')
   +resumen
   +'<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">'
    +'<button id="_rnmGen" style="flex:1;min-width:150px;background:#1F3864;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:13px">🔄 Generar y guardar</button>'
-   +'<button id="_rnmTog" style="flex:1;min-width:150px;background:'+(on?'#B42318':'#0C5132')+';color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:13px">'+(on?'↩ Volver a los anteriores':'🔌 Cablear la nueva')+'</button>'
+   +'<button id="_rnmTog" style="flex:1;min-width:150px;background:'+(on?'#B42318':'#0C5132')+';color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:13px">'+(on?'🔌 Descablear · volver a los anteriores':'🔌 Cablear la nueva')+'</button>'
   +'</div>'
   +'<div id="_rnmMsg" style="font-size:11.5px;font-weight:700;margin-top:9px"></div></div>';
  document.body.appendChild(ov);
  document.getElementById('_rnmX').onclick=function(){ov.remove()};
  document.getElementById('_rnmGen').onclick=async function(){
-  var m=_rnmGenerar();_rnmSave(m);
   var msg=document.getElementById('_rnmMsg');
-  msg.innerHTML='<span style="color:#1F3864">Guardado en este equipo ('+Object.keys(m).length+' actividades). Subiendo…</span>';
-  var r=await _rnmPush(m,'lote '+(new Date()).toISOString().slice(0,10));
-  if(r.ok)msg.innerHTML='<span style="color:#0C5132">✓ Guardado y sincronizado — '+r.n+' códigos en la base.</span>';
-  else if(r.msg==='falta_tabla')msg.innerHTML='<span style="color:#B42318">⚠ Falta crear la tabla <b>codigos_create_190826</b> en Supabase (corre el SQL). Por ahora la numeración queda SOLO en este equipo.</span>';
-  else msg.innerHTML='<span style="color:#B42318">No se pudo subir: '+esc(r.msg||'')+' — queda en este equipo.</span>';
+  var m=_rnmGenerar();var rows=_rnmAplicarLocal(m);
+  msg.innerHTML='<span style="color:#1F3864">Generados '+rows.length+' códigos. Guardando…</span>';
   try{renderList()}catch(e){}
+  var r=await _rnmPush(rows);
+  if(r.ok)msg.innerHTML='<span style="color:#0C5132">✓ Guardados '+r.n+' códigos en la base — llegan a todos los equipos.</span>';
+  else msg.innerHTML='<span style="color:#B42318">Quedó en este equipo: '+esc(r.msg||'')+'</span>';
+  ov.remove();_showRenum();
  };
  document.getElementById('_rnmTog').onclick=function(){
   var nuevo=!_rnmOn();
-  if(nuevo&&!Object.keys(_rnmAll()).length){toast('Primero genera la numeración');return}
+  if(nuevo&&!Object.keys(_rnmAll()).length){toast('Primero genera y guarda la numeración');return}
   _rnmSetOn(nuevo);
-  if(typeof logCambio==='function')try{logCambio('CODIGOS','',nuevo?'cableada la numeración nueva':'vuelto a los códigos anteriores')}catch(e){}
+  if(typeof logCambio==='function')try{logCambio('CODIGOS','',nuevo?'cableada la numeración nueva':'descableada: vuelven los códigos anteriores')}catch(e){}
   toast(nuevo?'🔌 Numeración nueva cableada':'↩ De vuelta a los códigos anteriores');
   try{renderList()}catch(e){}
   ov.remove();_showRenum();
@@ -4620,7 +4630,6 @@ function _pullVisib(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator
   state.visib=m;try{localStorage.setItem(KVIS,JSON.stringify(m))}catch(_e){}
   try{if($('scrList')&&!$('scrList').classList.contains('hidden'))renderList()}catch(_e2){}}).catch(function(){})}catch(e){}}
 setTimeout(_pullVisib,2800);
-try{setTimeout(function(){if(typeof _rnmPull==='function')_rnmPull()},3200)}catch(_e){}
 function _visSave(t,activo,permitidos,quienLbl,metricas){try{
  var row={proyecto:DATA.proyecto,tipo:t.tipo,clave:t.clave,activo:!!activo,permitidos:permitidos||[],metricas:(metricas!==false),quien:(state.user&&state.user.supervisor)||'',ts:(typeof nowSrv==='function'?nowSrv():Date.now()),updated_at:new Date().toISOString()};
  state.visib=state.visib||{};state.visib[_visKey(t.tipo,t.clave)]={activo:row.activo,permitidos:row.permitidos,metricas:row.metricas,quien:row.quien};
