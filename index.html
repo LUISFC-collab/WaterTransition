@@ -2979,7 +2979,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820c4';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820c5';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -6974,6 +6974,9 @@ function _repConsolBuild(cfg){
   SL.push('<div class="sl" style="background:#0E2440;color:#fff;justify-content:center;padding:0 16mm">'
    +'<div style="font-size:10px;letter-spacing:.28em;color:#8FB4E0;font-weight:800">REPORTE CONSOLIDADO'+(cfg.semana?(' · '+esc(cfg.semana).toUpperCase()):'')+'</div>'
    +'<div style="font-size:30px;font-weight:900;line-height:1.1;margin:2.4mm 0 1mm">'+esc(proy)+'</div>'
+   +(((cfg.alcances||[]).length)?('<div style="display:flex;gap:2.4mm;flex-wrap:wrap;margin:0 0 1.6mm">'
+     +cfg.alcances.map(function(_n9){return '<span style="font-size:15px;font-weight:900;color:#0E2440;background:#E9C46A;'
+      +'border-radius:1.8mm;padding:1.2mm 3.4mm">'+esc(_n9)+'</span>'}).join('')+'</div>'):'')
    +(cfg.contratista?('<div style="font-size:14px;color:#CFE0F5;font-weight:700">Contratista: '+esc(cfg.contratista)+'</div>'):'')
    +'<div style="font-size:11px;color:#9DB8D8;margin-top:1mm">Avances de la semana: '+dm(cfg.cutIni)+' – '+dm(cfg.cutFin)+' · Generado '+dm(hoy)+'</div>'
    +'<div style="font-size:9.5px;letter-spacing:.16em;color:#7FA3CC;font-weight:800;margin-top:7mm">GENERAL · '+_arShow.length+' ZONAS (ponderado por peso)'+(LB&&lbG?' · vs LB0 y vs FORECAST':' · vs FORECAST')+'</div>'
@@ -7161,7 +7164,7 @@ function _repConsol(){
   +'<div id="_rcFcBox" style="border:1px solid #B9C9E8;background:#F5F8FE;border-radius:10px;padding:10px 11px;margin-bottom:12px"></div>'
   +'<div id="_rcPzBox" style="border:1px solid #E0CDA0;background:#FFFBF0;border-radius:10px;padding:10px 11px;margin-bottom:12px"></div>'
   +'<div style="border:1px solid #B4D5EE;background:#F2F8FD;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0E2440;margin-bottom:4px">📄 Reportes diarios (PDF del DR) — fuente de los histogramas</div><div id="_rcDrSt" style="font-size:11.5px;color:#31506E;margin-bottom:7px">—</div><input type="file" id="_rcDrIn" accept=".pdf" multiple style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcDrBtn" style="flex:1;background:#0E2440;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar reportes diarios…</button><button type="button" id="_rcDrDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#4A6076;margin-top:5px">Selecciona los PDF de los días de la semana (uno por día). Se leen solos: mano de obra directa, operadores, staff y equipos (HM). El rango de la semana (arriba) define qué días entran.</div></div>'
-  +'<div style="border:1px solid #B9E0C8;background:#F1FBF5;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0C5132;margin-bottom:4px">👷 Personal e histogramas — Excel de carga (MO directa, staff y equipos)</div><div id="_rcExSt" style="font-size:11.5px;color:#356149;margin-bottom:7px">—</div><input type="file" id="_rcExIn" accept=".xlsx,.xls" style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcExBtn" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar Excel de carga…</button><button type="button" id="_rcExDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#5C7A66;margin-top:5px">Hoja REPORTES DIARIOS: col A = puesto, fila 2 = fechas (#fecha = cantidades, fecha normal = HH). Hoja RESUMEN PERSONAL separa staff / directa / equipos — solo eso se incluye. El rango de la semana (arriba) define qué días entran.</div></div>'
+  +'<div id="_rcAlcBox" style="border:1px solid #C9B8E6;background:#F7F3FD;border-radius:10px;padding:10px 11px;margin-bottom:12px"></div>'
   +'<div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:6px">¿Qué incluir en el reporte?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">'+ck('_rcP','🏁 Portada + Plan/Real/Var/SPI',true)+ck('_rcR','📊 Resumen por especialidad',false)+ck('_rcW','🗂 Actividades por estado (WBS) + fotos de la semana',true)+ck('_rcApo','⏳ Lo que falta culminar (una lámina)',true)+ck('_rcPers','👷 Personal e histogramas (reportes diarios)',true)+ck('_rcC','📅 Cronogramas Gantt',true)+ck('_rcMina','⛰ Restricciones de mina',false)+ck('_rcRi','⚠ Riesgos y alertas',false)+'</div>'
   +'<div style="display:flex;gap:8px"><button id="_rcX" style="flex:1;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button><button id="_rcGo" style="flex:2;background:#0E2440;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800">📑 Generar PDF</button></div></div>';
  document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};document.getElementById('_rcX').onclick=function(){ov.remove()};
@@ -7173,11 +7176,52 @@ function _repConsol(){
  if(_xDel)_xDel.onclick=function(){_xerLBSet(null);_rcXerUpd();toast('LB0 quitada de este equipo')};
  if(_xIn)_xIn.onchange=function(e){var f=e.target.files&&e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var lb=_xerParse(rd.result,f.name);if(!lb||!lb.tasks.length){toast('No pude leer el XER (¿es un export de Primavera?)');return}_xerLBSet(lb);_rcXerUpd();toast('📘 LB0 cargada: '+lb.tasks.length+' tareas ✓')};rd.onerror=function(){toast('No se pudo leer el archivo')};try{rd.readAsText(f,'windows-1252')}catch(_e){rd.readAsText(f)}};
  /* Excel de carga (personal): estado + adjuntar + vaciar */
- function _rcExUpd(){var st=document.getElementById('_rcExSt');if(!st)return;var ex=_exData();
+ /* === Alcances que cubre el reporte (salen en la portada) ===
+   Se guardan en `visibilidad` con tipo='rc_alc', igual que los demas ajustes
+   del panel: viajan por el sync con su ts/updated_at y llegan a todos los
+   equipos, asi la portada sale igual la genere quien la genere. */
+function _rcAlcOn(k){try{var r=_visRule('rc_alc',String(k||''));
+ if(r)return !!r.activo;
+ return (typeof _alcPdfBloq==='function')?!_alcPdfBloq(k):true}catch(e){return true}}
+function _rcAlcSet(k,v){try{
+ var row={proyecto:DATA.proyecto,tipo:'rc_alc',clave:String(k),activo:!!v,permitidos:[],metricas:true,
+  quien:(state.user&&state.user.supervisor)||'',ts:(typeof nowSrv==='function'?nowSrv():Date.now()),
+  updated_at:new Date().toISOString()};
+ state.visib=state.visib||{};
+ state.visib[_visKey('rc_alc',String(k))]={activo:row.activo,permitidos:[],metricas:true,quien:row.quien};
+ try{localStorage.setItem(KVIS,JSON.stringify(state.visib))}catch(_e){}
+ if(typeof sbReady==='function'&&sbReady()&&navigator.onLine){
+  fetch(sbBase()+'/rest/v1/visibilidad?on_conflict=proyecto,tipo,clave',{method:'POST',
+   headers:sbHead({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),
+   body:JSON.stringify([row])}).catch(function(){})}
+ if(typeof logCambio==='function')try{logCambio('REPORTE','alcance '+k,v?'entra en la portada':'fuera de la portada')}catch(_e2){}
+}catch(e){}}
+function _rcAlcSel(){try{return _alcList().filter(function(a){return _rcAlcOn(a.k)})}catch(e){return []}}
+/* pinta el bloque del dialogo y lo deja cableado */
+function _rcAlcUpd(){try{
+ var box=document.getElementById('_rcAlcBox');if(!box)return;
+ var L=(typeof _alcList==='function')?_alcList():[];
+ var sel=L.filter(function(a){return _rcAlcOn(a.k)});
+ box.innerHTML='<div style="font-size:12px;font-weight:800;color:#4B2E83;margin-bottom:3px">\uD83C\uDFF7 Alcances de este reporte \u2014 salen como t\u00edtulo en la portada</div>'
+  +'<div style="font-size:11px;color:#5B4A7A;margin-bottom:8px">Marca los que cubre el reporte. Lo marcado sale en la primera diapositiva, debajo del nombre del proyecto.</div>'
+  +'<div style="display:flex;flex-wrap:wrap;gap:6px">'
+  +L.map(function(a){var on=_rcAlcOn(a.k);
+    return '<button type="button" class="_rcAlcB" data-k="'+esc(a.k)+'" style="flex:1 1 46%;min-width:0;text-align:left;'
+     +'background:'+(on?a.b:'#F1F3F7')+';color:'+(on?a.c:'#8A94A6')+';border:1px solid '+(on?a.d:'#DDE3EC')+';'
+     +'border-radius:9px;padding:8px 10px;font-weight:800;font-size:11.5px;cursor:pointer;'
+     +'overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(on?'\u2713 ':'\u25A2 ')+esc(a.n)+'</button>'}).join('')
+  +'</div>'
+  +'<div id="_rcAlcSt" style="font-size:11px;font-weight:800;color:'+(sel.length?'#0C5132':'#B42318')+';margin-top:8px">'
+   +(sel.length?('En la portada: '+sel.map(function(a){return esc(a.n)}).join(' \u00b7 ')):'Sin alcances marcados: la portada saldr\u00e1 solo con el nombre del proyecto.')
+  +'</div>';
+ box.querySelectorAll('._rcAlcB').forEach(function(b){b.onclick=function(){
+  var k=b.getAttribute('data-k');_rcAlcSet(k,!_rcAlcOn(k));_rcAlcUpd()}});
+}catch(e){}}
+function _rcExUpd(){var st=document.getElementById('_rcExSt');if(!st)return;var ex=_exData();
   if(ex&&ex.dias){var k=Object.keys(ex.dias).sort();var nc=function(g){return Object.keys((ex.cargos&&ex.cargos[g])||{}).length};
    st.innerHTML='✓ <b style="color:#0C5132">Cargado:</b> '+esc(ex.archivo||'Excel')+' · '+k.length+' día(s) ('+esc(ex.rango||'')+') · directa '+nc('directo')+' cargos · staff '+nc('staff')+' · equipos '+nc('equipos')+'.'}
   else st.innerHTML='Sin Excel de carga. Adjunta el documento para armar los histogramas de personal (directa/staff) y equipos.'}
- _rcExUpd();
+ _rcExUpd();_rcAlcUpd();
  var _eBtn=document.getElementById('_rcExBtn'),_eIn=document.getElementById('_rcExIn'),_eDel=document.getElementById('_rcExDel');
  if(_eBtn)_eBtn.onclick=function(){if(_eIn){_eIn.value='';_eIn.click()}};
  if(_eDel)_eDel.onclick=function(){_exDataSet(null);_rcExUpd();toast('Excel de carga vaciado')};
@@ -7280,7 +7324,6 @@ function _repConsol(){
    }).catch(function(err){pg.fail('No se pudo leer: '+((err&&err.message)||err))});
   }
   if(_eIn)_eIn.onchange=function(e){var fs=[].slice.call(e.target.files||[]);if(fs.length)cargaEx(fs)};
-  _rcDropZone(document.getElementById('_rcExSt').parentNode,['.xlsx','.xls'],cargaEx,'el Excel');
 
   /* 3) XER de Primavera — un archivo */
   function cargaXer(fs){
@@ -7308,6 +7351,8 @@ function _repConsol(){
  })();
  document.getElementById('_rcGo').onclick=function(){
   var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,pend:(document.getElementById('_rcPend')||{checked:true}).checked,apo:(document.getElementById('_rcApo')||{checked:true}).checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
+  /* los alcances marcados salen como título en la portada */
+  try{cfg.alcances=((typeof _rcAlcSel==='function')?_rcAlcSel():[]).map(function(a){return a.n})}catch(_ea){cfg.alcances=[]}
   cfg.fcSrc=(function(){var el=document.getElementById('_rcFcSel');var v=el?el.value:'';
    try{localStorage.setItem('wtt4_rcfcsrc',v||'')}catch(_e){}return v})();
   try{var _fu=_alcList().map(function(a){return a.k}).filter(function(k){return (typeof _alcPdfBloq==='function')&&_alcPdfBloq(k)});
