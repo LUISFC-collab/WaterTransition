@@ -2791,7 +2791,7 @@ $('rSave').onclick=()=>{if(typeof _gateW==='function'&&!_gateW())return;if(typeo
 // añadir
 var _addLockSys=null,_addLockArea=null;
 function openAddActividad(sys,area){if(diaCerrado(activeDate)){toast('Día cerrado: solo el administrador agrega partidas en días anteriores');return}_addLockSys=sys;_addLockArea=area||AREAS[0];const cu=$('aCuad');cu.innerHTML='';[...new Set(DATA.partidas.filter(p=>p.esp===state.user.disc).map(p=>p.cuadrilla))].concat(['Otra']).forEach(c=>{const o=document.createElement('option');o.textContent=c;cu.appendChild(o)});try{var _aa=$('aArea');if(_aa){var _ars=[AREAS[0],AREAS[1]].concat(state.areasExtra||[]);_aa.innerHTML=_ars.map(function(x){return '<option>'+esc(x)+'</option>'}).join('')}}catch(_e){}
-try{if($('aAlc'))$('aAlc').value=''}catch(_ar){}$('aId').value=(function(){/* id ÚNICO GLOBAL: la numeración local (ACT-1,2…) chocaba entre celulares/especialidades y las cargas se cruzaban */var _d=((state.user&&state.user.disc)||'X').charAt(0).toUpperCase();var _t=Date.now().toString(36).toUpperCase();var _r=Math.random().toString(36).slice(2,4).toUpperCase();return 'ACT-'+_d+_t.slice(-5)+_r;})();if($('aIdField'))$('aIdField').style.display=(typeof esAdmin==='function'&&esAdmin())?'':'none';$('aName').value='';if($('aSysNewWrap')){$('aSysNewWrap').classList.add('hidden');$('aSysNew').value=''}if($('aCuadNewWrap')){$('aCuadNewWrap').classList.add('hidden');$('aCuadNew').value=''}if($('aSysField'))$('aSysField').classList.add('hidden');if($('aAreaField'))$('aAreaField').classList.add('hidden');if($('aLockInfo')){$('aLockInfo').classList.remove('hidden');$('aLockTxt').textContent='📍 '+_addLockArea+'   ·   🔧 '+sys;}openSheet('mAdd');}
+try{if($('aAlc')){try{$('aAlc').innerHTML='<option value="">— elegir alcance —</option>'+_alcList().map(function(a){return '<option value="'+a.k+'">'+esc(a.n)+'</option>'}).join('')}catch(_af){}$('aAlc').value=''}}catch(_ar){}$('aId').value=(function(){/* id ÚNICO GLOBAL: la numeración local (ACT-1,2…) chocaba entre celulares/especialidades y las cargas se cruzaban */var _d=((state.user&&state.user.disc)||'X').charAt(0).toUpperCase();var _t=Date.now().toString(36).toUpperCase();var _r=Math.random().toString(36).slice(2,4).toUpperCase();return 'ACT-'+_d+_t.slice(-5)+_r;})();if($('aIdField'))$('aIdField').style.display=(typeof esAdmin==='function'&&esAdmin())?'':'none';$('aName').value='';if($('aSysNewWrap')){$('aSysNewWrap').classList.add('hidden');$('aSysNew').value=''}if($('aCuadNewWrap')){$('aCuadNewWrap').classList.add('hidden');$('aCuadNew').value=''}if($('aSysField'))$('aSysField').classList.add('hidden');if($('aAreaField'))$('aAreaField').classList.add('hidden');if($('aLockInfo')){$('aLockInfo').classList.remove('hidden');$('aLockTxt').textContent='📍 '+_addLockArea+'   ·   🔧 '+sys;}openSheet('mAdd');}
 $('fabAdd').onclick=function(){_fabMenu();};
 function _fabMenu(){var ov=document.getElementById('_fabOv');if(ov)ov.remove();ov=document.createElement('div');ov.id='_fabOv';ov.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box"><div style="font-weight:800;color:#1F3864;font-size:15px;margin-bottom:12px">➕ Añadir</div><button id="_fbSys" style="width:100%;background:#EEF1F6;border:1px solid #C7D2E0;border-radius:11px;padding:14px;font-weight:800;font-size:14px;color:#1F3864;margin-bottom:9px;text-align:left;cursor:pointer">🔧 Nuevo sistema</button><button id="_fbArea" style="width:100%;background:#EAF3EC;border:1px solid #BFD8C6;border-radius:11px;padding:14px;font-weight:800;font-size:14px;color:#0C5132;margin-bottom:12px;text-align:left;cursor:pointer">📍 Nueva área</button><button id="_fbX" style="width:100%;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button></div>';document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};document.getElementById('_fbX').onclick=function(){ov.remove()};document.getElementById('_fbArea').onclick=function(){ov.remove();_addArea();};document.getElementById('_fbSys').onclick=function(){ov.remove();_addSistema();};}
 function _addArea(){if(!state.areasExtra)state.areasExtra=store.get(KAX)||[];var ov=document.createElement('div');ov.id='_areaOv';ov.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box"><div style="font-weight:800;color:#0C5132;font-size:15px;margin-bottom:10px">📍 Nueva área</div><input id="_arNm" placeholder="Nombre del área (ej. La Quinua 1-7)" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:9px;padding:10px;font-size:14px;margin-bottom:12px"><div style="display:flex;gap:8px"><button id="_arX" style="flex:1;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button><button id="_arOk" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800">Crear</button></div></div>';document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};try{document.getElementById('_arNm').focus()}catch(e){}document.getElementById('_arX').onclick=function(){ov.remove()};document.getElementById('_arOk').onclick=function(){var nm=document.getElementById('_arNm').value.trim();if(!nm){toast('Escribe el nombre');return;}if(AREAS.indexOf(nm)>-1||state.areasExtra.indexOf(nm)>-1){toast('Esa área ya existe');return;}state.areasExtra.push(nm);store.set(KAX,state.areasExtra);try{_wbsXSet('area',nm,state.user.disc,{})}catch(_e){}openArea[nm]=true;ov.remove();renderList();toast('📍 Área añadida ✓');};}
@@ -2837,7 +2837,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820a5';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820a6';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -2959,7 +2959,8 @@ async function _aeExtras(ov){
    tipo='alc', clave='INI'|'A2'|... · activo=true + permitidos=[] -> nadie lo ve
    · metricas=false -> NO cuenta para el avance ni la reportabilidad.
    El admin siempre lo sigue viendo (asi puede volver a mostrarlo). */
-var _ALC_LBL={INI:'Dentro de alcance inicial',A2:'Alcance 2',A3:'Alcance 3',A4:'Alcance 4',A5:'Alcance 5'};
+/* etiquetas al vuelo: incluyen los renombrados y los creados */
+var _ALC_LBL=new Proxy({},{get:function(t,k){try{var m=_alcLblMap();return m[k]||String(k)}catch(e){return String(k)}},ownKeys:function(){try{return Object.keys(_alcLblMap())}catch(e){return []}},getOwnPropertyDescriptor:function(){return {enumerable:true,configurable:true}}});
 /* === PERMISOS POR ALCANCE (admin) ===
    Sobre que alcances se puede REPORTAR metrados y en cuales se pueden CREAR
    actividades. Se guarda en `visibilidad`, que ya existe y ya viaja en
@@ -3156,7 +3157,7 @@ function _showCreadas(){
  }
  function alcSel(id){
   var cur=(typeof _alcDe==='function')?_alcDe(id):'INI';
-  var o=_ALC.map(function(a){return '<option value="'+a.k+'"'+(cur===a.k?' selected':'')+'>'+esc(a.n)+'</option>'}).join('');
+  var o=_alcList().map(function(a){return '<option value="'+a.k+'"'+(cur===a.k?' selected':'')+'>'+esc(a.n)+'</option>'}).join('');
   var i=_alcInfo(cur);
   return '<select class="_crAlc" data-id="'+esc(id)+'" style="border:1px solid '+i.d+';background:'+i.b+';color:'+i.c+
    ';border-radius:8px;padding:5px 7px;font-size:11.5px;font-weight:800;cursor:pointer">'+o+'</select>';
@@ -3235,7 +3236,7 @@ function _showAlcPaquetes(){
  ov.onclick=function(e){if(e.target===ov)ov.remove()};
  var cnt=_alcPaqCuenta();
  function _alcSw(tipo,k,bloq,txt){return '<button class="_alcSw" data-t="'+tipo+'" data-k="'+k+'" data-b="'+(bloq?'1':'0')+'" style="flex:1;background:'+(bloq?'#FDECEC':'#EAF6EE')+';color:'+(bloq?'#B42318':'#0C5132')+';border:1px solid '+(bloq?'#F0C8C8':'#B9E0C8')+';border-radius:8px;padding:7px 6px;font-weight:800;font-size:11px;cursor:pointer">'+(bloq?'✖ ':'✓ ')+txt+'</button>'}
- var filas=Object.keys(_ALC_LBL).map(function(k){
+ var filas=_alcList().map(function(_a9){var k=_a9.k;
   var off=_alcPaqOculto(k);var n=cnt[k]||0;var rb=_alcRepBloq(k),nb=_alcNewBloq(k),pb=_alcPdfBloq(k);
   return '<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid '+(off?'#F0C8C8':'#E1E7F0')+';border-radius:11px;margin-bottom:8px;background:'+(off?'#FDF2F2':'#fff')+'">'
    +'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13.5px;color:'+(off?'#B42318':'#1B2433')+'">'+esc(_ALC_LBL[k])+'</div>'
@@ -3244,12 +3245,13 @@ function _showAlcPaquetes(){
    +'<div style="display:flex;gap:7px;margin:-2px 0 8px 2px;flex-wrap:wrap">'+_alcSw('alc_rep',k,rb,'Reportar metrados')+_alcSw('alc_new',k,nb,'Crear actividades')+_alcSw('alc_pdf',k,pb,'Entra al reporte')+'</div>'}).join('');
  ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
   +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">📦 Paquetes de alcance</b>'
-  +'<button id="_alcX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
+  +'<button id="_alcEd" style="margin-left:auto;background:#1F3864;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800;font-size:12px;cursor:pointer">🏷 Crear / renombrar</button>'+'<button id="_alcX" style="background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700;margin-left:7px">✕</button></div>'
   +'<div style="font-size:12px;color:#5C6779;margin-bottom:12px">Ocultar un paquete lo saca de las cartillas de todos los supervisores <b>y lo descuenta del % de avance y de la reportabilidad</b>. El administrador lo sigue viendo para poder devolverlo.<br>Debajo de cada uno: si se puede <b>reportar metrados</b> (si no, en esas actividades solo quedan los dos botones de restricción) y si se pueden <b>crear actividades</b> en ese alcance.</div>'
   +filas
   +'<div style="font-size:11px;color:#8A94A6;margin-top:6px">Viaja a todos los equipos al instante (tabla <b>visibilidad</b>, en realtime).</div></div>';
  document.body.appendChild(ov);
  document.getElementById('_alcX').onclick=function(){ov.remove()};
+ var _ae=document.getElementById('_alcEd');if(_ae)_ae.onclick=function(){if(typeof _showAlcEditor==='function')_showAlcEditor()};
  ov.querySelectorAll('._alcT').forEach(function(b){b.onclick=function(){
   _alcPaqToggle(b.getAttribute('data-k'), b.getAttribute('data-off')!=='1')}});
  ov.querySelectorAll('._alcSw').forEach(function(b){b.onclick=function(){
@@ -4940,6 +4942,102 @@ var _ALC=[{k:'INI',t:'INICIAL',n:'Dentro de alcance inicial',c:'#26456F',b:'#E3E
 {k:'A4',t:'ALC 4',n:'Alcance 4',c:'#0E7C86',b:'#DDF0F1',d:'#9AD3D8'},
 {k:'A5',t:'ALC 5',n:'Alcance 5',c:'#B42318',b:'#FBE7E3',d:'#F2A99E'}];
 function _alcInfo(k){for(var i=0;i<_ALC.length;i++){if(_ALC[i].k===k)return _ALC[i]}return _ALC[0]}
+/* === ALCANCES EDITABLES (admin) ===
+   Los 5 de siempre se pueden RENOMBRAR y se pueden CREAR nuevos (A6, A7…).
+   Se guarda en `wbs_extra` con tipo='alcance', area=<clave>, nombre=<etiqueta>:
+   esa tabla ya existe, ya tiene ts, updated_at y borrado suave
+   (eliminado / elim_por / elim_ts), y ya viaja en el sync de la app.
+   La clave (INI, A2, A3…) NUNCA cambia: es la que usan las actividades. */
+var _ALC_BASE=_ALC.slice();
+var _ALC_PAL=[{c:'#26456F',b:'#E3EAF6',d:'#B9C7DD'},{c:'#9A5B00',b:'#FCEFD9',d:'#EFC98A'},
+ {c:'#5B3A8A',b:'#EEE7F7',d:'#C8B6E6'},{c:'#0E7C86',b:'#DDF0F1',d:'#9AD3D8'},
+ {c:'#B42318',b:'#FBE7E3',d:'#F2A99E'},{c:'#0C5132',b:'#E7F5EC',d:'#A9D8BC'},
+ {c:'#7A4B00',b:'#F7EEDF',d:'#DCC38F'},{c:'#3D3B8E',b:'#E9E9F7',d:'#BDBCE4'}];
+function _alcRows(){try{return (state.wbsX||[]).filter(function(r){return r&&r.tipo==='alcance'&&!r.eliminado})}catch(e){return []}}
+/* lista efectiva: los base (con su nombre override si lo hay) + los creados */
+function _alcList(){
+ var rows=_alcRows(),porK={};
+ rows.forEach(function(r){var k=String(r.area||'').trim();if(!k)return;
+  var prev=porK[k];if(!prev||Number(r.ts||0)>Number(prev.ts||0))porK[k]=r});
+ var out=_ALC_BASE.map(function(a){var r=porK[a.k];
+  return r?{k:a.k,t:_alcTag(r.nombre,a.t),n:r.nombre,c:a.c,b:a.b,d:a.d}:a});
+ var vistos={};out.forEach(function(a){vistos[a.k]=1});
+ Object.keys(porK).sort().forEach(function(k){if(vistos[k])return;
+  var r=porK[k],i=out.length%_ALC_PAL.length,p=_ALC_PAL[i];
+  out.push({k:k,t:_alcTag(r.nombre,k),n:r.nombre,c:p.c,b:p.b,d:p.d})});
+ return out;
+}
+/* etiqueta corta para el badge: "Alcance 2 relacionados" -> "ALC 2 REL." */
+function _alcTag(nombre,fb){try{
+ var s=String(nombre||'').trim();if(!s)return fb;
+ if(s.length<=14)return s.toUpperCase();
+ return s.toUpperCase().slice(0,13)+'.';}catch(e){return fb}}
+function _alcInfo(k){var L=_alcList();for(var i=0;i<L.length;i++){if(L[i].k===k)return L[i]}return L[0]}
+function _alcLblMap(){var o={};_alcList().forEach(function(a){o[a.k]=a.n});return o}
+function _alcNextKey(){var L=_alcList(),n=2;
+ L.forEach(function(a){var m=String(a.k).match(/^A(\d+)$/);if(m&&+m[1]>=n)n=+m[1]+1});
+ return 'A'+n}
+function _alcDefSave(k,nombre,cb){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ nombre=String(nombre||'').trim();if(!nombre){toast('Ponle un nombre');return}
+ try{
+  var proy=DATA.proyecto,quien=(state.user&&state.user.supervisor)||'',now=Date.now();
+  /* la anterior con esa clave se marca eliminada (el on_conflict incluye nombre) */
+  _alcRows().forEach(function(r){if(String(r.area||'')!==String(k))return;
+   r.eliminado=true;r.elim_por=quien;r.elim_ts=now;
+   try{sbUpsert('wbs_extra',[{proyecto:proy,disciplina:r.disciplina||'',tipo:'alcance',nombre:r.nombre,area:String(k),
+    eliminado:true,elim_por:quien,elim_ts:now,quien:quien,ts:now,updated_at:new Date().toISOString()}],
+    'proyecto,disciplina,tipo,nombre,area')}catch(e){}});
+  var row={proyecto:proy,disciplina:'',tipo:'alcance',nombre:nombre,area:String(k),
+   eliminado:false,elim_por:'',elim_ts:null,quien:quien,ts:now,updated_at:new Date().toISOString()};
+  state.wbsX=state.wbsX||[];state.wbsX.push(row);
+  try{sbUpsert('wbs_extra',[row],'proyecto,disciplina,tipo,nombre,area')}catch(e){}
+  if(typeof logCambio==='function')logCambio('ALCANCE',k,'nombre: '+nombre);
+  if(typeof syncNow==='function')syncNow(true);
+  if(cb)cb();
+ }catch(e){toast('No se pudo guardar')}
+}
+function _showAlcEditor(){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ var ov=document.getElementById('_aeAlcOv');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='_aeAlcOv';
+ ov.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(15,25,45,.6);display:flex;align-items:flex-end;justify-content:center';
+ ov.onclick=function(e){if(e.target===ov)ov.remove()};
+ var L=_alcList();
+ var cnt=(typeof _alcPaqCuenta==='function')?_alcPaqCuenta():{};
+ var filas=L.map(function(a){var base=_ALC_BASE.some(function(x){return x.k===a.k});
+  return '<div style="display:flex;gap:8px;align-items:center;border:1px solid '+a.d+';background:'+a.b
+   +';border-radius:10px;padding:9px 10px;margin-bottom:7px">'
+   +'<span style="flex:none;font-size:10px;font-weight:900;color:'+a.c+';background:#fff;border:1px solid '+a.d
+    +';border-radius:5px;padding:2px 6px;min-width:52px;text-align:center">'+esc(a.t)+'</span>'
+   +'<input class="_aeAlcN" data-k="'+esc(a.k)+'" value="'+esc(a.n)+'" style="flex:1;min-width:0;border:1px solid '+a.d
+    +';border-radius:8px;padding:7px 9px;font-size:12.5px;font-weight:700;color:#1B2433">'
+   +'<span style="flex:none;font-size:11px;color:'+a.c+';font-weight:800">'+((cnt[a.k]||0))+' act</span>'
+   +'<button class="_aeAlcS" data-k="'+esc(a.k)+'" style="flex:none;background:'+a.c+';color:#fff;border:0;border-radius:8px;padding:7px 11px;font-weight:800;font-size:11.5px;cursor:pointer">Guardar</button>'
+   +'</div>'
+   +'<div style="font-size:10.5px;color:#8A94A6;margin:-4px 0 9px 4px">clave <b>'+esc(a.k)+'</b>'+(base?' · base':' · creado')+' — la clave no cambia nunca</div>'}).join('');
+ ov.innerHTML='<div style="background:#fff;width:100%;max-width:580px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
+  +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">🏷 Alcances</b>'
+  +'<button id="_aeAlcX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
+  +'<div style="font-size:12px;color:#5C6779;margin-bottom:12px">Renombra los que hay o crea uno nuevo (por ejemplo “Alcance 2 relacionados”). La <b>clave</b> interna no cambia, así que las actividades ya asignadas no se mueven.</div>'
+  +filas
+  +'<div style="display:flex;gap:8px;margin-top:6px">'
+   +'<input id="_aeAlcNuevo" placeholder="Nombre del alcance nuevo" style="flex:1;border:1px solid #C7D2E0;border-radius:9px;padding:10px;font-size:13px">'
+   +'<button id="_aeAlcAdd" style="flex:none;background:#0C5132;color:#fff;border:0;border-radius:9px;padding:10px 14px;font-weight:800;font-size:12.5px;cursor:pointer">＋ Crear</button></div>'
+  +'<div style="font-size:11px;color:#8A94A6;margin-top:9px">Se guarda en <b>wbs_extra</b> (tipo alcance), con su hora y borrado suave; viaja a todos los equipos.</div></div>';
+ document.body.appendChild(ov);
+ document.getElementById('_aeAlcX').onclick=function(){ov.remove()};
+ ov.querySelectorAll('._aeAlcS').forEach(function(b){b.onclick=function(){
+  var k=b.getAttribute('data-k');
+  var inp=ov.querySelector('._aeAlcN[data-k="'+k+'"]');
+  _alcDefSave(k,inp?inp.value:'',function(){toast('Alcance actualizado ✓');ov.remove();_showAlcEditor();
+   try{renderList()}catch(e){}})}});
+ document.getElementById('_aeAlcAdd').onclick=function(){
+  var v=document.getElementById('_aeAlcNuevo').value;
+  if(!String(v||'').trim()){toast('Escribe el nombre');return}
+  _alcDefSave(_alcNextKey(),v,function(){toast('Alcance creado ✓');ov.remove();_showAlcEditor();
+   try{renderList()}catch(e){}})};
+}
 function _alcAll(){if(!state.alcance){try{state.alcance=JSON.parse(localStorage.getItem('wtt4_alcance')||'{}')||{}}catch(e){state.alcance={}}}if(!state.alcance)state.alcance={};return state.alcance}
 function _alcSaveLocal(){try{localStorage.setItem('wtt4_alcance',JSON.stringify(_alcAll()))}catch(e){}}
 function _nuevaDe(id){try{var a=state.nuevas||[];for(var i=0;i<a.length;i++){if(a[i]&&a[i].id===id)return a[i]}}catch(e){}return null}
@@ -6726,7 +6824,7 @@ function _repConsol(){
   var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
   cfg.fcSrc=(function(){var el=document.getElementById('_rcFcSel');var v=el?el.value:'';
    try{localStorage.setItem('wtt4_rcfcsrc',v||'')}catch(_e){}return v})();
-  try{var _fu=['INI','A2','A3','A4','A5'].filter(function(k){return (typeof _alcPdfBloq==='function')&&_alcPdfBloq(k)});
+  try{var _fu=_alcList().map(function(a){return a.k}).filter(function(k){return (typeof _alcPdfBloq==='function')&&_alcPdfBloq(k)});
    if(_fu.length)toast('El reporte deja fuera: '+_fu.map(function(k){return (typeof _ALC_LBL!=='undefined'&&_ALC_LBL[k])||k}).join(', '))}catch(_ef){}
   cfg.pesos=(function(){var o={},b=document.getElementById('_rcPzBox');if(!b)return o;
    [].slice.call(b.querySelectorAll('input[data-area]')).forEach(function(el){o[el.getAttribute('data-area')]=+el.value||0});
