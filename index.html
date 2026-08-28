@@ -2839,7 +2839,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820a9';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820b1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -6466,6 +6466,59 @@ function _rcPersonalSlides(cfg){
   +'<div style="flex:none;background:#1B2433;color:#B9C3D6;font-size:8px;font-weight:700;padding:1.4mm 8mm">'+esc(proy)+' · Fuente y recursos'+(cfg.semana?(' · '+esc(cfg.semana)):'')+'</div>'
  +'</div>'];
 }
+/* === LÁMINA: LO QUE FALTA CULMINAR ===
+   Una por especialidad, con las actividades que NO llegan al 100%: cuánto
+   llevan, cuánto falta y desde cuándo. Respeta el alcance: las que no entran
+   al reporte no aparecen (ya vienen filtradas de _rcMetrics). */
+function _rcPendSlides(cfg,M,DISCS,cut){
+ var out=[],proy=DATA.proyecto||'';
+ function dm(iso){var p=String(iso||'').split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):iso}
+ DISCS.forEach(function(d){
+  var m=M[d];if(!m||!m.rows||!m.rows.length)return;
+  var pend=m.rows.filter(function(r){return r.real<100});
+  if(!pend.length)return;
+  pend.sort(function(a,b){return (b.real-a.real)||String(a.area||'').localeCompare(String(b.area||''))});
+  var col=(typeof _dcol==='function')?_dcol(d):'#1F3864';
+  var nCurso=pend.filter(function(r){return r.real>0}).length;
+  var nSin=pend.filter(function(r){return r.real<=0}).length;
+  /* cuánto falta en unidades, cuando el metrado lo permite */
+  function falta(r){try{
+   var me=r.m;if(!me||!me.total||me.unidad==='glb'||me.unidad==='na')return '';
+   var hecho=(typeof acumCantAt==='function')?acumCantAt(r.p.id,cut):0;
+   var f=Math.max(0,(+me.total||0)-(+hecho||0));if(!f)return '';
+   return 'falta '+((typeof qty==='function')?qty(f):f)+' '+me.unidad;
+  }catch(e){return ''}}
+  var filas=pend.map(function(r,i){
+   var nom=(typeof pNom==='function')?pNom(r.p):(r.p.nombre||'');
+   var fa=falta(r);
+   var barra=Math.max(0,Math.min(100,r.real));
+   return '<tr style="border-bottom:.25mm solid #E8EDF4">'
+    +'<td style="padding:1.5mm 2mm;font-size:8.5px;color:#8A94A6;text-align:right">'+(i+1)+'</td>'
+    +'<td style="padding:1.5mm 2mm;font-size:9px;font-weight:800;color:#1B2433">'+esc((typeof codeOf==='function')?codeOf(r.p):r.p.id)+'</td>'
+    +'<td style="padding:1.5mm 2mm;font-size:9px;color:#1B2433">'+esc(String(nom).slice(0,74))
+      +'<div style="font-size:7.6px;color:#8A94A6">'+esc(String(r.area||'').slice(0,34))+' · '+esc(String(r.sis||'').slice(0,34))+'</div></td>'
+    +'<td style="padding:1.5mm 2mm;width:34mm"><div style="height:2.4mm;background:#E9EEF5;border-radius:1mm;overflow:hidden">'
+      +'<div style="width:'+barra+'%;height:100%;background:'+(r.real>0?'#B7791F':'#B42318')+'"></div></div></td>'
+    +'<td style="padding:1.5mm 2mm;text-align:right;font-size:9px;font-weight:900;color:'+(r.real>0?'#B7791F':'#B42318')+'">'+r.real+'%</td>'
+    +'<td style="padding:1.5mm 2mm;font-size:8.4px;color:#5C6779;white-space:nowrap">'+esc(fa)+'</td></tr>'}).join('');
+  out.push('<div class="sl">'
+   +'<div style="flex:none;background:'+col+';color:#fff;padding:4.4mm 8mm;display:flex;align-items:flex-end">'
+    +'<div style="flex:1"><div style="font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.82);font-weight:800">LO QUE FALTA CULMINAR</div>'
+    +'<div style="font-size:19px;font-weight:900;margin-top:.6mm">'+esc(String(d).toUpperCase())+'</div></div>'
+    +'<div style="text-align:right;font-size:10.5px;font-weight:800">'+pend.length+' pendiente(s)'
+     +'<div style="font-size:9.5px;color:rgba(255,255,255,.85)">'+nCurso+' en curso · '+nSin+' sin avance · al '+dm(cut)+'</div></div></div>'
+   +'<div style="flex:1;min-height:0;overflow:hidden;padding:3.5mm 8mm 0">'
+    +'<table style="width:100%;border-collapse:collapse">'
+    +'<thead><tr style="background:#1F3864;color:#fff;font-size:8px">'
+     +'<th style="padding:1.6mm 2mm;text-align:right">N°</th><th style="padding:1.6mm 2mm;text-align:left">CÓDIGO</th>'
+     +'<th style="padding:1.6mm 2mm;text-align:left">ACTIVIDAD</th><th style="padding:1.6mm 2mm;text-align:left">AVANCE</th>'
+     +'<th style="padding:1.6mm 2mm;text-align:right">%</th><th style="padding:1.6mm 2mm;text-align:left">FALTA</th></tr></thead>'
+    +'<tbody>'+filas+'</tbody></table></div>'
+   +'<div style="flex:none;background:#1B2433;color:#B9C3D6;font-size:8px;font-weight:700;padding:1.4mm 8mm">'
+    +esc(proy)+' · pendientes de '+esc(d)+(cfg.semana?(' · '+esc(cfg.semana)):'')+'</div></div>');
+ });
+ return out;
+}
 function _repConsolBuild(cfg){
  var SL=[];var proy=DATA.proyecto||'';var hoy=(typeof todayISO==='function')?todayISO():'';
  var cut=cfg.cutFin||hoy;var DISCS=(typeof DISC!=='undefined'&&DISC.length)?DISC.slice():['Mecanica','Electrica','Civil'];
@@ -6635,6 +6688,7 @@ function _repConsolBuild(cfg){
   });
  }
  /* ---------- PERSONAL / HISTOGRAMAS (desde los DR) ---------- */
+ if(cfg.inc.pend!==false&&typeof _rcPendSlides==='function'){try{_rcPendSlides(cfg,M,DISCS,cut).forEach(function(s){if(s)SL.push(s)})}catch(e){}}
  if(cfg.inc.personal&&typeof _rcPersonalSlides==='function'){try{_rcPersonalSlides(cfg).forEach(function(s){if(s)SL.push(s)})}catch(e){}}
  /* ---------- CRONOGRAMAS (Gantt) ---------- */
  if(cfg.inc.crono&&typeof _ganttSlidesHTML==='function'){
@@ -6733,7 +6787,7 @@ function _repConsol(){
   +'<div id="_rcPzBox" style="border:1px solid #E0CDA0;background:#FFFBF0;border-radius:10px;padding:10px 11px;margin-bottom:12px"></div>'
   +'<div style="border:1px solid #B4D5EE;background:#F2F8FD;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0E2440;margin-bottom:4px">📄 Reportes diarios (PDF del DR) — fuente de los histogramas</div><div id="_rcDrSt" style="font-size:11.5px;color:#31506E;margin-bottom:7px">—</div><input type="file" id="_rcDrIn" accept=".pdf" multiple style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcDrBtn" style="flex:1;background:#0E2440;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar reportes diarios…</button><button type="button" id="_rcDrDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#4A6076;margin-top:5px">Selecciona los PDF de los días de la semana (uno por día). Se leen solos: mano de obra directa, operadores, staff y equipos (HM). El rango de la semana (arriba) define qué días entran.</div></div>'
   +'<div style="border:1px solid #B9E0C8;background:#F1FBF5;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0C5132;margin-bottom:4px">👷 Personal e histogramas — Excel de carga (MO directa, staff y equipos)</div><div id="_rcExSt" style="font-size:11.5px;color:#356149;margin-bottom:7px">—</div><input type="file" id="_rcExIn" accept=".xlsx,.xls" style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcExBtn" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar Excel de carga…</button><button type="button" id="_rcExDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#5C7A66;margin-top:5px">Hoja REPORTES DIARIOS: col A = puesto, fila 2 = fechas (#fecha = cantidades, fecha normal = HH). Hoja RESUMEN PERSONAL separa staff / directa / equipos — solo eso se incluye. El rango de la semana (arriba) define qué días entran.</div></div>'
-  +'<div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:6px">¿Qué incluir en el reporte?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">'+ck('_rcP','🏁 Portada + Plan/Real/Var/SPI',true)+ck('_rcR','📊 Resumen por especialidad',false)+ck('_rcW','🗂 Actividades por estado (WBS) + fotos de la semana',true)+ck('_rcPers','👷 Personal e histogramas (reportes diarios)',true)+ck('_rcC','📅 Cronogramas Gantt',true)+ck('_rcMina','⛰ Restricciones de mina',false)+ck('_rcRi','⚠ Riesgos y alertas',false)+'</div>'
+  +'<div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:6px">¿Qué incluir en el reporte?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">'+ck('_rcP','🏁 Portada + Plan/Real/Var/SPI',true)+ck('_rcR','📊 Resumen por especialidad',false)+ck('_rcW','🗂 Actividades por estado (WBS) + fotos de la semana',true)+ck('_rcPend','⏳ Lo que falta culminar',true)+ck('_rcPers','👷 Personal e histogramas (reportes diarios)',true)+ck('_rcC','📅 Cronogramas Gantt',true)+ck('_rcMina','⛰ Restricciones de mina',false)+ck('_rcRi','⚠ Riesgos y alertas',false)+'</div>'
   +'<div style="display:flex;gap:8px"><button id="_rcX" style="flex:1;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button><button id="_rcGo" style="flex:2;background:#0E2440;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800">📑 Generar PDF</button></div></div>';
  document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};document.getElementById('_rcX').onclick=function(){ov.remove()};
  /* XER LB0: estado + adjuntar + quitar (queda guardado en este equipo) */
@@ -6878,7 +6932,7 @@ function _repConsol(){
   _rcDropZone(document.getElementById('_rcXerSt').parentNode,['.xer'],cargaXer,'el XER');
  })();
  document.getElementById('_rcGo').onclick=function(){
-  var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
+  var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,pend:(document.getElementById('_rcPend')||{checked:true}).checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
   cfg.fcSrc=(function(){var el=document.getElementById('_rcFcSel');var v=el?el.value:'';
    try{localStorage.setItem('wtt4_rcfcsrc',v||'')}catch(_e){}return v})();
   try{var _fu=_alcList().map(function(a){return a.k}).filter(function(k){return (typeof _alcPdfBloq==='function')&&_alcPdfBloq(k)});
@@ -6901,6 +6955,9 @@ function _repConsol(){
    pFotos=Promise.race([pReq,new Promise(function(res){setTimeout(function(){res(null)},15000)})]).then(function(v){if(v==null){toast('Las fotos tardaron demasiado: el reporte sale sin fotos');return []}return v});
   }
   pFotos.then(function(fts){
+   /* las fotos de un alcance que no entra al reporte tampoco salen */
+   try{fts=(fts||[]).filter(function(f){var id=f&&f.partida_id;if(!id)return true;
+    return (typeof _alcPdfBloq!=='function')||!_alcPdfBloq((typeof _alcDe==='function')?_alcDe(id):'')})}catch(_ff){}
    cfg.fotos=fts;
    try{var doc=_repConsolBuild(cfg);if(!doc.slides){toast('No hay contenido para el reporte');try{w.close()}catch(_e){}return}
     w.document.write('<html><head><meta charset="utf-8"><title>'+esc(doc.title)+'</title><style>'+doc.css+'</style></head><body>'+doc.body+'<script>window.addEventListener("load",function(){var im=[].slice.call(document.images||[]);Promise.all(im.map(function(i){return (i.complete||!i.src)?true:new Promise(function(res){i.onload=i.onerror=res;setTimeout(res,7000)})})).then(function(){setTimeout(function(){window.print()},400)})})<\/script></body></html>');w.document.close();
