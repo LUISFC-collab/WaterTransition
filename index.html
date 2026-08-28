@@ -2979,7 +2979,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820c3';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820c4';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -3116,6 +3116,9 @@ function _alcPdfBloq(k){try{var r=_visRule('alc_pdf',String(k||''));return !!(r&
 /* se puede programar en el cronograma? */
 function _alcProgBloq(k){try{var r=_visRule('alc_prog',String(k||''));return !!(r&&r.activo)}catch(e){return false}}
 function _alcProgOK(p){try{var k=(typeof _alcDe==='function')?_alcDe(p&&p.id):'';return !_alcProgBloq(k)}catch(e){return true}}
+/* entra en las láminas de cronograma del PDF? (distinto de poder programarla) */
+function _alcCroBloq(k){try{var r=_visRule('alc_cro',String(k||''));return !!(r&&r.activo)}catch(e){return false}}
+function _alcCroOK(p){try{var k=(typeof _alcDe==='function')?_alcDe(p&&p.id):'';return !_alcCroBloq(k)}catch(e){return true}}
 function _alcPdfOK(p){try{var k=(typeof _alcDe==='function')?_alcDe(p&&p.id):'';return !_alcPdfBloq(k)}catch(e){return true}}
 /* de una actividad: se puede reportar avance/metrado? */
 function _alcRepOK(p){try{
@@ -3123,7 +3126,7 @@ function _alcRepOK(p){try{
 function _alcNewOK(k){return !_alcNewBloq(k)}
 function _alcPermToggle(tipo,k,bloquear){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
- var lbl=(_ALC_LBL[k]||k)+(tipo==='alc_rep'?' · reportar':(tipo==='alc_pdf'?' · reporte PDF':(tipo==='alc_prog'?' · programar':' · crear')));
+ var lbl=(_ALC_LBL[k]||k)+(tipo==='alc_rep'?' · reportar':(tipo==='alc_pdf'?' · reporte PDF':(tipo==='alc_prog'?' · programar':(tipo==='alc_cro'?' · cronograma del PDF':' · crear'))));
  _visSave({tipo:tipo,clave:k},!!bloquear,[],lbl,true);   /* metricas NO se toca aqui */
  try{if(typeof syncNow==='function')syncNow(true)}catch(e){}
  _showAlcPaquetes();
@@ -3382,12 +3385,12 @@ function _showAlcPaquetes(){
  var cnt=_alcPaqCuenta();
  function _alcSw(tipo,k,bloq,txt){return '<button class="_alcSw" data-t="'+tipo+'" data-k="'+k+'" data-b="'+(bloq?'1':'0')+'" style="flex:1;background:'+(bloq?'#FDECEC':'#EAF6EE')+';color:'+(bloq?'#B42318':'#0C5132')+';border:1px solid '+(bloq?'#F0C8C8':'#B9E0C8')+';border-radius:8px;padding:7px 6px;font-weight:800;font-size:11px;cursor:pointer">'+(bloq?'✖ ':'✓ ')+txt+'</button>'}
  var filas=_alcList().map(function(_a9){var k=_a9.k;
-  var off=_alcPaqOculto(k);var n=cnt[k]||0;var rb=_alcRepBloq(k),nb=_alcNewBloq(k),pb=_alcPdfBloq(k),gb=_alcProgBloq(k);
+  var off=_alcPaqOculto(k);var n=cnt[k]||0;var rb=_alcRepBloq(k),nb=_alcNewBloq(k),pb=_alcPdfBloq(k),gb=_alcProgBloq(k),cb=_alcCroBloq(k);
   return '<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid '+(off?'#F0C8C8':'#E1E7F0')+';border-radius:11px;margin-bottom:8px;background:'+(off?'#FDF2F2':'#fff')+'">'
    +'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13.5px;color:'+(off?'#B42318':'#1B2433')+'">'+esc(_ALC_LBL[k])+'</div>'
    +'<div style="font-size:11.5px;color:#5C6779;margin-top:2px">'+n+' actividad(es)'+(off?' · oculto y fuera del avance':' · visible y cuenta para el avance')+'</div></div>'
    +'<button class="_alcT" data-k="'+k+'" data-off="'+(off?'1':'0')+'" style="flex:none;background:'+(off?'#1E7A46':'#B42318')+';color:#fff;border:0;border-radius:9px;padding:9px 13px;font-weight:800;font-size:12px;cursor:pointer">'+(off?'👁 Mostrar':'🚫 Ocultar')+'</button></div>'
-   +'<div style="display:flex;gap:7px;margin:-2px 0 8px 2px;flex-wrap:wrap">'+_alcSw('alc_rep',k,rb,'Reportar metrados')+_alcSw('alc_new',k,nb,'Crear actividades')+_alcSw('alc_pdf',k,pb,'Entra al reporte')+_alcSw('alc_prog',k,gb,'Programar actividad')+'</div>'}).join('');
+   +'<div style="display:flex;gap:7px;margin:-2px 0 8px 2px;flex-wrap:wrap">'+_alcSw('alc_rep',k,rb,'Reportar metrados')+_alcSw('alc_new',k,nb,'Crear actividades')+_alcSw('alc_pdf',k,pb,'Entra al reporte')+_alcSw('alc_prog',k,gb,'Programar actividad')+_alcSw('alc_cro',k,cb,'Entra al cronograma')+'</div>'}).join('');
  ov.innerHTML='<div style="background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
   +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">📦 Paquetes de alcance</b>'
   +'<button id="_alcEd" style="margin-left:auto;background:#1F3864;color:#fff;border:0;border-radius:8px;padding:8px 11px;font-weight:800;font-size:12px;cursor:pointer">🏷 Crear / renombrar</button>'+'<button id="_alcX" style="background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700;margin-left:7px">✕</button></div>'
@@ -6230,14 +6233,14 @@ function _ganttSlidesHTML(ini,fin,baseId,fore,onlyDisc){
  var SL=[];
  DISCS.forEach(function(disc,di){
   var col=(typeof _dcol==='function')?_dcol(disc):'#1F3864';
-  var all=DATA.partidas.concat(state.nuevas||[]).map(function(x){return (typeof applyEdit==='function')?applyEdit(x):x}).filter(function(p){return p&&p.esp===disc&&!(typeof tombHas==='function'&&tombHas('partida',p.id))});
+  var all=DATA.partidas.concat(state.nuevas||[]).map(function(x){return (typeof applyEdit==='function')?applyEdit(x):x}).filter(function(p){return p&&p.esp===disc&&!(typeof tombHas==='function'&&tombHas('partida',p.id))&&((typeof _alcCroOK!=='function')||_alcCroOK(p))});   /* alcances fuera del cronograma no salen en estas láminas */
   var baseMap={};try{((base&&base.snap&&base.snap[disc])||[]).forEach(function(r){if(r&&r.partida_id)baseMap[r.partida_id]=r})}catch(e){}
   var rows=[],sinProg=[],fueraRango=0;
   all.forEach(function(p){
    var pr=state.prog&&state.prog[p.id];
    var _doneP=(((typeof pctOfAt==='function')?pctOfAt(p,fin):0)>=100);
-   /* alcances con la programacion apagada no cuentan como pendientes de programar */
-   var _pOK=(typeof _alcProgOK!=='function')||_alcProgOK(p);
+   /* quien entra a estas láminas ya se decidió arriba con 'Entra al cronograma' */
+   var _pOK=true;
    if(!pr||!pr.start){if(_pOK&&!_doneP&&!/^actividades relacionadas/i.test(String(p.sistema||'')))sinProg.push(p);return}
    var occ=(typeof occupiedDays==='function')?occupiedDays(pr.start,pr.dias||1):[];
    if(!occ.length){if(_pOK&&!_doneP&&!/^actividades relacionadas/i.test(String(p.sistema||'')))sinProg.push(p);return}
@@ -7310,6 +7313,8 @@ function _repConsol(){
   try{var _fu=_alcList().map(function(a){return a.k}).filter(function(k){return (typeof _alcPdfBloq==='function')&&_alcPdfBloq(k)});
    var _fp=_alcList().map(function(a){return a.k}).filter(function(k){return (typeof _alcProgBloq==='function')&&_alcProgBloq(k)});
    if(_fp.length)toast('Sin programar: '+_fp.map(function(k){return (typeof _ALC_LBL!=='undefined'&&_ALC_LBL[k])||k}).join(', '));
+   var _fc=_alcList().map(function(a){return a.k}).filter(function(k){return (typeof _alcCroBloq==='function')&&_alcCroBloq(k)});
+   if(_fc.length)toast('Fuera del cronograma del PDF: '+_fc.map(function(k){return (typeof _ALC_LBL!=='undefined'&&_ALC_LBL[k])||k}).join(', '));
    if(_fu.length)toast('El reporte deja fuera: '+_fu.map(function(k){return (typeof _ALC_LBL!=='undefined'&&_ALC_LBL[k])||k}).join(', '))}catch(_ef){}
   cfg.pesos=(function(){var o={},b=document.getElementById('_rcPzBox');if(!b)return o;
    [].slice.call(b.querySelectorAll('input[data-area]')).forEach(function(el){o[el.getAttribute('data-area')]=+el.value||0});
