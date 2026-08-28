@@ -2979,7 +2979,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820c1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820c2';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -6656,113 +6656,142 @@ function _rcPersonalSlides(cfg){
    llevan, cuánto falta y desde cuándo. Respeta el alcance: las que no entran
    al reporte no aparecen (ya vienen filtradas de _rcMetrics). */
 /* === LÁMINA ÚNICA: LO QUE FALTA CULMINAR ===
-   Cada actividad pendiente en su cuadrito, con las cifras que hacen falta
-   para entenderla:
-       AVANCE    = lo que lleva ella misma
-       APORTA    = lo que eso ya suma al avance del proyecto
-       POR GANAR = lo que sumará cuando se cierre
-       aporta    = (peso área / suma pesos) x (%      / nº act. del área)
-       por ganar = (peso área / suma pesos) x ((100-%) / nº act. del área)
-   Arriba sale el avance de HOY y abajo la cuenta que cierra:
-       actual + lo que falta por aportar = 100%
-   Ordenado por ÁREA > ESPECIALIDAD > SISTEMA. Todo a dos decimales. */
+   Se lee de arriba abajo: el avance de hoy, luego cada área con su cuenta
+   cerrada, y al final la suma de todo.
+   De cada actividad se dicen las tres cosas, con su palabra delante:
+       avance = lo que lleva ella misma
+       aporta = lo que ESO ya suma al avance del proyecto
+       falta  = lo que sumará cuando llegue al 100%
+   Y de cada área la suma que cierra:
+       aporta hoy + por ganar = el peso del área
+   (sumando todas las áreas se llega al 100%). Todo a dos decimales. */
 function _rcAporteSlides(cfg,M,DISCS,cut){
  var proy=DATA.proyecto||'',pz=cfg.pesos||{};
  function dm(iso){var p=String(iso||'').split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):iso}
  function n2(v){return (Math.round((+v||0)*100)/100).toFixed(2)}
- var A={},nArea={},sumArea={},sumP=0;
+ var A={},nArea={},sumArea={},culmArea={},sumP=0;
  /* el nº de actividades del área se cuenta con TODAS (no solo las pendientes),
     porque asi es como se calcula el ponderado en la portada */
  DISCS.forEach(function(d){(M[d]&&M[d].rows||[]).forEach(function(r){
-  var ar=r.area||'(sin área)';nArea[ar]=(nArea[ar]||0)+1;sumArea[ar]=(sumArea[ar]||0)+(+r.real||0)})});
+  var ar=r.area||'(sin área)';nArea[ar]=(nArea[ar]||0)+1;sumArea[ar]=(sumArea[ar]||0)+(+r.real||0);
+  if(r.real>=100)culmArea[ar]=(culmArea[ar]||0)+1})});
  DISCS.forEach(function(d){(M[d]&&M[d].rows||[]).forEach(function(r){
   if(r.real>=100)return;                                   /* solo lo que falta */
   var ar=r.area||'(sin área)';
   var e=A[ar]||(A[ar]={});var s=e[d]||(e[d]={});
   (s[r.sis||'(sin sistema)']=s[r.sis||'(sin sistema)']||[]).push(r)})});
  Object.keys(nArea).forEach(function(ar){var p=+pz[ar]||0;if(p>0)sumP+=p});
- /* el avance de HOY, con la misma cuenta de la portada */
- var actual=0;
- if(sumP)Object.keys(nArea).forEach(function(ar){var p=+pz[ar]||0;
-  if(p>0&&nArea[ar])actual+=(p/sumP)*(sumArea[ar]/nArea[ar])});
- var orden=Object.keys(A).sort(function(x,y){
+ /* peso del área ya normalizado: asi la cuenta de cada área cierra en su peso
+    y la de todas juntas en 100 */
+ function pesoN(ar){var p=+pz[ar]||0;return sumP?(p/sumP*100):0}
+ function aportaArea(ar){return nArea[ar]?(pesoN(ar)*(sumArea[ar]/nArea[ar])/100):0}
+ var actual=0;Object.keys(nArea).forEach(function(ar){if(pesoN(ar)>0)actual+=aportaArea(ar)});
+ /* van todas las areas con peso, aunque no les quede nada pendiente:
+    solo asi las sumas de la lamina llegan al 100% */
+ var orden=Object.keys(sumP?nArea:A).filter(function(ar){return sumP?(pesoN(ar)>0):!!A[ar]})
+  .sort(function(x,y){
   var ix=(typeof AREAS!=='undefined')?AREAS.indexOf(x):-1,iy=(typeof AREAS!=='undefined')?AREAS.indexOf(y):-1;
   ix=ix<0?99:ix;iy=iy<0?99:iy;return (ix-iy)||String(x).localeCompare(String(y))});
  if(!orden.length)return [];
- function ap(r,ar,resto){var p=+pz[ar]||0;if(!sumP||!p||!nArea[ar])return 0;
-  return (p/sumP)*((resto?(100-(+r.real||0)):(+r.real||0))/nArea[ar])}
- function falta(r){try{
+ function ap(r,ar,resto){if(!sumP||!nArea[ar])return 0;
+  return pesoN(ar)*((resto?(100-(+r.real||0)):(+r.real||0))/nArea[ar])/100}
+ function faltaU(r){try{
   var me=r.m;if(!me||!me.total||me.unidad==='glb'||me.unidad==='na')return '';
   var hecho=(typeof acumCantAt==='function')?acumCantAt(r.p.id,cut):0;
   var f=Math.max(0,(+me.total||0)-(+hecho||0));if(!f)return '';
   return ((typeof qty==='function')?qty(f):f)+' '+me.unidad;
  }catch(e){return ''}}
- /* cuánto hay que meter en la lámina: el cuerpo mide ~145 mm de alto, asi que
-    las columnas y el tamaño de letra se calculan para que TODO entre */
+ /* cuánto hay que meter: el cuerpo mide ~145 mm, asi que columnas y letra
+    se eligen para que TODO entre en una sola lámina */
  var nCaj=0,nSis=0,nEsp=0,nAr9=0;
- orden.forEach(function(ar){var p=+pz[ar]||0;if(sumP&&p<=0)return;nAr9++;
+ orden.forEach(function(ar){nAr9++;if(!A[ar])return;
   Object.keys(A[ar]).forEach(function(d){nEsp++;
    Object.keys(A[ar][d]).forEach(function(sis){nSis++;nCaj+=A[ar][d][sis].length})})});
- var ALTO=145;                                  /* mm utiles de cuerpo */
+ var ALTO=145;
  function cabeCon(cols,fs){
-  var hCaja=(fs*0.353*1.30)+1.05;               /* px->mm de la linea + bordes */
-  var alto=nCaj*hCaja + nSis*(hCaja*1.85) + nEsp*(hCaja*1.30) + nAr9*(hCaja*1.75);
-  return alto<=(ALTO*cols)*0.90}                /* 6% de holgura por los cortes */
- var COLS=3,FS=6.6;
- var ESC=[[3,6.6],[4,6.4],[4,6.0],[5,5.8],[5,5.4],[6,5.2],[7,5.0],[8,4.7],[9,4.5],[10,4.3]];
+  var L=fs*0.353*1.28;                       /* alto de una linea, en mm */
+  var alto=nCaj*(L*2+1.15) + nSis*(L+0.7) + nEsp*(L+0.9) + nAr9*(L*4+3.4);
+  return alto<=(ALTO*cols)*0.90}
+ var COLS=2,FS=7.4;
+ /* mas de 6 columnas ya no se lee: si no entra, la lamina se parte en hojas */
+ var ESC=[[2,7.4],[3,7.0],[3,6.6],[4,6.4],[4,6.0],[5,5.8],[5,5.4],[6,5.2]];
  for(var _e9=0;_e9<ESC.length;_e9++){COLS=ESC[_e9][0];FS=ESC[_e9][1];if(cabeCon(COLS,FS))break}
- var Wv=(FS>=5.6?7.6:6.9),Wg=(FS>=5.6?8.2:7.4); /* mm de las columnas de cifras */
- var bloques=[],totFalta=0,nPend=0,nSin=0;
- function num(v,w,col,peso){
-  return '<span style="flex:none;width:'+w+'mm;text-align:right;font-size:'+FS.toFixed(1)+'px;'
-   +'font-weight:'+(peso||900)+';color:'+col+';white-space:nowrap">'+v+'</span>'}
- function rotulos(){
-  if(!sumP)return num('AVANCE',Wv,'#8A94A6',700);
-  return num('AVANCE',Wv,'#8A94A6',700)+num('APORTA',Wv,'#8A94A6',700)+num('POR GANAR',Wg,'#8A94A6',700)}
+ var F1=FS.toFixed(1),F0=(FS-0.6).toFixed(1);
+ /* la lamina se arma con PIEZAS (cabecera de area, cada especialidad y la
+    suma del area): asi un area grande puede seguir en la hoja siguiente */
+ var piezas=[],contHdr={},totFalta=0,totAporta=0,nPend=0,nSin=0;
+ var _L9=FS*0.353*1.28;   /* alto de una linea, en mm */
+ /* una cifra con su palabra delante, para que se entienda qué es */
+ function dato(lbl,val,col){
+  return '<span style="white-space:nowrap;font-size:'+F0+'px;color:#8A94A6;font-weight:700">'+lbl
+   +' <b style="font-size:'+F1+'px;color:'+col+';font-weight:900">'+val+'</b></span>'}
  orden.forEach(function(ar){
-  var p=+pz[ar]||0;if(sumP&&p<=0)return;      /* con pesos, las de peso 0 no entran */
-  var faltaArea=0,nAr=0,cuerpo='';
-  Object.keys(A[ar]).sort().forEach(function(d){
-   var col=(typeof _dcol==='function')?_dcol(d):'#1F3864',faltaD=0,nD=0,buf='';
+  if(sumP&&pesoN(ar)<=0)return;             /* con pesos, las de peso 0 no entran */
+  var pn=pesoN(ar),aHoy=aportaArea(ar),faltaArea=0,nAr=0,espArr=[],_nSis9=0,_nEsp9=0;
+  var avArea=nArea[ar]?(sumArea[ar]/nArea[ar]):0;
+  Object.keys(A[ar]||{}).sort().forEach(function(d){
+   var col=(typeof _dcol==='function')?_dcol(d):'#1F3864',faltaD=0,nD=0,buf='';_nEsp9++;var _sis9=0,_caj9=0;
    Object.keys(A[ar][d]).sort().forEach(function(sis){
-    var rs=A[ar][d][sis].slice().sort(function(a,b){return b.real-a.real}),faltaS=0;
+    var rs=A[ar][d][sis].slice().sort(function(a,b){return b.real-a.real});_nSis9++;_sis9++;_caj9+=rs.length;
     var fs9=rs.map(function(r){
      var aFal=ap(r,ar,true),aYa=ap(r,ar,false);
-     faltaS+=aFal;faltaD+=aFal;faltaArea+=aFal;totFalta+=aFal;
+     faltaD+=aFal;faltaArea+=aFal;totFalta+=aFal;totAporta+=aYa;
      nPend++;nD++;nAr++;if(r.real<=0)nSin++;
-     var u=falta(r);
-     /* el cuadrito de la actividad */
-     return '<div style="break-inside:avoid;display:flex;gap:.7mm;align-items:center;'
+     var u=faltaU(r);
+     return '<div style="break-inside:avoid;border-left:.6mm solid '+col+';background:#fff;'
        +'border:.2mm solid #E1E7F0;border-left:.6mm solid '+col+';border-radius:.9mm;'
-       +'background:#fff;padding:.3mm .9mm;margin-bottom:.45mm">'
-      +'<span style="flex:1;min-width:0;font-size:'+FS.toFixed(1)+'px;color:#1B2433;font-weight:600;'
+       +'padding:.35mm 1.1mm;margin-bottom:.5mm">'
+      +'<div style="font-size:'+F1+'px;color:#1B2433;font-weight:700;line-height:1.2;'
        +'overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
-       +esc(String((typeof pNom==='function')?pNom(r.p):(r.p.nombre||'')))
-       +(u?('<span style="color:#8A94A6;font-weight:700"> · falta '+esc(u)+'</span>'):'')+'</span>'
-      +num(n2(r.real)+'%',Wv,(r.real>0?'#B7791F':'#B42318'))
-      +(sumP?num(n2(aYa)+'%',Wv,'#1E7A46'):'')
-      +(sumP?num('+'+n2(aFal)+'%',Wg,col):'')
-      +'</div>'}).join('');
-    buf+='<div style="margin-top:.5mm">'
-     +'<div style="display:flex;gap:.7mm;align-items:center;font-size:'+FS.toFixed(1)+'px;font-weight:900;'
-      +'color:#5C6779;background:#F2F5F9;border-radius:.7mm;padding:.3mm 1mm;margin-bottom:.35mm">'
-      +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
-       +esc(String(sis))+' <span style="color:#8A94A6">('+rs.length+')</span></span>'
-      +rotulos()+'</div>'+fs9+'</div>';
+       +esc(String((typeof pNom==='function')?pNom(r.p):(r.p.nombre||'')))+'</div>'
+      +'<div style="display:flex;gap:1.6mm;align-items:baseline;line-height:1.2;margin-top:.1mm">'
+       +dato('avance',n2(r.real)+'%',(r.real>0?'#B7791F':'#B42318'))
+       +(sumP?dato('aporta',n2(aYa)+'%','#1E7A46'):'')
+       +(sumP?dato('falta',n2(aFal)+'%',col):'')
+       +(u?('<span style="flex:1;min-width:0;text-align:right;font-size:'+F0+'px;color:#8A94A6;'
+          +'font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(u)+'</span>'):'')
+      +'</div></div>'}).join('');
+    buf+='<div style="font-size:'+F0+'px;font-weight:800;color:#5C6779;padding:.15mm 0 .3mm;'
+     +'overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(String(sis))
+     +' <span style="color:#A6B0C0">('+rs.length+')</span></div>'+fs9;
    });
-   cuerpo+='<div style="margin-top:.8mm"><div style="font-size:'+(FS+0.3).toFixed(1)+'px;font-weight:900;color:#fff;background:'+col
-    +';border-radius:.9mm;padding:.4mm 1.4mm">'+esc(String(d).toUpperCase())+' · '+nD+' pend.'+(sumP?(' · por ganar '+n2(faltaD)+'%'):'')+'</div>'+buf+'</div>';
+   espArr.push({alto:(_L9+0.9)+_sis9*(_L9+0.7)+_caj9*(_L9*2+1.15),
+    html:'<div><div style="font-size:'+F1+'px;font-weight:900;color:#fff;background:'+col
+    +';border-radius:.8mm;padding:.3mm 1.2mm;margin:.7mm 0 .4mm">'+esc(String(d).toUpperCase())
+    +' <span style="opacity:.85;font-weight:700">· '+nD+' pend.'+(sumP?(' · falta '+n2(faltaD)+'%'):'')+'</span></div>'+buf+'</div>'});
   });
-  bloques.push('<div style="margin-bottom:1.8mm">'
-   +'<div style="font-size:'+(FS+1.2).toFixed(1)+'px;font-weight:900;color:#0E2440;border-bottom:.4mm solid #0E2440;padding-bottom:.5mm;margin-bottom:.5mm">'
-    +esc(ar)+(sumP?(' <span style="color:#9A5B00">· peso '+n2(p)+'%</span>'):'')
-    +' <span style="color:#5C6779">· '+nAr+' pend.'+(sumP?(' · por ganar '+n2(faltaArea)+'%'):'')+'</span></div>'
-   +cuerpo+'</div>');
+  /* la cuenta del área: lo que ya aporta + lo que le falta = su peso */
+  var suma=sumP?('<div style="background:#0E2440;color:#fff;border-radius:1mm;padding:.7mm 1.2mm;margin-top:.8mm">'
+    +'<div style="font-size:'+F0+'px;letter-spacing:.1em;color:#8FB4E0;font-weight:800">SUMA DEL ÁREA</div>'
+    +'<div style="display:flex;gap:1.2mm;align-items:baseline;flex-wrap:wrap;margin-top:.2mm">'
+     +'<span style="font-size:'+F0+'px;color:#CFE0F5;font-weight:700">aporta hoy</span>'
+     +'<b style="font-size:'+(FS+1).toFixed(1)+'px;color:#8FE0B0">'+n2(aHoy)+'%</b>'
+     +'<span style="font-size:'+F1+'px;color:#8FB4E0">+</span>'
+     +'<span style="font-size:'+F0+'px;color:#CFE0F5;font-weight:700">por ganar</span>'
+     +'<b style="font-size:'+(FS+1).toFixed(1)+'px;color:#E9C46A">'+n2(faltaArea)+'%</b>'
+     +'<span style="font-size:'+F1+'px;color:#8FB4E0">=</span>'
+     +'<b style="font-size:'+(FS+1.4).toFixed(1)+'px;color:#fff">'+n2(pn)+'%</b>'
+     +'<span style="font-size:'+F0+'px;color:#8FB4E0;font-weight:700">el peso del área</span>'
+    +'</div></div>'):'';
+  var hdr='<div style="background:#E8EEF8;border-left:.9mm solid #0E2440;border-radius:1mm;padding:.7mm 1.2mm">'
+   +'<div style="display:flex;gap:1.2mm;align-items:baseline">'
+    +'<span style="flex:1;min-width:0;font-size:'+(FS+1.4).toFixed(1)+'px;font-weight:900;color:#0E2440;'
+     +'overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ar)+'</span>'
+    +(sumP?('<span style="flex:none;font-size:'+F0+'px;color:#9A5B00;font-weight:800">peso '+n2(pn)+'%</span>'):'')+'</div>'
+   +'<div style="font-size:'+F0+'px;color:#5C6779;font-weight:700;margin-top:.15mm">'
+    +'avance del área <b style="color:#B7791F">'+n2(avArea)+'%</b> · '+nAr+' pendientes'
+    +((culmArea[ar]||0)?(' · '+culmArea[ar]+' culminadas'):'')+'</div></div>';
+  contHdr[ar]='<div style="background:#E8EEF8;border-left:.9mm solid #0E2440;border-radius:1mm;padding:.5mm 1.2mm;margin-bottom:.4mm">'
+   +'<div style="font-size:'+(FS+0.6).toFixed(1)+'px;font-weight:900;color:#0E2440;overflow:hidden;'
+    +'text-overflow:ellipsis;white-space:nowrap">'+esc(ar)+' <span style="font-size:'+F0+'px;color:#5C6779;font-weight:700">(viene de la hoja anterior)</span></div></div>';
+  piezas.push({ar:ar,alto:_L9*2+2.4,html:hdr});
+  if(nAr)espArr.forEach(function(e){piezas.push({ar:ar,alto:e.alto,html:e.html})});
+  else piezas.push({ar:ar,alto:_L9+1.2,html:'<div style="font-size:'+F1+'px;font-weight:800;color:#1E7A46;padding:.6mm 1.2mm">✓ todo culminado en esta área</div>'});
+  piezas.push({ar:ar,alto:_L9*2+3.2,html:'<div style="margin-bottom:2.2mm">'+suma+'</div>'});
  });
- if(!bloques.length)return [];
- /* la cuenta que cierra: lo de hoy + lo que falta por aportar = 100% */
+ if(!piezas.length)return [];
  var cierre=sumP?('<div style="flex:none;display:flex;align-items:center;gap:3mm;background:#0E2440;color:#fff;padding:2.2mm 8mm">'
-  +'<div style="flex:none;font-size:8.5px;letter-spacing:.14em;color:#8FB4E0;font-weight:800">LA CUENTA</div>'
+  +'<div style="flex:none;font-size:8.5px;letter-spacing:.14em;color:#8FB4E0;font-weight:800">SUMA DE TODAS LAS ÁREAS</div>'
   +'<div style="flex:1;display:flex;align-items:baseline;gap:2.4mm;font-weight:900">'
    +'<span style="font-size:15px;color:#8FE0B0">'+n2(actual)+'%</span>'
    +'<span style="font-size:9px;color:#CFE0F5;font-weight:700">avance de hoy</span>'
@@ -6772,9 +6801,19 @@ function _rcAporteSlides(cfg,M,DISCS,cut){
    +'<span style="font-size:13px;color:#8FB4E0">=</span>'
    +'<span style="font-size:16px;color:#fff">'+n2(actual+totFalta)+'%</span></div></div>')
   :'<div style="flex:none;background:#8A5A00;color:#fff;font-size:9px;font-weight:800;padding:2mm 8mm">Define los pesos por área para ver cuánto aporta cada pendiente</div>';
- return ['<div class="sl">'
+ /* las áreas se reparten en hojas: cada hoja aguanta ALTO x COLS de alto.
+    Casi siempre es UNA sola; solo con muchísimos pendientes salen dos. */
+ var CAP=ALTO*COLS*0.90,hojas=[],_act=[],_acc=0,_arPrev='';
+ for(var _b9=0;_b9<piezas.length;_b9++){var _pz=piezas[_b9];
+  if(_act.length&&(_acc+_pz.alto)>CAP){hojas.push(_act);_act=[];_acc=0;
+   /* si el area sigue en la hoja nueva, se repite su nombre */
+   if(_pz.ar===_arPrev&&contHdr[_pz.ar]){_act.push(contHdr[_pz.ar]);_acc+=_L9*2}}
+  _act.push(_pz.html);_acc+=_pz.alto;_arPrev=_pz.ar}
+ if(_act.length)hojas.push(_act);
+ return hojas.map(function(hb,hi){return '<div class="sl">'
   +'<div style="flex:none;background:#0E2440;color:#fff;padding:4.2mm 8mm;display:flex;align-items:flex-end">'
-   +'<div style="flex:1"><div style="font-size:9px;letter-spacing:.2em;color:#8FB4E0;font-weight:800">LO QUE FALTA CULMINAR · POR ÁREA, ESPECIALIDAD Y SISTEMA</div>'
+   +'<div style="flex:1"><div style="font-size:9px;letter-spacing:.2em;color:#8FB4E0;font-weight:800">LO QUE FALTA CULMINAR · POR ÁREA, ESPECIALIDAD Y SISTEMA'
+    +(hojas.length>1?(' · HOJA '+(hi+1)+' DE '+hojas.length):'')+'</div>'
    +'<div style="font-size:18px;font-weight:900;margin-top:.6mm">Actividades pendientes al '+dm(cut)+'</div></div>'
    +(sumP?('<div style="flex:none;text-align:center;border:.5mm solid #8FE0B0;border-radius:2mm;padding:1.6mm 5mm;margin-right:5mm">'
      +'<div style="font-size:8.5px;letter-spacing:.14em;color:#8FB4E0;font-weight:800">AVANCE ACTUAL</div>'
@@ -6782,13 +6821,16 @@ function _rcAporteSlides(cfg,M,DISCS,cut){
    +'<div style="text-align:right"><div style="font-size:15px;font-weight:900;color:#E9C46A">'+nPend+' pendientes</div>'
     +'<div style="font-size:9.5px;color:#CFE0F5">'+(nPend-nSin)+' en curso · '+nSin+' sin avance'
      +(sumP?(' · por ganar '+n2(totFalta)+'%'):'')+'</div></div></div>'
-  +'<div style="flex:1;min-height:0;overflow:hidden;padding:2.6mm 8mm 0;column-count:'+COLS+';column-gap:3.4mm">'+bloques.join('')+'</div>'
-  +'<div style="flex:none;padding:1.2mm 8mm;font-size:7px;color:#5C6779">'
-   +'AVANCE = lo que lleva la actividad · APORTA = lo que ya suma al avance del proyecto · POR GANAR = lo que sumará al cerrarla'
+  +'<div style="flex:none;padding:1.4mm 8mm .6mm;font-size:8px;color:#5C6779;font-weight:700">'
+   +'De cada actividad: <b style="color:#B7791F">avance</b> = lo que lleva ella · '
+   +'<b style="color:#1E7A46">aporta</b> = lo que eso ya suma al avance del proyecto · '
+   +'<b style="color:#1F3864">falta</b> = lo que sumará al cerrarla. '
+   +'Por área: <b>aporta hoy + por ganar = el peso del área</b>.'
    +'</div>'
+  +'<div style="flex:1;min-height:0;overflow:hidden;padding:.6mm 8mm 0;column-count:'+COLS+';column-gap:4mm">'+hb.join('')+'</div>'
   +cierre
   +'<div style="flex:none;background:#1B2433;color:#B9C3D6;font-size:8px;font-weight:700;padding:1.3mm 8mm">'
-   +esc(proy)+' · pendientes'+(cfg.semana?(' · '+esc(cfg.semana)):'')+'</div></div>'];
+   +esc(proy)+' · pendientes'+(cfg.semana?(' · '+esc(cfg.semana)):'')+'</div></div>'});
 }
 function _rcPendSlides(cfg,M,DISCS,cut){
  var out=[],proy=DATA.proyecto||'';
