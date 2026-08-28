@@ -2979,7 +2979,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820c5';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820c6';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -4770,11 +4770,29 @@ function _visKey(t,c){return t+'|'+c}
 function _visRule(t,c){return (state.visib||{})[_visKey(t,c)]}
 function _visMetricas(p){try{var a=(typeof areaOf==='function'&&areaOf(p))||'';var _ak=(typeof _alcDe==='function')?_alcDe(p.id):'';var ks=[['act',p.id],['sys',a+'§'+(p.sistema||'')],['area',a]];if(_ak)ks.push(['alc',_ak]);for(var i=0;i<ks.length;i++){var r=_visRule(ks[i][0],ks[i][1]);if(r&&r.activo&&r.metricas===false)return false}return true}catch(e){return true}}
 function _puedeVer(t,c){try{if(typeof esAdmin==='function'&&esAdmin())return true;var r=_visRule(t,c);if(!r||!r.activo||!Array.isArray(r.permitidos))return true;var me=(state.user&&state.user.supervisor)||'';return r.permitidos.indexOf(me)>-1}catch(e){return true}}
+/* cuando otro equipo mueve un interruptor, el que esta abierto aqui se pone al dia solo */
+function _alcSwSync(){try{
+ document.querySelectorAll('._alcSw').forEach(function(b){
+  var t=b.getAttribute('data-t'),k=b.getAttribute('data-k');if(!t)return;
+  var r=_visRule(t,String(k||'')),bloq=!!(r&&r.activo);
+  if(String(b.getAttribute('data-b')||'0')===(bloq?'1':'0'))return;   /* ya esta igual */
+  b.setAttribute('data-b',bloq?'1':'0');
+  b.style.background=bloq?'#FDECEC':'#EAF6EE';
+  b.style.color=bloq?'#B42318':'#0C5132';
+  b.style.border='1px solid '+(bloq?'#F0C8C8':'#B9E0C8');
+  var txt=String(b.textContent||'').replace(/^[✓✖]\s*/,'');
+  b.textContent=(bloq?'✖ ':'✓ ')+txt});
+}catch(e){}}
 function _pullVisib(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;
  fetch(sbBase()+'/rest/v1/visibilidad?select=*&proyecto=eq.'+encodeURIComponent(DATA.proyecto),{headers:sbHead()}).then(function(r){return r.ok?r.json():null}).then(function(rows){if(!rows)return;
   var m={};rows.forEach(function(x){if(x&&x.tipo&&x.clave!=null)m[_visKey(x.tipo,x.clave)]={activo:!!x.activo,permitidos:Array.isArray(x.permitidos)?x.permitidos:[],metricas:(x.metricas!==false),quien:x.quien||''}});
   state.visib=m;try{localStorage.setItem(KVIS,JSON.stringify(m))}catch(_e){}
-  try{if($('scrList')&&!$('scrList').classList.contains('hidden'))renderList()}catch(_e2){}}).catch(function(){})}catch(e){}}
+  try{if($('scrList')&&!$('scrList').classList.contains('hidden'))renderList()}catch(_e2){}
+  try{if(typeof _alcSwSync==='function')_alcSwSync()}catch(_e3){}
+  try{var _pp=document.getElementById('progPanel');
+   if(_pp&&!_pp.classList.contains('hidden')&&typeof renderProgSelect==='function')renderProgSelect()}catch(_e4){}
+  try{if(typeof window._rcAlcUpd==='function')window._rcAlcUpd()}catch(_e5){}
+  }).catch(function(){})}catch(e){}}
 setTimeout(_pullVisib,2800);
 function _visSave(t,activo,permitidos,quienLbl,metricas){try{
  var row={proyecto:DATA.proyecto,tipo:t.tipo,clave:t.clave,activo:!!activo,permitidos:permitidos||[],metricas:(metricas!==false),quien:(state.user&&state.user.supervisor)||'',ts:(typeof nowSrv==='function'?nowSrv():Date.now()),updated_at:new Date().toISOString()};
@@ -7221,7 +7239,7 @@ function _rcExUpd(){var st=document.getElementById('_rcExSt');if(!st)return;var 
   if(ex&&ex.dias){var k=Object.keys(ex.dias).sort();var nc=function(g){return Object.keys((ex.cargos&&ex.cargos[g])||{}).length};
    st.innerHTML='✓ <b style="color:#0C5132">Cargado:</b> '+esc(ex.archivo||'Excel')+' · '+k.length+' día(s) ('+esc(ex.rango||'')+') · directa '+nc('directo')+' cargos · staff '+nc('staff')+' · equipos '+nc('equipos')+'.'}
   else st.innerHTML='Sin Excel de carga. Adjunta el documento para armar los histogramas de personal (directa/staff) y equipos.'}
- _rcExUpd();_rcAlcUpd();
+ _rcExUpd();_rcAlcUpd();window._rcAlcUpd=_rcAlcUpd;
  var _eBtn=document.getElementById('_rcExBtn'),_eIn=document.getElementById('_rcExIn'),_eDel=document.getElementById('_rcExDel');
  if(_eBtn)_eBtn.onclick=function(){if(_eIn){_eIn.value='';_eIn.click()}};
  if(_eDel)_eDel.onclick=function(){_exDataSet(null);_rcExUpd();toast('Excel de carga vaciado')};
@@ -7771,12 +7789,20 @@ if(!window._tabBloqueada&&state.user){if(typeof puedeEsp==='function'&&state.use
   if(ws&&(ws.readyState===0||ws.readyState===1))return;
   var url=sbBase().replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+encodeURIComponent(state.cfg.supaKey)+'&vsn=1.0.0';
   ws=new WebSocket(url);
-  ws.onopen=function(){tries=0;window._rtVivo=1;
-   try{ws.send(JSON.stringify({topic:'realtime:vivo',event:'phx_join',payload:{config:{postgres_changes:TABLAS_VIVO.map(function(t){return {event:'*',schema:'public',table:t}})}},ref:'1'}))}catch(e){}
+  ws.onopen=function(){tries=0;window._rtVivo=1;window._rtSinRT=[];
+   /* UN CANAL POR TABLA. Antes iban las 24 en un solo canal y bastaba con que
+      una no estuviera publicada en la base para que el canal entero muriera:
+      no llegaba NINGUN cambio en vivo. Asi solo se cae la suya. */
+   try{TABLAS_VIVO.forEach(function(t,i){ws.send(JSON.stringify({topic:'realtime:v_'+t,event:'phx_join',
+    payload:{config:{postgres_changes:[{event:'*',schema:'public',table:t}]}},ref:String(100+i)}))})}catch(e){}
    if(hb)clearInterval(hb);
    hb=setInterval(function(){try{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(Math.floor(Math.random()*1e9))}))}catch(e){}},25000);
   };
-  ws.onmessage=function(ev){try{var m=JSON.parse(ev.data);if(m&&m.event==='postgres_changes'){var d=m.payload&&m.payload.data;if(d&&d.table){window._rtN=(window._rtN||0)+1;window._rtUlt=d.table+' '+(d.type||'');jala(d.table)}}}catch(e){}};
+  ws.onmessage=function(ev){try{var m=JSON.parse(ev.data);
+   if(m&&m.event==='system'&&m.payload&&m.payload.status==='error'){
+    var _t9=(String(m.payload.message||'').match(/table: ([a-z0-9_]+)/)||[])[1];
+    if(_t9){window._rtSinRT=window._rtSinRT||[];if(window._rtSinRT.indexOf(_t9)<0)window._rtSinRT.push(_t9)}}
+   if(m&&m.event==='postgres_changes'){var d=m.payload&&m.payload.data;if(d&&d.table){window._rtN=(window._rtN||0)+1;window._rtUlt=d.table+' '+(d.type||'');jala(d.table)}}}catch(e){}};
   ws.onclose=function(){window._rtVivo=0;if(hb){clearInterval(hb);hb=null}ws=null;var espera=Math.min(30000,2000*(++tries));setTimeout(arma,espera)};
   ws.onerror=function(){try{if(ws)ws.close()}catch(e){}};
  }catch(e){}}
