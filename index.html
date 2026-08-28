@@ -2837,7 +2837,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820a6';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820a7';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -4955,16 +4955,22 @@ var _ALC_PAL=[{c:'#26456F',b:'#E3EAF6',d:'#B9C7DD'},{c:'#9A5B00',b:'#FCEFD9',d:'
  {c:'#7A4B00',b:'#F7EEDF',d:'#DCC38F'},{c:'#3D3B8E',b:'#E9E9F7',d:'#BDBCE4'}];
 function _alcRows(){try{return (state.wbsX||[]).filter(function(r){return r&&r.tipo==='alcance'&&!r.eliminado})}catch(e){return []}}
 /* lista efectiva: los base (con su nombre override si lo hay) + los creados */
+function _alcOrdRow(r){var v=parseInt(String(r&&r.disciplina||''),10);return isNaN(v)?0:v}
 function _alcList(){
  var rows=_alcRows(),porK={};
  rows.forEach(function(r){var k=String(r.area||'').trim();if(!k)return;
   var prev=porK[k];if(!prev||Number(r.ts||0)>Number(prev.ts||0))porK[k]=r});
- var out=_ALC_BASE.map(function(a){var r=porK[a.k];
-  return r?{k:a.k,t:_alcTag(r.nombre,a.t),n:r.nombre,c:a.c,b:a.b,d:a.d}:a});
+ var out=_ALC_BASE.map(function(a,ix){var r=porK[a.k];
+  var o=r?_alcOrdRow(r):0;
+  return r?{k:a.k,t:_alcTag(r.nombre,a.t),n:r.nombre,c:a.c,b:a.b,d:a.d,o:(o||ix+1)}
+          :{k:a.k,t:a.t,n:a.n,c:a.c,b:a.b,d:a.d,o:ix+1}});
  var vistos={};out.forEach(function(a){vistos[a.k]=1});
  Object.keys(porK).sort().forEach(function(k){if(vistos[k])return;
   var r=porK[k],i=out.length%_ALC_PAL.length,p=_ALC_PAL[i];
-  out.push({k:k,t:_alcTag(r.nombre,k),n:r.nombre,c:p.c,b:p.b,d:p.d})});
+  out.push({k:k,t:_alcTag(r.nombre,k),n:r.nombre,c:p.c,b:p.b,d:p.d,o:(_alcOrdRow(r)||90+out.length)})});
+ /* orden guardado; a igualdad, el de siempre */
+ out.forEach(function(a,i){a._i=i});
+ out.sort(function(x,y){return (x.o-y.o)||(x._i-y._i)});
  return out;
 }
 /* etiqueta corta para el badge: "Alcance 2 relacionados" -> "ALC 2 REL." */
@@ -4977,26 +4983,36 @@ function _alcLblMap(){var o={};_alcList().forEach(function(a){o[a.k]=a.n});retur
 function _alcNextKey(){var L=_alcList(),n=2;
  L.forEach(function(a){var m=String(a.k).match(/^A(\d+)$/);if(m&&+m[1]>=n)n=+m[1]+1});
  return 'A'+n}
-function _alcDefSave(k,nombre,cb){
+async function _alcDefSave(k,nombre,orden,cb){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
  nombre=String(nombre||'').trim();if(!nombre){toast('Ponle un nombre');return}
  try{
   var proy=DATA.proyecto,quien=(state.user&&state.user.supervisor)||'',now=Date.now();
-  /* la anterior con esa clave se marca eliminada (el on_conflict incluye nombre) */
-  _alcRows().forEach(function(r){if(String(r.area||'')!==String(k))return;
-   r.eliminado=true;r.elim_por=quien;r.elim_ts=now;
-   try{sbUpsert('wbs_extra',[{proyecto:proy,disciplina:r.disciplina||'',tipo:'alcance',nombre:r.nombre,area:String(k),
-    eliminado:true,elim_por:quien,elim_ts:now,quien:quien,ts:now,updated_at:new Date().toISOString()}],
-    'proyecto,disciplina,tipo,nombre,area')}catch(e){}});
-  var row={proyecto:proy,disciplina:'',tipo:'alcance',nombre:nombre,area:String(k),
+  /* la definicion anterior de esa clave se BORRA: es definicion, no dato de
+     obra, y el on_conflict incluye el nombre, asi que si no se iria acumulando */
+  try{state.wbsX=(state.wbsX||[]).filter(function(r){return !(r&&r.tipo==='alcance'&&String(r.area||'')===String(k))})}catch(e){}
+  /* OJO: hay que ESPERAR el borrado; si no, llega despues del alta y se la lleva */
+  try{if(typeof sbReady==='function'&&sbReady()&&navigator.onLine){
+   await fetch(sbBase()+'/rest/v1/wbs_extra?tipo=eq.alcance&area=eq.'+encodeURIComponent(String(k))
+    +'&proyecto=eq.'+encodeURIComponent(proy),{method:'DELETE',headers:sbHead({'Prefer':'return=minimal'})})}}catch(e){}
+  var _o=('0'+(parseInt(orden,10)||0)).slice(-2);
+  var row={proyecto:proy,disciplina:_o,tipo:'alcance',nombre:nombre,area:String(k),
    eliminado:false,elim_por:'',elim_ts:null,quien:quien,ts:now,updated_at:new Date().toISOString()};
   state.wbsX=state.wbsX||[];state.wbsX.push(row);
-  try{sbUpsert('wbs_extra',[row],'proyecto,disciplina,tipo,nombre,area')}catch(e){}
+  try{await sbUpsert('wbs_extra',[row],'proyecto,disciplina,tipo,nombre,area')}catch(e){}
   if(typeof logCambio==='function')logCambio('ALCANCE',k,'nombre: '+nombre);
   if(typeof syncNow==='function')syncNow(true);
   if(cb)cb();
  }catch(e){toast('No se pudo guardar')}
 }
+/* sube o baja un alcance y deja el orden escrito para todos */
+function _alcMover(k,dir,cb){try{
+ var L=_alcList(),i=-1;L.forEach(function(a,ix){if(a.k===k)i=ix});
+ var j=i+dir;if(i<0||j<0||j>=L.length)return;
+ var t=L[i];L[i]=L[j];L[j]=t;
+ var n=0;(function paso(){if(n>=L.length){if(cb)cb();return}
+  var a=L[n],ord=n+1;n++;Promise.resolve(_alcDefSave(a.k,a.n,ord)).then(paso).catch(paso)})();
+}catch(e){toast('No se pudo mover')}}
 function _showAlcEditor(){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
  var ov=document.getElementById('_aeAlcOv');if(ov)ov.remove();
@@ -5013,6 +5029,8 @@ function _showAlcEditor(){
    +'<input class="_aeAlcN" data-k="'+esc(a.k)+'" value="'+esc(a.n)+'" style="flex:1;min-width:0;border:1px solid '+a.d
     +';border-radius:8px;padding:7px 9px;font-size:12.5px;font-weight:700;color:#1B2433">'
    +'<span style="flex:none;font-size:11px;color:'+a.c+';font-weight:800">'+((cnt[a.k]||0))+' act</span>'
+   +'<button class="_aeAlcU" data-k="'+esc(a.k)+'" title="Subir" style="flex:none;background:#fff;color:'+a.c+';border:1px solid '+a.d+';border-radius:7px;width:26px;height:28px;font-weight:900;cursor:pointer">▲</button>'
+   +'<button class="_aeAlcD" data-k="'+esc(a.k)+'" title="Bajar" style="flex:none;background:#fff;color:'+a.c+';border:1px solid '+a.d+';border-radius:7px;width:26px;height:28px;font-weight:900;cursor:pointer">▼</button>'
    +'<button class="_aeAlcS" data-k="'+esc(a.k)+'" style="flex:none;background:'+a.c+';color:#fff;border:0;border-radius:8px;padding:7px 11px;font-weight:800;font-size:11.5px;cursor:pointer">Guardar</button>'
    +'</div>'
    +'<div style="font-size:10.5px;color:#8A94A6;margin:-4px 0 9px 4px">clave <b>'+esc(a.k)+'</b>'+(base?' · base':' · creado')+' — la clave no cambia nunca</div>'}).join('');
@@ -5027,15 +5045,20 @@ function _showAlcEditor(){
   +'<div style="font-size:11px;color:#8A94A6;margin-top:9px">Se guarda en <b>wbs_extra</b> (tipo alcance), con su hora y borrado suave; viaja a todos los equipos.</div></div>';
  document.body.appendChild(ov);
  document.getElementById('_aeAlcX').onclick=function(){ov.remove()};
+ ov.querySelectorAll('._aeAlcU').forEach(function(b){b.onclick=function(){
+  _alcMover(b.getAttribute('data-k'),-1,function(){ov.remove();_showAlcEditor();try{renderList()}catch(e){}})}});
+ ov.querySelectorAll('._aeAlcD').forEach(function(b){b.onclick=function(){
+  _alcMover(b.getAttribute('data-k'),1,function(){ov.remove();_showAlcEditor();try{renderList()}catch(e){}})}});
  ov.querySelectorAll('._aeAlcS').forEach(function(b){b.onclick=function(){
   var k=b.getAttribute('data-k');
   var inp=ov.querySelector('._aeAlcN[data-k="'+k+'"]');
-  _alcDefSave(k,inp?inp.value:'',function(){toast('Alcance actualizado ✓');ov.remove();_showAlcEditor();
+  var _cur=_alcList().filter(function(x){return x.k===k})[0];
+  _alcDefSave(k,inp?inp.value:'',(_cur&&_cur.o)||0,function(){toast('Alcance actualizado ✓');ov.remove();_showAlcEditor();
    try{renderList()}catch(e){}})}});
  document.getElementById('_aeAlcAdd').onclick=function(){
   var v=document.getElementById('_aeAlcNuevo').value;
   if(!String(v||'').trim()){toast('Escribe el nombre');return}
-  _alcDefSave(_alcNextKey(),v,function(){toast('Alcance creado ✓');ov.remove();_showAlcEditor();
+  _alcDefSave(_alcNextKey(),v,_alcList().length+1,function(){toast('Alcance creado ✓');ov.remove();_showAlcEditor();
    try{renderList()}catch(e){}})};
 }
 function _alcAll(){if(!state.alcance){try{state.alcance=JSON.parse(localStorage.getItem('wtt4_alcance')||'{}')||{}}catch(e){state.alcance={}}}if(!state.alcance)state.alcance={};return state.alcance}
