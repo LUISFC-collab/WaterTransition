@@ -2837,7 +2837,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820a7';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820a8';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -4983,36 +4983,68 @@ function _alcLblMap(){var o={};_alcList().forEach(function(a){o[a.k]=a.n});retur
 function _alcNextKey(){var L=_alcList(),n=2;
  L.forEach(function(a){var m=String(a.k).match(/^A(\d+)$/);if(m&&+m[1]>=n)n=+m[1]+1});
  return 'A'+n}
-async function _alcDefSave(k,nombre,orden,cb){
+/* Escribe TODAS las definiciones de alcance de una: primero en el equipo (para
+   que la pantalla responda al instante) y despues a Supabase en UN solo envio,
+   en vez de un borrado + un alta por cada alcance. */
+function _alcDefsLocal(L){
+ try{
+  var proy=DATA.proyecto,quien=(state.user&&state.user.supervisor)||'',now=Date.now(),iso=new Date().toISOString();
+  var rows=L.map(function(a,i){return {proyecto:proy,disciplina:('0'+(i+1)).slice(-2),tipo:'alcance',
+   nombre:a.n,area:String(a.k),eliminado:false,elim_por:'',elim_ts:null,quien:quien,ts:now,updated_at:iso}});
+  state.wbsX=(state.wbsX||[]).filter(function(r){return !(r&&r.tipo==='alcance')}).concat(rows);
+  return rows;
+ }catch(e){return []}
+}
+var _alcPushBusy=false,_alcPushNext=null;
+/* cola: un envio a la vez; si llegan mas, se manda el ultimo estado */
+async function _alcDefsPush(rows){
+ if(_alcPushBusy){_alcPushNext=rows;return true}
+ _alcPushBusy=true;
+ try{ var ok=await _alcDefsPushRaw(rows);
+  while(_alcPushNext){var r2=_alcPushNext;_alcPushNext=null;ok=await _alcDefsPushRaw(r2)}
+  return ok }finally{_alcPushBusy=false}
+}
+async function _alcDefsPushRaw(rows){
+ try{
+  if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return false;
+  var proy=DATA.proyecto;
+  await fetch(sbBase()+'/rest/v1/wbs_extra?tipo=eq.alcance&proyecto=eq.'+encodeURIComponent(proy),
+   {method:'DELETE',headers:sbHead({'Prefer':'return=minimal'})});
+  if(rows.length)await sbUpsert('wbs_extra',rows,'proyecto,disciplina,tipo,nombre,area');
+  return true;
+ }catch(e){return false}
+}
+/* mover: se ve al instante, se guarda por detras */
+function _alcMover(k,dir,cb){try{
+ var L=_alcList(),i=-1;L.forEach(function(a,ix){if(a.k===k)i=ix});
+ var j=i+dir;if(i<0||j<0||j>=L.length){if(cb)cb();return}
+ var t=L[i];L[i]=L[j];L[j]=t;
+ var rows=_alcDefsLocal(L);
+ if(cb)cb();                                   /* la pantalla ya puede redibujar */
+ _alcDefsPush(rows).then(function(ok){
+  if(!ok)toast('Sin conexión: el orden quedó en este equipo');
+  else{try{if(typeof logCambio==='function')logCambio('ALCANCE',k,'reordenado')}catch(e){}}
+ });
+}catch(e){toast('No se pudo mover')}}
+/* renombrar o crear: mismo criterio */
+function _alcDefSave(k,nombre,orden,cb){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
  nombre=String(nombre||'').trim();if(!nombre){toast('Ponle un nombre');return}
  try{
-  var proy=DATA.proyecto,quien=(state.user&&state.user.supervisor)||'',now=Date.now();
-  /* la definicion anterior de esa clave se BORRA: es definicion, no dato de
-     obra, y el on_conflict incluye el nombre, asi que si no se iria acumulando */
-  try{state.wbsX=(state.wbsX||[]).filter(function(r){return !(r&&r.tipo==='alcance'&&String(r.area||'')===String(k))})}catch(e){}
-  /* OJO: hay que ESPERAR el borrado; si no, llega despues del alta y se la lleva */
-  try{if(typeof sbReady==='function'&&sbReady()&&navigator.onLine){
-   await fetch(sbBase()+'/rest/v1/wbs_extra?tipo=eq.alcance&area=eq.'+encodeURIComponent(String(k))
-    +'&proyecto=eq.'+encodeURIComponent(proy),{method:'DELETE',headers:sbHead({'Prefer':'return=minimal'})})}}catch(e){}
-  var _o=('0'+(parseInt(orden,10)||0)).slice(-2);
-  var row={proyecto:proy,disciplina:_o,tipo:'alcance',nombre:nombre,area:String(k),
-   eliminado:false,elim_por:'',elim_ts:null,quien:quien,ts:now,updated_at:new Date().toISOString()};
-  state.wbsX=state.wbsX||[];state.wbsX.push(row);
-  try{await sbUpsert('wbs_extra',[row],'proyecto,disciplina,tipo,nombre,area')}catch(e){}
-  if(typeof logCambio==='function')logCambio('ALCANCE',k,'nombre: '+nombre);
-  if(typeof syncNow==='function')syncNow(true);
+  var L=_alcList(),hay=false;
+  L.forEach(function(a){if(a.k===k){a.n=nombre;hay=true}});
+  if(!hay)L.push({k:k,n:nombre});
+  if(orden){var o=Math.max(1,Math.min(L.length,parseInt(orden,10)||L.length));
+   var cur=L.filter(function(a){return a.k===k})[0];
+   L=L.filter(function(a){return a.k!==k});L.splice(o-1,0,cur)}
+  var rows=_alcDefsLocal(L);
   if(cb)cb();
+  _alcDefsPush(rows).then(function(ok){
+   if(!ok)toast('Sin conexión: quedó en este equipo');
+   else{try{if(typeof logCambio==='function')logCambio('ALCANCE',k,'nombre: '+nombre)}catch(e){}}
+  });
  }catch(e){toast('No se pudo guardar')}
 }
-/* sube o baja un alcance y deja el orden escrito para todos */
-function _alcMover(k,dir,cb){try{
- var L=_alcList(),i=-1;L.forEach(function(a,ix){if(a.k===k)i=ix});
- var j=i+dir;if(i<0||j<0||j>=L.length)return;
- var t=L[i];L[i]=L[j];L[j]=t;
- var n=0;(function paso(){if(n>=L.length){if(cb)cb();return}
-  var a=L[n],ord=n+1;n++;Promise.resolve(_alcDefSave(a.k,a.n,ord)).then(paso).catch(paso)})();
-}catch(e){toast('No se pudo mover')}}
 function _showAlcEditor(){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
  var ov=document.getElementById('_aeAlcOv');if(ov)ov.remove();
