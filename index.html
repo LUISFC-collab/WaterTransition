@@ -371,7 +371,7 @@ body.webmode #scrBita .scroll>*,body.webmode #scrPend .scroll>*,body.webmode #sc
     <div class="sumbar"><div class="sumstats"><div class="s"><div class="v tnum" id="dAv">0%</div><div class="k">avance real</div></div><div class="s"><div class="v tnum" id="dDays">0</div><div class="k">Días reportados</div></div><div class="s"><div class="v tnum" id="dPend">0</div><div class="k">sin enviar</div></div></div><div class="sumsync" id="dSumSync" title="Estado de sincronización · toca para sincronizar"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center"><div id="dSyncMain" style="font-size:15px;font-weight:800;line-height:1">✓</div><div id="dSyncMs" style="font-size:9px;color:#F3D2CD;margin-top:1px">— ms</div></div><div id="dSyncDiv" style="width:1px;align-self:stretch;background:rgba(255,255,255,.35);margin:6px 0 6px 8px;display:none"></div><div id="dSyncUp" style="display:none;align-items:center;gap:2px;background:rgba(255,255,255,.92);border-radius:6px;padding:2px 6px;margin-left:8px"><span style="color:#0A0A0A;font-weight:900;font-size:14px;line-height:1">↑</span><span id="dUpNum" style="color:#0A0A0A;font-weight:800;font-size:12px;line-height:1"></span></div></div></div>
     <div id="syncBar" style="display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12px;color:var(--muted);background:#fff;border-bottom:1px solid var(--line)"><span id="syncDot" style="width:9px;height:9px;border-radius:50%;background:#9AA3B2;flex:none"></span><span id="syncTxt">Sin configurar</span><span style="flex:1"></span><button id="btnSync" style="background:#E8EEF8;color:var(--brand2);font-weight:700;border-radius:8px;padding:6px 12px;font-size:12px">Sincronizar</button></div>
     <div class="scroll" style="padding-bottom:6px">
-    <div id="adminBox" class="hidden" style="margin:12px 14px 0;background:#16171A;color:#C7CEDA;border-radius:13px;padding:13px 14px"><div style="font-weight:800;font-size:13px;display:flex;align-items:center;gap:7px;color:#EAEEF5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.6-8 10-4.5-1.4-8-5-8-10V5z"/></svg>Panel de administrador</div><div id="admStats" style="font-size:12px;color:#E8C9A0;margin:6px 0 6px">—</div><div id="admUsers" style="font-size:12px;color:#9FE8B0;margin:0 0 10px;font-weight:700">Conectados: —</div><button id="btnReporte" type="button" class="admGlass"><span class="admpz" style="color:#C9F4DD;-webkit-text-stroke:.6px #2FBF7E"><svg class="admI-bob" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3FD592" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8.5" y1="13.5" x2="15.5" y2="13.5"/><line x1="8.5" y1="17" x2="13.5" y2="17"/></svg>Generar reporte por día (PDF)</span></button><button id="btnInvDay" type="button" class="admGlass"><span class="admpz" style="color:#FAD2CC;-webkit-text-stroke:.6px #E85D4E"><svg class="admI-rock" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FF7A6B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="16" y1="2.5" x2="16" y2="6.5"/><line x1="7.5" y1="14" x2="12" y2="14"/></svg>Cambios por día (ver · borrar · fotos)</span></button><button id="btnAprobar" type="button" onclick="_aprCambios()" class="admGlass"><span class="admpz" style="color:#C9F4DD;-webkit-text-stroke:.6px #35C57C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#41E08E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><polyline class="admI-draw" points="7.5 12.5 10.7 15.7 16.5 8.8"/></svg>Aprobar cambios de supervisores</span></button><button id="btnConfig" type="button" onclick="_showConfig()" class="admGlass"><span class="admpz" style="color:#CFDAFB;-webkit-text-stroke:.6px #5B84E6"><svg class="admI-spin" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7FA0F5" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82 2 2 0 1 1-2.83 2.83 1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51 2 2 0 0 1-4 0 1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33 2 2 0 1 1-2.83-2.83 1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1 2 2 0 0 1 0-4 1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82 2 2 0 1 1 2.83-2.83 1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51 2 2 0 0 1 4 0 1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33 2 2 0 1 1 2.83 2.83 1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1 2 2 0 0 1 0 4z"/></svg>Configuración (Admin) — permisos por rol · modo pruebas</span></button><button id="btnBackCron" type="button" onclick="_showBackCron()" class="admGlass"><span class="admpz admpz-heart" style="color:#EFC98A;-webkit-text-stroke:.5px #B8801E"><svg class="admI-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0A44B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>BACK_CRONOGRAMAS</span></button><button id="btnConex" type="button" onclick="_showConex()" class="admGlass"><span class="admpz" style="color:#A8E6C9;-webkit-text-stroke:.5px #2EA043"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#57C784" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>CONEXIÓN — base y GitHub</span></button></div>
+    <div id="adminBox" class="hidden" style="margin:12px 14px 0;background:#16171A;color:#C7CEDA;border-radius:13px;padding:13px 14px"><div style="font-weight:800;font-size:13px;display:flex;align-items:center;gap:7px;color:#EAEEF5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.6-8 10-4.5-1.4-8-5-8-10V5z"/></svg>Panel de administrador</div><div id="admStats" style="font-size:12px;color:#E8C9A0;margin:6px 0 6px">—</div><div id="admUsers" style="font-size:12px;color:#9FE8B0;margin:0 0 10px;font-weight:700">Conectados: —</div><button id="btnReporte" type="button" class="admGlass"><span class="admpz" style="color:#C9F4DD;-webkit-text-stroke:.6px #2FBF7E"><svg class="admI-bob" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3FD592" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8.5" y1="13.5" x2="15.5" y2="13.5"/><line x1="8.5" y1="17" x2="13.5" y2="17"/></svg>Generar reporte por día (PDF)</span></button><button id="btnCreadas" type="button" class="admGlass"><span class="admpz" style="color:#FAD2CC;-webkit-text-stroke:.6px #E85D4E"><svg class="admI-rock" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FF7A6B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="16" y1="2.5" x2="16" y2="6.5"/><line x1="7.5" y1="14" x2="12" y2="14"/></svg>Creación de actividades (alcance · quién · cuándo)</span></button><button id="btnAprobar" type="button" onclick="_aprCambios()" class="admGlass"><span class="admpz" style="color:#C9F4DD;-webkit-text-stroke:.6px #35C57C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#41E08E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><polyline class="admI-draw" points="7.5 12.5 10.7 15.7 16.5 8.8"/></svg>Aprobar cambios de supervisores</span></button><button id="btnConfig" type="button" onclick="_showConfig()" class="admGlass"><span class="admpz" style="color:#CFDAFB;-webkit-text-stroke:.6px #5B84E6"><svg class="admI-spin" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7FA0F5" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82 2 2 0 1 1-2.83 2.83 1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51 2 2 0 0 1-4 0 1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33 2 2 0 1 1-2.83-2.83 1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1 2 2 0 0 1 0-4 1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82 2 2 0 1 1 2.83-2.83 1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51 2 2 0 0 1 4 0 1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33 2 2 0 1 1 2.83 2.83 1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1 2 2 0 0 1 0 4z"/></svg>Configuración (Admin) — permisos por rol · modo pruebas</span></button><button id="btnBackCron" type="button" onclick="_showBackCron()" class="admGlass"><span class="admpz admpz-heart" style="color:#EFC98A;-webkit-text-stroke:.5px #B8801E"><svg class="admI-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0A44B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>BACK_CRONOGRAMAS</span></button><button id="btnConex" type="button" onclick="_showConex()" class="admGlass"><span class="admpz" style="color:#A8E6C9;-webkit-text-stroke:.5px #2EA043"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#57C784" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>CONEXIÓN — base y GitHub</span></button></div>
     <div class="list" id="diaList" style="max-height:340px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:3px;margin:12px 14px 0"></div></div>
     <div style="padding:10px 14px 14px;border-top:1px solid var(--line);background:#fff;display:flex;flex-direction:column;gap:7px"><div style="display:flex;gap:7px"><button id="pendBtn" type="button" class="btn" style="flex:1;min-height:52px;background:#5B3A8A;color:#fff;border:none;border-radius:11px;font-size:11px;font-weight:800;line-height:1.15;white-space:normal;padding:6px 4px">📋 Pendientes / Solicitudes</button><button id="btnMiProg" type="button" class="btn" style="flex:1;min-height:52px;background:#B45309;color:#fff;border:none;border-radius:11px;font-size:11px;font-weight:800;line-height:1.15;white-space:normal;padding:6px 4px">📈 Mi progreso</button><button id="repBtnAll" type="button" class="btn" style="flex:1;min-height:52px;background:#0C5132;color:#fff;border:none;border-radius:11px;font-size:11px;font-weight:800;line-height:1.15;white-space:normal;padding:6px 4px">📄 Reporte / PDF</button></div><div style="display:flex;gap:7px"><button id="btnProg" type="button" class="btn" style="flex:1;min-height:52px;background:var(--brand);color:#fff;border:none;border-radius:11px;font-size:11px;font-weight:800;line-height:1.15;white-space:normal;padding:6px 4px">📅 Cronograma</button><button id="btnStorm" type="button" class="btn" style="flex:1;min-height:52px;background:var(--danger);color:#fff;border:none;border-radius:11px;font-size:11px;font-weight:800;line-height:1.15;white-space:normal;padding:6px 4px">⛈ Tormenta eléctrica</button><button id="btnRestot" type="button" class="btn" style="flex:1;min-height:52px;background:#7A4B00;color:#fff;border:none;border-radius:11px;font-size:11px;font-weight:800;line-height:1.15;white-space:normal;padding:6px 4px">🚫 Restricción total</button></div></div><div id="appVer2" style="text-align:center;font-size:10.5px;color:#8A94A6;padding:10px 0 14px;letter-spacing:.4px">versión —</div>
   </div>
@@ -768,7 +768,12 @@ function esCargada(p){var bp=DATA._byId&&DATA._byId[p.id];return !!(bp&&((bp.met
 function puedeMetrado(p){if(esAdmin())return true;if(esCargada(p))return false;var m=state.meta&&state.meta[p.id];if(m&&m.quien)return m.quien===((state.user&&state.user.supervisor));return true}
 function restrTextos(id){var arr=((state.repo[id]||[]).filter(function(x){return (x.cat==='int'||x.cat==='mina')&&!x.lev})).map(function(x){return (x.cat==='mina'?'[Mina] ':'[Interna] ')+(x.texto||'')});var bp=DATA._byId&&DATA._byId[id];if(bp&&bakedRestrActive({id:id,restriccion:bp.restriccion,estado:bp.estado}))arr.push('[Cargada] '+bp.restriccion);return arr}
 function acumCant(id){return partesOf(id).filter(p=>p.tipo==='cant').reduce((a,p)=>a+(+p.cant||0),0)}
-function esNA(p){try{var m=metaOf(p&&p.id?p.id:p);return !!(m&&m.unidad==='na')}catch(e){return false}}
+/* marca manual: no aporta avance, sea cual sea su unidad */
+function _naMarcado(id){try{var r=_visRule('act_na',String(id||''));return !!(r&&r.activo)}catch(e){return false}}
+function _naSet(id,on){try{if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ _visSave({tipo:'act_na',clave:String(id)},!!on,[],'No aporta avance '+id,true);
+ if(typeof syncNow==='function')syncNow(true)}catch(e){}}
+function esNA(p){try{var _id=(p&&p.id)?p.id:p;if(_naMarcado(_id))return true;var m=metaOf(p&&p.id?p.id:p);return !!(m&&m.unidad==='na')}catch(e){return false}}
 function esCuadre(p){return !!(p&&(p.cuadre||(p.obs&&String(p.obs).indexOf('Avance inicial')===0)))}
 /* ¿hubo avance REAL en la partida p el día D? cant=existe parte del día (sin cuadres/baked, cant>0); glb=el % subió ese día; na=nunca. */
 function huboAvanceEl(p,D){try{if(!p||!D)return false;var m=metaOf(p.id);
@@ -2832,7 +2837,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820a2';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820a3';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -3067,6 +3072,116 @@ function _showDiasHab(){
   for(var i=1;i<=7;i++){d.setDate(d.getDate()-1);
    _diaPersSet(d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2),true)}
   toast('📆 Últimos 7 días abiertos');_showDiasHab()};
+}
+/* === 🆕 CREACIÓN DE ACTIVIDADES (admin) ===
+   Todas las que crearon los supervisores en campo, con el día en que las
+   crearon, quién y su alcance — que se puede cambiar desde aquí mismo.
+   Ordena por fecha o por especialidad, y filtra por especialidad o supervisor.
+   Cada supervisor tiene su color, para reconocer sus cargas de un vistazo.
+   Datos: state.nuevas (tabla `nuevas`) + el alcance (alcance_create_090826). */
+function _crColor(n){ /* color estable por nombre */
+ var P=['#1F6FE0','#1E7A46','#9A5B00','#5B3A8A','#B42318','#0E7C86','#C2185B','#5D4037','#00695C','#4527A0'];
+ var h=0,s=String(n||'');for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return P[h%P.length];
+}
+function _crFecha(n){
+ try{ if(n.fecha)return String(n.fecha).slice(0,10);
+  var t=Number(n.ts)||0;
+  if(t){var d=new Date(t);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+  /* el push de `nuevas` no manda ts: la fecha real es created_at */
+  if(n.creado)return String(n.creado).slice(0,10);
+  return '';
+ }catch(e){return ''}
+}
+function _crLbl(f){if(!f)return '(sin fecha de creación)';try{var D=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+ var d=new Date(f+'T00:00:00');if(isNaN(d.getTime()))return '(sin fecha de creación)';return D[d.getDay()]+' '+d.getDate()+' '+M[d.getMonth()]+' '+d.getFullYear()}catch(e){return f||'(sin fecha de creación)'}}
+function _showCreadas(){
+ if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
+ var ov=document.getElementById('_crOv');if(ov)ov.remove();
+ ov=document.createElement('div');ov.id='_crOv';
+ ov.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(15,25,45,.55);display:flex;align-items:flex-end;justify-content:center';
+ ov.onclick=function(e){if(e.target===ov)ov.remove()};
+ var L=(state.nuevas||[]).slice();
+ var orden=window._crOrden||'fecha';           /* fecha | esp */
+ var fEsp=window._crEsp||'', fSup=window._crSup||'';
+ var esps={},sups={};
+ L.forEach(function(n){if(n.esp)esps[n.esp]=(esps[n.esp]||0)+1;var q=n.quien||'(sin nombre)';sups[q]=(sups[q]||0)+1});
+ var V=L.filter(function(n){
+  if(fEsp&&String(n.esp||'')!==fEsp)return false;
+  if(fSup&&String(n.quien||'(sin nombre)')!==fSup)return false;return true});
+ V.sort(function(a,b){
+  if(orden==='esp'){var c=String(a.esp||'').localeCompare(String(b.esp||''));if(c)return c}
+  return String(_crFecha(b)||'').localeCompare(String(_crFecha(a)||''))||((Number(b.ts)||0)-(Number(a.ts)||0));
+ });
+ /* agrupado */
+ var grupos=[],gAct=null;
+ V.forEach(function(n){
+  var g=(orden==='esp')?(n.esp||'(sin especialidad)'):_crLbl(_crFecha(n));
+  if(!gAct||gAct.t!==g){gAct={t:g,items:[]};grupos.push(gAct)}
+  gAct.items.push(n);
+ });
+ function selEsp(){var o='<option value="">Todas las especialidades ('+L.length+')</option>';
+  Object.keys(esps).sort().forEach(function(e){o+='<option value="'+esc(e)+'"'+(fEsp===e?' selected':'')+'>'+esc(e)+' ('+esps[e]+')</option>'});return o}
+ function selSup(){var o='<option value="">Todos los supervisores ('+Object.keys(sups).length+')</option>';
+  Object.keys(sups).sort().forEach(function(q){o+='<option value="'+esc(q)+'"'+(fSup===q?' selected':'')+'>'+esc(q)+' ('+sups[q]+')</option>'});return o}
+ function alcSel(id){
+  var cur=(typeof _alcDe==='function')?_alcDe(id):'INI';
+  var o=_ALC.map(function(a){return '<option value="'+a.k+'"'+(cur===a.k?' selected':'')+'>'+esc(a.n)+'</option>'}).join('');
+  var i=_alcInfo(cur);
+  return '<select class="_crAlc" data-id="'+esc(id)+'" style="border:1px solid '+i.d+';background:'+i.b+';color:'+i.c+
+   ';border-radius:8px;padding:5px 7px;font-size:11.5px;font-weight:800;cursor:pointer">'+o+'</select>';
+ }
+ var cuerpo=grupos.length?grupos.map(function(g){
+  return '<div style="font-weight:900;font-size:12px;color:#1F3864;background:#EEF3FA;border-radius:8px;padding:6px 9px;margin:12px 0 7px">'
+   +esc(g.t)+' <span style="color:#8A94A6">· '+g.items.length+'</span></div>'
+   +g.items.map(function(n){
+    var q=n.quien||'(sin nombre)',col=_crColor(q);
+    return '<div style="display:flex;gap:9px;align-items:flex-start;border:1px solid #E1E7F0;border-left:4px solid '+col
+     +';border-radius:10px;padding:9px 10px;margin-bottom:7px;background:#fff">'
+     +'<div style="flex:1;min-width:0">'
+      +'<div style="font-weight:800;font-size:13px;color:#1B2433">'+esc(n.nombre||'(sin nombre)')+'</div>'
+      +'<div style="font-size:11.5px;color:#5C6779;margin-top:2px">'+esc(n.id)+' · '+esc(n.esp||'—')
+       +(n.sistema?(' · '+esc(n.sistema)):'')+'</div>'
+      +'<div style="font-size:11.5px;margin-top:3px;font-weight:800;color:'+col+'">'+esc(q)
+       +' <span style="color:#8A94A6;font-weight:600">· '+esc(_crFecha(n)||'sin fecha')+'</span></div>'
+     +'</div>'
+     +'<div style="flex:none;display:flex;flex-direction:column;gap:5px;align-items:stretch">'+alcSel(n.id)+'<button class="_crNA" data-id="'+esc(n.id)+'" data-on="'+(_naMarcado(n.id)?'1':'0')+'" style="background:'+(_naMarcado(n.id)?'#B42318':'#EEF2F7')+';color:'+(_naMarcado(n.id)?'#fff':'#5C6779')+';border:0;border-radius:8px;padding:5px 7px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap">'+(_naMarcado(n.id)?'✖ No aporta avance':'✓ Sí aporta')+'</button>'+'</div></div>'}).join('')
+ }).join('')
+ :'<div style="padding:26px;text-align:center;color:#8A94A6;font-size:13px">No hay actividades creadas en campo con esos filtros.</div>';
+ function bOrd(k,t){var on=(orden===k);
+  return '<button class="_crOrd" data-k="'+k+'" style="flex:1;background:'+(on?'#1F3864':'#EEF2F7')+';color:'+(on?'#fff':'#5C6779')
+   +';border:0;border-radius:9px;padding:9px 6px;font-weight:800;font-size:12px;cursor:pointer">'+t+'</button>'}
+ ov.innerHTML='<div style="background:#fff;width:100%;max-width:580px;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box;max-height:90vh;overflow:auto">'
+  +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><b style="font-size:15px;color:#1F3864">🆕 Creación de actividades</b>'
+  +'<button id="_crX" style="margin-left:auto;background:#eef2f7;border:0;border-radius:8px;padding:8px 12px;font-weight:700">✕</button></div>'
+  +'<div style="font-size:12px;color:#5C6779;margin-bottom:11px">Las que crearon los supervisores en campo, con el día y quién. El alcance se cambia aquí mismo y viaja a todos.</div>'
+  +'<div style="display:flex;gap:7px;margin-bottom:9px">'+bOrd('fecha','📅 Por fecha creada')+bOrd('esp','🏷 Por especialidad')+'</div>'
+  +'<div style="display:flex;gap:7px;margin-bottom:4px;flex-wrap:wrap">'
+   +'<select id="_crEspSel" style="flex:1;min-width:150px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px;font-weight:700">'+selEsp()+'</select>'
+   +'<select id="_crSupSel" style="flex:1;min-width:150px;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:12.5px;font-weight:700">'+selSup()+'</select></div>'
+  +'<div style="font-size:11.5px;color:#8A94A6;margin-bottom:2px">Mostrando '+V.length+' de '+L.length+'</div>'
+  +cuerpo
+  +'<div style="margin-top:12px;border-top:1px solid #E1E7F0;padding-top:10px">'
+   +'<button id="_crInv" style="width:100%;background:#EEF2F7;color:#5C6779;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:12px;cursor:pointer">📋 Cambios por día (ver · borrar · fotos)</button></div>'
+  +'</div>';
+ document.body.appendChild(ov);
+ document.getElementById('_crX').onclick=function(){ov.remove()};
+ ov.querySelectorAll('._crOrd').forEach(function(b){b.onclick=function(){window._crOrden=b.getAttribute('data-k');_showCreadas()}});
+ var e1=document.getElementById('_crEspSel');if(e1)e1.onchange=function(){window._crEsp=e1.value;_showCreadas()};
+ var s1=document.getElementById('_crSupSel');if(s1)s1.onchange=function(){window._crSup=s1.value;_showCreadas()};
+ ov.querySelectorAll('._crAlc').forEach(function(sel){sel.onchange=function(){
+  var id=sel.getAttribute('data-id'),k=sel.value;
+  try{_alcSet(id,k);
+   if(typeof logCambio==='function')logCambio('ALCANCE',id,'cambiado a '+((_alcInfo(k)||{}).n||k)+' desde Creación de actividades');
+   toast('Alcance actualizado ✓');_showCreadas();try{renderList()}catch(e){}
+  }catch(e){toast('No se pudo cambiar el alcance')}}});
+ ov.querySelectorAll('._crNA').forEach(function(b){b.onclick=function(){
+  var id=b.getAttribute('data-id'),on=b.getAttribute('data-on')==='1';
+  _naSet(id,!on);
+  if(typeof logCambio==='function')logCambio('AVANCE',id,(!on)?'marcada como NO aporta avance':'vuelve a aportar avance');
+  toast((!on)?'Marcada: no aporta avance':'Vuelve a contar para el avance');
+  _showCreadas();try{renderList()}catch(e){}}});
+ var bi=document.getElementById('_crInv');
+ if(bi)bi.onclick=function(){ov.remove();if(typeof openInvDay==='function')openInvDay()};
 }
 function _showAlcPaquetes(){
  if(!(typeof esAdmin==='function'&&esAdmin())){toast('Solo el administrador');return}
@@ -5463,7 +5578,7 @@ function renderDayDetail(f){var w=$('invDayBody');if(!w)return;if(!f){w.innerHTM
 async function admDeleteRestotFoto(id,ix,url){var e=((state.restot&&state.restot.log)||[]).find(function(x){return x.id===id});if(!e)return;if(e.fotos)e.fotos.splice(ix,1);e.synced=false;if(typeof KRT!=='undefined')store.set(KRT,state.restot);try{if(sbReady()&&navigator.onLine){var k=state.cfg.supaKey;if(url&&url.indexOf('/object/public/')>-1){try{await fetch(url.replace('/object/public/','/object/'),{method:'DELETE',headers:{apikey:k,Authorization:'Bearer '+k}})}catch(_e){}}if(typeof sbUpsert==='function')await sbUpsert('restricciones_generales',[{id:e.id,proyecto:DATA.proyecto,descripcion:e.descripcion,hora_ini:e.hora_ini,hora_fin:e.hora_fin,fecha:e.fecha,quien:e.quien,fotos:e.fotos,ts:e.ts}],'id')}}catch(_e){}toast('Foto eliminada ✓');if(typeof invDayShow==='function')invDayShow();if(typeof renderRtList==='function')renderRtList()}
 async function invDayDo(){var f=invDaySelectedDate();if(!f){toast('Elige un día');return}var st=invDayStats(f);if(!confirm('¿Invalidar SOLO los comentarios y restricciones del '+fmtF(f)+'?\n('+st.com+' comentarios, '+st.ract+' restricciones de actividad, '+st.rgen+' restricciones generales).\nLos demás días no se tocan.'))return;Object.keys(state.repo||{}).forEach(function(id){state.repo[id]=(state.repo[id]||[]).filter(function(x){return x.fecha!==f});if(!state.repo[id].length)delete state.repo[id]});store.set(KR,state.repo);if(state.restot)state.restot.log=((state.restot&&state.restot.log)||[]).filter(function(e){return e.fecha!==f});if(typeof KRT!=='undefined')store.set(KRT,state.restot);try{if(sbReady()&&navigator.onLine){var k=state.cfg.supaKey;var hh={apikey:k,Authorization:'Bearer '+k,Prefer:'return=minimal'};await fetch(sbBase()+'/rest/v1/reportabilidad?proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&fecha=eq.'+f,{method:'DELETE',headers:hh});await fetch(sbBase()+'/rest/v1/restricciones_generales?proyecto=eq.'+encodeURIComponent(DATA.proyecto)+'&fecha=eq.'+f,{method:'DELETE',headers:hh})}}catch(e){}toast('Comentarios/restricciones del '+fmtF(f)+' invalidados');renderInvDay();if(typeof updAdminBox==='function')updAdminBox();if(typeof renderRtList==='function')renderRtList();if(typeof renderList==='function')renderList()}
 if($('invBack'))$('invBack').onclick=closeInvDay;
-if($('btnInvDay'))$('btnInvDay').onclick=openInvDay;
+if($('btnCreadas'))$('btnCreadas').onclick=function(){if(typeof _showCreadas==='function')_showCreadas()};
 if($('invDayBtn'))$('invDayBtn').onclick=invDayDo;
 var _pendFotoId=null;
 function pendComent(id){if(pendAdminMode&&typeof _gateAcc==='function'&&!_gateAcc('pend_responder','Responder solicitudes'))return;var it=state.pend.find(function(x){return x.id===id});if(!it)return;var t=prompt(pendAdminMode?'Comentario / pedir información / estado:':'Comentario o información para administración:');if(t==null||!t.trim())return;it.coments=it.coments||[];it.coments.push({por:(state.user&&state.user.supervisor)||'—',rol:pendAdminMode?'admin':'sup',texto:t.trim(),foto:'',ts:(typeof nowSrv==='function'?nowSrv():Date.now())});it.synced=false;pendSave();renderPend();if(typeof syncNow==='function')syncNow(true)}
