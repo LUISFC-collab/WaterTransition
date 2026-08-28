@@ -2839,7 +2839,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820b1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820b2';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -6470,6 +6470,64 @@ function _rcPersonalSlides(cfg){
    Una por especialidad, con las actividades que NO llegan al 100%: cuánto
    llevan, cuánto falta y desde cuándo. Respeta el alcance: las que no entran
    al reporte no aparecen (ya vienen filtradas de _rcMetrics). */
+/* === LÁMINA ÚNICA: APORTE AL AVANCE PONDERADO ===
+   Todo en una sola diapositiva, en columnas: ÁREA > ESPECIALIDAD > SISTEMA >
+   actividades. De cada una, su avance y cuánto pone en el número final:
+       aporte = (peso del área / suma de pesos) x (su % / nº actividades del área)
+   La suma de todos los aportes da el REAL PONDERADO de la portada. */
+function _rcAporteSlides(cfg,M,DISCS,cut){
+ var proy=DATA.proyecto||'',pz=cfg.pesos||{};
+ function dm(iso){var p=String(iso||'').split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):iso}
+ function n2(v){return (Math.round(v*100)/100).toFixed(2)}
+ var A={},nArea={},sumP=0,total=0,nAct=0;
+ DISCS.forEach(function(d){(M[d]&&M[d].rows||[]).forEach(function(r){
+  var ar=r.area||'(sin área)';nArea[ar]=(nArea[ar]||0)+1;
+  var e=A[ar]||(A[ar]={});var s=e[d]||(e[d]={});
+  (s[r.sis||'(sin sistema)']=s[r.sis||'(sin sistema)']||[]).push(r)})});
+ Object.keys(nArea).forEach(function(ar){var p=+pz[ar]||0;if(p>0)sumP+=p});
+ if(!sumP)return [];
+ var orden=Object.keys(A).sort(function(x,y){
+  var ix=(typeof AREAS!=='undefined')?AREAS.indexOf(x):-1,iy=(typeof AREAS!=='undefined')?AREAS.indexOf(y):-1;
+  ix=ix<0?99:ix;iy=iy<0?99:iy;return (ix-iy)||String(x).localeCompare(String(y))});
+ function ap(r,ar){var p=+pz[ar]||0;if(!p||!nArea[ar])return 0;return (p/sumP)*(r.real/nArea[ar])}
+ var bloques=[];
+ orden.forEach(function(ar){
+  var p=+pz[ar]||0;if(p<=0)return;
+  var totArea=0,cuerpo='';
+  Object.keys(A[ar]).sort().forEach(function(d){
+   var col=(typeof _dcol==='function')?_dcol(d):'#1F3864',totD=0,buf='';
+   Object.keys(A[ar][d]).sort().forEach(function(sis){
+    var rs=A[ar][d][sis].slice().sort(function(a,b){return b.real-a.real}),totS=0;
+    var fs=rs.map(function(r){var a=ap(r,ar);totS+=a;totD+=a;totArea+=a;total+=a;nAct++;
+     var nom=(typeof pNom==='function')?pNom(r.p):(r.p.nombre||'');
+     return '<div style="display:flex;gap:2mm;align-items:baseline;padding:.28mm 0;break-inside:avoid">'
+      +'<span style="flex:1;min-width:0;font-size:5.9px;color:#3B4657;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+       +esc(String(nom).slice(0,42))+'</span>'
+      +'<span style="flex:none;font-size:5.9px;font-weight:900;color:'+(r.real>=100?'#1E7A46':(r.real>0?'#B7791F':'#B42318'))+'">'+r.real+'%</span>'
+      +'<span style="flex:none;font-size:5.9px;font-weight:900;color:'+col+';min-width:8mm;text-align:right">'+n2(a)+'%</span></div>'}).join('');
+    buf+='<div style="break-inside:avoid;margin-top:.7mm"><div style="font-size:6.1px;font-weight:900;color:#5C6779;background:#F2F5F9;border-radius:.8mm;padding:.5mm 1.4mm">'
+     +esc(String(sis).slice(0,40))+' <span style="color:#8A94A6">· '+n2(totS)+'%</span></div>'+fs+'</div>';
+   });
+   cuerpo+='<div style="break-inside:avoid;margin-top:1.1mm"><div style="font-size:6.4px;font-weight:900;color:#fff;background:'+col
+    +';border-radius:1mm;padding:.7mm 1.6mm">'+esc(String(d).toUpperCase())+' · aporta '+n2(totD)+'%</div>'+buf+'</div>';
+  });
+  bloques.push('<div style="break-inside:avoid-column;margin-bottom:2.4mm">'
+   +'<div style="font-size:7.4px;font-weight:900;color:#0E2440;border-bottom:.5mm solid #0E2440;padding-bottom:.7mm;margin-bottom:.8mm">'
+    +esc(ar)+' <span style="color:#9A5B00">· peso '+p+'%</span> <span style="color:#5C6779">· '+nArea[ar]+' act · aporta '+n2(totArea)+'%</span></div>'
+   +cuerpo+'</div>');
+ });
+ if(!bloques.length)return [];
+ return ['<div class="sl">'
+  +'<div style="flex:none;background:#0E2440;color:#fff;padding:4.2mm 8mm;display:flex;align-items:flex-end">'
+   +'<div style="flex:1"><div style="font-size:9px;letter-spacing:.2em;color:#8FB4E0;font-weight:800">APORTE AL AVANCE PONDERADO · POR ÁREA, ESPECIALIDAD Y SISTEMA</div>'
+   +'<div style="font-size:18px;font-weight:900;margin-top:.6mm">Qué pone cada actividad en el número final</div></div>'
+   +'<div style="text-align:right"><div style="font-size:15px;font-weight:900;color:#E9C46A">'+n2(total)+'%</div>'
+    +'<div style="font-size:9.5px;color:#CFE0F5">'+nAct+' actividades · al '+dm(cut)+'</div></div></div>'
+  +'<div style="flex:1;min-height:0;overflow:hidden;padding:3mm 8mm 0;column-count:4;column-gap:5mm">'+bloques.join('')+'</div>'
+  +'<div style="flex:none;padding:1.4mm 8mm;font-size:7px;color:#5C6779">Aporte = (peso del área ÷ suma de pesos) × (avance ÷ nº de actividades del área) · la suma de todos da el REAL PONDERADO de la portada</div>'
+  +'<div style="flex:none;background:#1B2433;color:#B9C3D6;font-size:8px;font-weight:700;padding:1.3mm 8mm">'
+   +esc(proy)+' · aporte ponderado'+(cfg.semana?(' · '+esc(cfg.semana)):'')+'</div></div>'];
+}
 function _rcPendSlides(cfg,M,DISCS,cut){
  var out=[],proy=DATA.proyecto||'';
  function dm(iso){var p=String(iso||'').split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):iso}
@@ -6688,6 +6746,7 @@ function _repConsolBuild(cfg){
   });
  }
  /* ---------- PERSONAL / HISTOGRAMAS (desde los DR) ---------- */
+ if(cfg.inc.apo!==false&&typeof _rcAporteSlides==='function'){try{_rcAporteSlides(cfg,M,DISCS,cut).forEach(function(x){if(x)SL.push(x)})}catch(e){}}
  if(cfg.inc.pend!==false&&typeof _rcPendSlides==='function'){try{_rcPendSlides(cfg,M,DISCS,cut).forEach(function(s){if(s)SL.push(s)})}catch(e){}}
  if(cfg.inc.personal&&typeof _rcPersonalSlides==='function'){try{_rcPersonalSlides(cfg).forEach(function(s){if(s)SL.push(s)})}catch(e){}}
  /* ---------- CRONOGRAMAS (Gantt) ---------- */
@@ -6787,7 +6846,7 @@ function _repConsol(){
   +'<div id="_rcPzBox" style="border:1px solid #E0CDA0;background:#FFFBF0;border-radius:10px;padding:10px 11px;margin-bottom:12px"></div>'
   +'<div style="border:1px solid #B4D5EE;background:#F2F8FD;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0E2440;margin-bottom:4px">📄 Reportes diarios (PDF del DR) — fuente de los histogramas</div><div id="_rcDrSt" style="font-size:11.5px;color:#31506E;margin-bottom:7px">—</div><input type="file" id="_rcDrIn" accept=".pdf" multiple style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcDrBtn" style="flex:1;background:#0E2440;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar reportes diarios…</button><button type="button" id="_rcDrDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#4A6076;margin-top:5px">Selecciona los PDF de los días de la semana (uno por día). Se leen solos: mano de obra directa, operadores, staff y equipos (HM). El rango de la semana (arriba) define qué días entran.</div></div>'
   +'<div style="border:1px solid #B9E0C8;background:#F1FBF5;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#0C5132;margin-bottom:4px">👷 Personal e histogramas — Excel de carga (MO directa, staff y equipos)</div><div id="_rcExSt" style="font-size:11.5px;color:#356149;margin-bottom:7px">—</div><input type="file" id="_rcExIn" accept=".xlsx,.xls" style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcExBtn" style="flex:1;background:#0C5132;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar Excel de carga…</button><button type="button" id="_rcExDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Vaciar</button></div><div style="font-size:10.5px;color:#5C7A66;margin-top:5px">Hoja REPORTES DIARIOS: col A = puesto, fila 2 = fechas (#fecha = cantidades, fecha normal = HH). Hoja RESUMEN PERSONAL separa staff / directa / equipos — solo eso se incluye. El rango de la semana (arriba) define qué días entran.</div></div>'
-  +'<div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:6px">¿Qué incluir en el reporte?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">'+ck('_rcP','🏁 Portada + Plan/Real/Var/SPI',true)+ck('_rcR','📊 Resumen por especialidad',false)+ck('_rcW','🗂 Actividades por estado (WBS) + fotos de la semana',true)+ck('_rcPend','⏳ Lo que falta culminar',true)+ck('_rcPers','👷 Personal e histogramas (reportes diarios)',true)+ck('_rcC','📅 Cronogramas Gantt',true)+ck('_rcMina','⛰ Restricciones de mina',false)+ck('_rcRi','⚠ Riesgos y alertas',false)+'</div>'
+  +'<div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:6px">¿Qué incluir en el reporte?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">'+ck('_rcP','🏁 Portada + Plan/Real/Var/SPI',true)+ck('_rcR','📊 Resumen por especialidad',false)+ck('_rcW','🗂 Actividades por estado (WBS) + fotos de la semana',true)+ck('_rcApo','⚖ Aporte ponderado por actividad',true)+ck('_rcPend','⏳ Lo que falta culminar',true)+ck('_rcPers','👷 Personal e histogramas (reportes diarios)',true)+ck('_rcC','📅 Cronogramas Gantt',true)+ck('_rcMina','⛰ Restricciones de mina',false)+ck('_rcRi','⚠ Riesgos y alertas',false)+'</div>'
   +'<div style="display:flex;gap:8px"><button id="_rcX" style="flex:1;background:#E4EAF3;border:0;border-radius:10px;padding:12px;font-weight:800">Cancelar</button><button id="_rcGo" style="flex:2;background:#0E2440;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800">📑 Generar PDF</button></div></div>';
  document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)ov.remove()};document.getElementById('_rcX').onclick=function(){ov.remove()};
  /* XER LB0: estado + adjuntar + quitar (queda guardado en este equipo) */
@@ -6932,7 +6991,7 @@ function _repConsol(){
   _rcDropZone(document.getElementById('_rcXerSt').parentNode,['.xer'],cargaXer,'el XER');
  })();
  document.getElementById('_rcGo').onclick=function(){
-  var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,pend:(document.getElementById('_rcPend')||{checked:true}).checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
+  var cfg={semana:document.getElementById('_rcSemSel').value,contratista:document.getElementById('_rcContr').value.trim(),cutIni:document.getElementById('_rcWkI').value,cutFin:document.getElementById('_rcWkF').value,soloConAvance:true,/* WBS: solo las actividades hechas durante la semana elegida */cronoIni:document.getElementById('_rcCrI').value,cronoFin:document.getElementById('_rcCrF').value,fore:!!document.getElementById('_rcFore').checked,lb:_xerLB(),inc:{portada:document.getElementById('_rcP').checked,resumen:document.getElementById('_rcR').checked,wbs:document.getElementById('_rcW').checked,pend:(document.getElementById('_rcPend')||{checked:true}).checked,apo:(document.getElementById('_rcApo')||{checked:true}).checked,personal:document.getElementById('_rcPers').checked,crono:document.getElementById('_rcC').checked,mina:document.getElementById('_rcMina').checked,riesgos:document.getElementById('_rcRi').checked}};
   cfg.fcSrc=(function(){var el=document.getElementById('_rcFcSel');var v=el?el.value:'';
    try{localStorage.setItem('wtt4_rcfcsrc',v||'')}catch(_e){}return v})();
   try{var _fu=_alcList().map(function(a){return a.k}).filter(function(k){return (typeof _alcPdfBloq==='function')&&_alcPdfBloq(k)});
