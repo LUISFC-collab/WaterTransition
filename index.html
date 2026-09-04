@@ -3057,7 +3057,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820d2';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820d3';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -7297,6 +7297,7 @@ function _repConsol(){
   +'<label style="font-size:12px;font-weight:800;color:#1F3864;display:block;margin-bottom:3px">Semana (para el título)</label><select id="_rcSemSel" style="width:100%;border:1px solid #C7D2E0;border-radius:8px;padding:9px;font-size:14px;margin-bottom:10px">'+wkOpts+'</select>'
   +'<label style="font-size:12px;font-weight:800;color:#1F3864;display:block;margin-bottom:3px">Contratista (opcional)</label><input id="_rcContr" value="'+esc(window._rcContr||'')+'" placeholder="Ej. CPQ-Columbito" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:9px;font-size:14px;margin-bottom:10px">'
   +'<div style="display:flex;gap:10px;margin-bottom:6px"><div style="flex:1"><label style="font-size:11.5px;font-weight:800;color:#0C5132;display:block;margin-bottom:3px">Avances semana · Desde</label><input id="_rcWkI" type="date" value="'+wkI+'" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:13px"></div><div style="flex:1"><label style="font-size:11.5px;font-weight:800;color:#0C5132;display:block;margin-bottom:3px">Hasta</label><input id="_rcWkF" type="date" value="'+wkF+'" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:13px"></div></div>'
+  +'<div id="_rcAvAviso" style="border:1px solid #B9E0C8;background:#F1FBF5;border-radius:9px;padding:8px 10px;margin-bottom:12px"></div>'
   +'<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex:1"><label style="font-size:11.5px;font-weight:800;color:#1F3864;display:block;margin-bottom:3px">📅 Cronograma · Desde</label><input id="_rcCrI" type="date" value="'+crI+'" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:13px"></div><div style="flex:1"><label style="font-size:11.5px;font-weight:800;color:#1F3864;display:block;margin-bottom:3px">Hasta</label><input id="_rcCrF" type="date" value="'+hoy+'" style="width:100%;box-sizing:border-box;border:1px solid #C7D2E0;border-radius:8px;padding:8px;font-size:13px"></div></div>'
   +'<label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12.5px;color:#1F3864;font-weight:700;cursor:pointer"><input type="checkbox" id="_rcFore" style="width:16px;height:16px"> Cronogramas: incluir FORECAST (por ejecutar)</label>'
   +'<div style="border:1px solid #B4C9E8;background:#F3F8FF;border-radius:10px;padding:10px 11px;margin-bottom:12px"><div style="font-size:12px;font-weight:800;color:#1F3864;margin-bottom:4px">📘 Línea Base 0 (XER de Primavera P6)</div><div id="_rcXerSt" style="font-size:11.5px;color:#44506B;margin-bottom:7px">—</div><input type="file" id="_rcXerIn" accept=".xer,.XER" style="display:none"><div style="display:flex;gap:7px"><button type="button" id="_rcXerBtn" style="flex:1;background:#1F3864;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:12px">📎 Adjuntar / reemplazar XER…</button><button type="button" id="_rcXerDel" style="background:#E4EAF3;color:#5C6779;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:12px">Quitar</button></div></div>'
@@ -7356,11 +7357,45 @@ function _rcAlcUpd(){try{
  box.querySelectorAll('._rcAlcB').forEach(function(b){b.onclick=function(){
   var k=b.getAttribute('data-k');_rcAlcSet(k,!_rcAlcOn(k));_rcAlcUpd()}});
 }catch(e){}}
+/* Aviso del corte: el reporte mide AL DIA DE CORTE, no "ahora". Si una
+   actividad se cierra despues del corte, la cartilla dice 100% y el reporte
+   dice menos, y no hay como saberlo sin este aviso. */
+function _rcAvPond(cut){try{
+ var DISCS=(typeof DISC!=='undefined'&&DISC.length)?DISC.slice():['Mecanica','Electrica','Civil'];
+ var pz=(typeof _rcPesos==='function')?_rcPesos():{},ag={},n=0,sum=0;
+ DISCS.forEach(function(d){var m=_rcMetrics(d,cut);n+=m.n;sum+=m.real*m.n;
+  m.rows.forEach(function(r){var a=r.area||'(sin área)';var e=ag[a]||(ag[a]={n:0,sr:0});e.n++;e.sr+=r.real})});
+ if(!n)return null;
+ var sp=0,ac=0;Object.keys(ag).forEach(function(a){var p=+pz[a]||0;if(p>0){sp+=p;ac+=p*(ag[a].sr/ag[a].n)}});
+ var bajo=0;DISCS.forEach(function(d){_rcMetrics(d,cut).rows.forEach(function(r){if(r.real<100)bajo++})});
+ return {n:n,pond:sp?(ac/sp):(sum/n),conPesos:!!sp,bajo:bajo}}catch(e){return null}}
+function _rcAvUpd(){try{
+ var box=document.getElementById('_rcAvAviso');if(!box)return;
+ var f=document.getElementById('_rcWkF');var cut=(f&&f.value)||todayISO();
+ var hoy=todayISO();
+ var a=_rcAvPond(cut);if(!a){box.innerHTML='';return}
+ var dm=function(iso){var p=String(iso||'').split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):iso};
+ var txt='<b>Al corte '+dm(cut)+'</b> el avance '+(a.conPesos?'ponderado':'promedio')+' es '
+  +'<b style="font-size:13px">'+_rp2(a.pond)+'%</b>'
+  +(a.bajo?(' \u00b7 '+a.bajo+' actividad'+(a.bajo===1?'':'es')+' por debajo del 100%'):' \u00b7 todas al 100%');
+ var extra='';
+ if(cut<hoy){var h=_rcAvPond(hoy);
+  if(h&&Math.abs(h.pond-a.pond)>0.004){
+   extra='<div style="margin-top:4px;color:#8A5A00"><b>Ojo:</b> hoy ('+dm(hoy)+') ser\u00eda <b>'+_rp2(h.pond)+'%</b>. '
+    +'El reporte mide al d\u00eda de corte, no a hoy: lo que se cerr\u00f3 despu\u00e9s no cuenta.</div>'}}
+ box.innerHTML='<div style="font-size:11.5px;color:#0C5132;line-height:1.45">'+txt+extra+'</div>';
+ box.style.borderColor=extra?'#E0CDA0':'#B9E0C8';
+ box.style.background=extra?'#FFFBF0':'#F1FBF5';
+}catch(e){}}
 function _rcExUpd(){var st=document.getElementById('_rcExSt');if(!st)return;var ex=_exData();
   if(ex&&ex.dias){var k=Object.keys(ex.dias).sort();var nc=function(g){return Object.keys((ex.cargos&&ex.cargos[g])||{}).length};
    st.innerHTML='✓ <b style="color:#0C5132">Cargado:</b> '+esc(ex.archivo||'Excel')+' · '+k.length+' día(s) ('+esc(ex.rango||'')+') · directa '+nc('directo')+' cargos · staff '+nc('staff')+' · equipos '+nc('equipos')+'.'}
   else st.innerHTML='Sin Excel de carga. Adjunta el documento para armar los histogramas de personal (directa/staff) y equipos.'}
  _rcExUpd();_rcAlcUpd();window._rcAlcUpd=_rcAlcUpd;
+ try{_rcAvUpd();['_rcWkI','_rcWkF'].forEach(function(id){var e=document.getElementById(id);
+  if(e)e.addEventListener('change',_rcAvUpd)});
+  var _ss=document.getElementById('_rcSemSel');if(_ss)_ss.addEventListener('change',function(){setTimeout(_rcAvUpd,80)});
+ }catch(_ev){}
  var _eBtn=document.getElementById('_rcExBtn'),_eIn=document.getElementById('_rcExIn'),_eDel=document.getElementById('_rcExDel');
  if(_eBtn)_eBtn.onclick=function(){if(_eIn){_eIn.value='';_eIn.click()}};
  if(_eDel)_eDel.onclick=function(){_exDataSet(null);_rcExUpd();toast('Excel de carga vaciado')};
