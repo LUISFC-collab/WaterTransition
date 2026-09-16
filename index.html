@@ -3074,7 +3074,7 @@ var _srvMs=null;
 function _srvPing(){try{if(!(typeof sbReady==='function'&&sbReady()&&navigator.onLine))return;var t0=Date.now();fetch(sbBase()+'/rest/v1/dispositivos?select=device_id&limit=1',{headers:{apikey:state.cfg.supaKey,Authorization:'Bearer '+state.cfg.supaKey}}).then(function(){_srvMs=Date.now()-t0;_updSumSync();}).catch(function(){_srvMs=null;_updSumSync();});}catch(e){}}
 function _updSumSync(){try{var _ts=document.getElementById('topSync');if(_ts)_ts.style.setProperty('display','none','important');var pend=(typeof pendingCount==='function')?pendingCount():0;var on=(typeof navigator!=='undefined')?navigator.onLine:true;var sets=[['sumSyncMain','sumSyncMs','sumSyncUp','sumUpNum','sumSyncDiv'],['dSyncMain','dSyncMs','dSyncUp','dUpNum','dSyncDiv']];for(var i=0;i<sets.length;i++){var s=sets[i];var m=document.getElementById(s[0]),ms=document.getElementById(s[1]),up=document.getElementById(s[2]),num=document.getElementById(s[3]),div=document.getElementById(s[4]);if(!m)continue;if(!on){m.textContent='⚠';m.style.color='#FFD27A';}else{m.textContent='✓';m.style.color='#FFFFFF';}if(ms)ms.textContent=on?((_srvMs!=null)?(_srvMs+' ms'):'… ms'):'offline';if(pend>0){if(num)num.textContent=pend;if(up){up.style.display='inline-flex';up.classList.add('sumUpBlink');}if(div)div.style.display='block';}else{if(up){up.style.display='none';up.classList.remove('sumUpBlink');}if(div)div.style.display='none';}}}catch(e){}}
 /* === FIX anti-pérdida: subir solo lo cambiado + pausar sync al editar === */
-var APP_VER='v20260820d9';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
+var APP_VER='v20260820e1';try{['appVer','appVer2'].forEach(function(_ai){var _av=document.getElementById(_ai);if(_av)_av.textContent='versión '+APP_VER})}catch(_e){}try{setTimeout(function(){try{_botBar()}catch(e){}},300)}catch(_e){}
 var _SCRKEY='wtt4_lastscr';var _scrSaverOn=false;
 function _visScr(){var ids=['scrList','scrPend','scrProg','scrBita','scrInvDay','scrRestot','scrAdmList','scrDiario'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&!el.classList.contains('hidden'))return ids[i]}return null}
 function _scrSave(){try{if(!(state&&state.user))return;var v=_visScr();if(!v)return;localStorage.setItem(_SCRKEY,JSON.stringify({id:v,date:(typeof activeDate!=='undefined'&&activeDate)||null}))}catch(e){}}
@@ -7595,7 +7595,9 @@ var _LOGO_CONSORCIO='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQD
    DESMARCA, así el registro es chico y por defecto entra todo.
    Las hojas se arman a mano midiendo filas y cabeceras: ninguna fila se
    corta y el logo va en todas. */
-var _pfSel={modo:'todo',disc:'',alc:{},actOff:{},fotOff:{}};
+var _pfSel={modo:'todo',disc:'',alc:{},areaOff:{},sisOff:{},pesos:{},actOff:{},fotOff:{}};
+function _pfAreaOn(a){return !_pfSel.areaOff[a]}
+function _pfSisOn(a,sis){return !_pfSel.sisOff[a+'|'+sis]}
 function _pfNum(v){v=+v||0;return (Math.round(v*100)/100).toString()}
 function _pfDm(iso){var p=String(iso||'').split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):(iso||'—')}
 function _pfTail(u){try{return decodeURIComponent(String(u||'').split('?')[0].split('/').pop()||'')}catch(e){return String(u||'').split('/').pop()||''}}
@@ -7606,13 +7608,16 @@ function _pfFotOn(u){return !_pfSel.fotOff[_pfTail(u)]}
 /* ---------- la configuración de cada supervisor, en Supabase ---------- */
 function _pfCargar(){
  var sup=(state.user&&state.user.supervisor)||'';
- _pfSel={modo:'todo',disc:(state.user&&state.user.disc)||'',alc:{},actOff:{},fotOff:{}};
+ _pfSel={modo:'todo',disc:(state.user&&state.user.disc)||'',alc:{},areaOff:{},sisOff:{},pesos:{},actOff:{},fotOff:{}};
  try{var r=(typeof _visRule==='function')?_visRule('inf_sel',sup):null;
   ((r&&r.permitidos)||[]).forEach(function(t){t=String(t||'');
    if(t.indexOf('modo:')===0)_pfSel.modo=t.slice(5);
    else if(t.indexOf('disc:')===0)_pfSel.disc=t.slice(5);
    else if(t.indexOf('alc+:')===0)_pfSel.alc[t.slice(5)]=true;
    else if(t.indexOf('alc-:')===0)_pfSel.alc[t.slice(5)]=false;
+   else if(t.indexOf('area-:')===0)_pfSel.areaOff[t.slice(6)]=1;
+   else if(t.indexOf('sis-:')===0)_pfSel.sisOff[t.slice(5)]=1;
+   else if(t.indexOf('peso:')===0){var pp=t.slice(5).split('=');if(pp.length===2)_pfSel.pesos[pp[0]]=+pp[1]||0}
    else if(t.indexOf('act-:')===0)_pfSel.actOff[t.slice(5)]=1;
    else if(t.indexOf('fot-:')===0)_pfSel.fotOff[t.slice(5)]=1})}catch(e){}
 }
@@ -7622,6 +7627,9 @@ function _pfGuardarYa(){try{
  var sup=(state.user&&state.user.supervisor)||'';if(!sup)return;
  var tok=['modo:'+_pfSel.modo];if(_pfSel.disc)tok.push('disc:'+_pfSel.disc);
  Object.keys(_pfSel.alc).forEach(function(k){tok.push((_pfSel.alc[k]?'alc+:':'alc-:')+k)});
+ Object.keys(_pfSel.areaOff).forEach(function(k){if(_pfSel.areaOff[k])tok.push('area-:'+k)});
+ Object.keys(_pfSel.sisOff).forEach(function(k){if(_pfSel.sisOff[k])tok.push('sis-:'+k)});
+ Object.keys(_pfSel.pesos).forEach(function(k){tok.push('peso:'+k+'='+(+_pfSel.pesos[k]||0))});
  Object.keys(_pfSel.actOff).forEach(function(k){if(_pfSel.actOff[k])tok.push('act-:'+k)});
  Object.keys(_pfSel.fotOff).forEach(function(k){if(_pfSel.fotOff[k])tok.push('fot-:'+k)});
  var row={proyecto:DATA.proyecto,tipo:'inf_sel',clave:sup,activo:true,permitidos:tok,metricas:true,quien:sup,
@@ -7677,7 +7685,7 @@ function _pfWizard(){
 function _pfMarco(titulo,paso,cuerpo,pie){
  var B=document.getElementById('_pfBox');if(!B)return;
  B.innerHTML='<div style="padding:14px 16px 10px;border-bottom:1px solid #E3E9F2;display:flex;align-items:center;gap:10px">'
-  +'<div style="flex:1"><div style="font-size:10.5px;letter-spacing:.14em;color:#2c698d;font-weight:800">INFORME POR ACTIVIDAD · PASO '+paso+' DE 3</div>'
+  +'<div style="flex:1"><div style="font-size:10.5px;letter-spacing:.14em;color:#2c698d;font-weight:800">INFORME POR ACTIVIDAD · PASO '+paso+' DE 6</div>'
   +'<div style="font-size:15px;font-weight:900;color:#272643">'+titulo+'</div></div>'
   +'<button id="_pfX" style="background:#eef2f7;border:0;border-radius:9px;padding:8px 12px;font-weight:800;cursor:pointer">✕</button></div>'
   +'<div id="_pfCuerpo" style="flex:1;min-height:0;overflow:auto;padding:12px 16px">'+cuerpo+'</div>'
@@ -7721,10 +7729,10 @@ function _pfPaso2(){
  var C=document.getElementById('_pfCuerpo');
  C.querySelectorAll('[data-alc]').forEach(function(c){c.onchange=function(){_pfSel.alc[c.getAttribute('data-alc')]=c.checked;_pfGuardar();_pfPaso2()}});
  document.getElementById('_pfAtras').onclick=_pfPaso1;
- document.getElementById('_pfSig').onclick=function(){if(!Object.keys(_pfSel.alc).some(function(k){return _pfSel.alc[k]})){toast('Marca al menos un alcance');return}_pfPaso3()};
+ document.getElementById('_pfSig').onclick=function(){if(!Object.keys(_pfSel.alc).some(function(k){return _pfSel.alc[k]})){toast('Marca al menos un alcance');return}_pfPasoAreas()};
 }
 function _pfPaso3(){
- var items=_pfItems().filter(function(it){return _pfSel.alc[it.alc]});
+ var items=_pfItems().filter(function(it){return _pfSel.alc[it.alc]&&_pfAreaOn(it.area)&&_pfSisOn(it.area,it.sis)});
  var nAct=items.filter(function(it){return _pfActOn(it.id)}).length,nFot=0,nFotTot=0;
  items.forEach(function(it){it.fotos.forEach(function(f){nFotTot++;if(_pfActOn(it.id)&&_pfFotOn(f.u))nFot++})});
  var btn=function(attr,txt,fuerte){return '<button '+attr+' style="background:'+(fuerte?'#e3f6f5':'#F1F3F7')+';color:'+(fuerte?'#2c698d':'#5C6779')+';border:1px solid '+(fuerte?'#bae8e8':'#DDE3EC')+';border-radius:8px;padding:6px 9px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap">'+txt+'</button>'};
@@ -7750,7 +7758,7 @@ function _pfPaso3(){
      +'</div>'):'<div style="font-size:10.5px;color:#8A94A6;margin-top:5px;padding-left:27px">sin fotos</div>')
    +'</div>';
  });
- _pfMarco('Actividades y fotos',3,h,
+ _pfMarco('Actividades y fotos',6,h,
   '<button id="_pfAtras" style="flex:1;background:#eef2f7;color:#272643;border:0;border-radius:10px;padding:13px;font-weight:800;cursor:pointer">← Atrás</button>'
   +'<button id="_pfGo" style="flex:2;background:#2c698d;color:#fff;border:0;border-radius:10px;padding:13px;font-weight:800;font-size:14px;cursor:pointer">📑 Generar PDF</button>');
  var C=document.getElementById('_pfCuerpo');
@@ -7759,8 +7767,67 @@ function _pfPaso3(){
  C.querySelectorAll('[data-fot]').forEach(function(c){c.onchange=function(){var k=_pfTail(c.getAttribute('data-fot'));if(c.checked)delete _pfSel.fotOff[k];else _pfSel.fotOff[k]=1;redib()}});
  C.querySelectorAll('[data-acts]').forEach(function(b){b.onclick=function(){var v=b.getAttribute('data-acts')==='1';items.forEach(function(it){if(v)delete _pfSel.actOff[it.id];else _pfSel.actOff[it.id]=1});redib()}});
  C.querySelectorAll('[data-fots]').forEach(function(b){b.onclick=function(){var v=b.getAttribute('data-fots')==='1';items.forEach(function(it){it.fotos.forEach(function(f){var k=_pfTail(f.u);if(v)delete _pfSel.fotOff[k];else _pfSel.fotOff[k]=1})});redib()}});
- document.getElementById('_pfAtras').onclick=_pfPaso2;
+ document.getElementById('_pfAtras').onclick=_pfPasoPesos;
  document.getElementById('_pfGo').onclick=function(){var sel=items.filter(function(it){return _pfActOn(it.id)});if(!sel.length){toast('Marca al menos una actividad');return}_pfGuardarYa();_pfGenerar(sel)};
+}
+/* ---------- paso 3: áreas · paso 4: sistemas · paso 5: pesos ---------- */
+function _pfBtnLista(attr,txt,fuerte){return '<button '+attr+' style="background:'+(fuerte?'#e3f6f5':'#F1F3F7')+';color:'+(fuerte?'#2c698d':'#5C6779')+';border:1px solid '+(fuerte?'#bae8e8':'#DDE3EC')+';border-radius:8px;padding:6px 9px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap">'+txt+'</button>'}
+function _pfPie(txt){return '<button id="_pfAtras" style="flex:1;background:#eef2f7;color:#272643;border:0;border-radius:10px;padding:13px;font-weight:800;cursor:pointer">← Atrás</button>'
+ +'<button id="_pfSig" style="flex:2;background:#272643;color:#fff;border:0;border-radius:10px;padding:13px;font-weight:800;font-size:14px;cursor:pointer">'+(txt||'Siguiente →')+'</button>'}
+function _pfPasoAreas(){
+ var items=_pfItems().filter(function(it){return _pfSel.alc[it.alc]});
+ var n={},ord=[];items.forEach(function(it){if(!n[it.area]){n[it.area]=0;ord.push(it.area)}n[it.area]++});
+ var cuerpo='<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><span style="flex:1;font-size:12px;color:#5C6779">Marca las áreas que van al informe.</span>'
+  +_pfBtnLista('data-todas="1"','Todas',1)+_pfBtnLista('data-todas="0"','Ninguna')+'</div>'
+  +ord.map(function(a){var on=_pfAreaOn(a);return '<label style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:11px;margin-bottom:7px;cursor:pointer;border:1.5px solid '+(on?'#2c698d':'#E3E9F2')+';background:'+(on?'#e3f6f5':'#fff')+'">'
+    +'<input type="checkbox" data-area="'+esc(a)+'" '+(on?'checked':'')+' style="width:18px;height:18px"><span style="flex:1;font-weight:800;color:#272643">'+esc(a)+'</span>'
+    +'<span style="font-size:11.5px;font-weight:800;color:#2c698d;background:#bae8e8;border-radius:7px;padding:2px 8px">'+n[a]+' act.</span></label>'}).join('');
+ _pfMarco('¿Qué áreas entran?',3,cuerpo,_pfPie());
+ var C=document.getElementById('_pfCuerpo');
+ C.querySelectorAll('[data-area]').forEach(function(c){c.onchange=function(){var a=c.getAttribute('data-area');if(c.checked)delete _pfSel.areaOff[a];else _pfSel.areaOff[a]=1;_pfGuardar();_pfPasoAreas()}});
+ C.querySelectorAll('[data-todas]').forEach(function(b){b.onclick=function(){var v=b.getAttribute('data-todas')==='1';ord.forEach(function(a){if(v)delete _pfSel.areaOff[a];else _pfSel.areaOff[a]=1});_pfGuardar();_pfPasoAreas()}});
+ document.getElementById('_pfAtras').onclick=_pfPaso2;
+ document.getElementById('_pfSig').onclick=function(){if(!ord.some(_pfAreaOn)){toast('Marca al menos un área');return}_pfPasoSis()};
+}
+function _pfPasoSis(){
+ var items=_pfItems().filter(function(it){return _pfSel.alc[it.alc]&&_pfAreaOn(it.area)});
+ var g={},ordA=[],n={};items.forEach(function(it){if(!g[it.area]){g[it.area]=[];ordA.push(it.area)}if(g[it.area].indexOf(it.sis)<0)g[it.area].push(it.sis);var k=it.area+'|'+it.sis;n[k]=(n[k]||0)+1});
+ var cuerpo='<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><span style="flex:1;font-size:12px;color:#5C6779">Marca los sistemas, dentro de las áreas elegidas.</span>'
+  +_pfBtnLista('data-todas="1"','Todos',1)+_pfBtnLista('data-todas="0"','Ninguno')+'</div>';
+ ordA.forEach(function(a){cuerpo+='<div style="font-weight:900;color:#2c698d;font-size:12px;margin:10px 0 4px">'+esc(a)+'</div>'
+  +g[a].sort().map(function(sis){var on=_pfSisOn(a,sis);var k=a+'|'+sis;return '<label style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;margin:0 0 6px 6px;cursor:pointer;border:1.5px solid '+(on?'#2c698d':'#E3E9F2')+';background:'+(on?'#e3f6f5':'#fff')+'">'
+   +'<input type="checkbox" data-sis="'+esc(k)+'" '+(on?'checked':'')+' style="width:18px;height:18px"><span style="flex:1;font-weight:800;color:#272643;font-size:12.5px">'+esc(sis)+'</span>'
+   +'<span style="font-size:11px;font-weight:800;color:#2c698d;background:#bae8e8;border-radius:7px;padding:2px 8px">'+n[k]+'</span></label>'}).join('')});
+ _pfMarco('¿Qué sistemas entran?',4,cuerpo,_pfPie());
+ var C=document.getElementById('_pfCuerpo');
+ C.querySelectorAll('[data-sis]').forEach(function(c){c.onchange=function(){var k=c.getAttribute('data-sis');if(c.checked)delete _pfSel.sisOff[k];else _pfSel.sisOff[k]=1;var y=C.scrollTop;_pfGuardar();_pfPasoSis();document.getElementById('_pfCuerpo').scrollTop=y}});
+ C.querySelectorAll('[data-todas]').forEach(function(b){b.onclick=function(){var v=b.getAttribute('data-todas')==='1';Object.keys(n).forEach(function(k){if(v)delete _pfSel.sisOff[k];else _pfSel.sisOff[k]=1});_pfGuardar();_pfPasoSis()}});
+ document.getElementById('_pfAtras').onclick=_pfPasoAreas;
+ document.getElementById('_pfSig').onclick=function(){if(!Object.keys(n).some(function(k){return !_pfSel.sisOff[k]})){toast('Marca al menos un sistema');return}_pfPasoPesos()};
+}
+/* pesos por área: si el supervisor no puso ninguno, se toman los del reporte
+   consolidado de este equipo (_rcPesos) y si tampoco hay, se reparten parejo */
+function _pfAreasElegidas(){var items=_pfItems().filter(function(it){return _pfSel.alc[it.alc]&&_pfAreaOn(it.area)&&_pfSisOn(it.area,it.sis)});
+ var ord=[],n={};items.forEach(function(it){if(!n[it.area]){n[it.area]=0;ord.push(it.area)}n[it.area]++});return {ord:ord,n:n}}
+function _pfPesosDe(ord){var out={},hay=false;ord.forEach(function(a){if(_pfSel.pesos[a]!=null){out[a]=+_pfSel.pesos[a]||0;hay=true}});
+ if(!hay){var rc=(typeof _rcPesos==='function')?_rcPesos():{};var suma=0;ord.forEach(function(a){out[a]=+rc[a]||0;suma+=out[a]});
+  if(!suma){var q=Math.floor(100/Math.max(1,ord.length));ord.forEach(function(a,i){out[a]=q+(i===0?(100-q*ord.length):0)})}}
+ return out}
+function _pfPasoPesos(){
+ var A=_pfAreasElegidas(),pz=_pfPesosDe(A.ord),suma=0;A.ord.forEach(function(a){suma+=(+pz[a]||0)});
+ var cuerpo='<div style="font-size:12px;color:#5C6779;margin-bottom:10px">Peso de cada área elegida. Con esto se pondera el <b>AVANCE</b> del encabezado. Deberían sumar 100.</div>'
+  +A.ord.map(function(a){return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="flex:1;min-width:0;font-size:12.5px;font-weight:800;color:#272643;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(a)+' <span style="color:#8A94A6;font-weight:600">· '+A.n[a]+' act.</span></div>'
+   +'<input type="number" min="0" max="100" step="1" data-peso="'+esc(a)+'" value="'+(+pz[a]||0)+'" style="width:76px;border:1px solid #C7D2E0;border-radius:8px;padding:7px;font-size:14px;font-weight:800;text-align:right"><span style="font-weight:800;color:#2c698d">%</span></div>'}).join('')
+  +'<div id="_pfSuma" style="font-weight:800;margin-top:6px;color:'+(Math.abs(suma-100)<0.01?'#1E7A46':'#B42318')+'">Suma: '+_pfNum(suma)+'%'+(Math.abs(suma-100)<0.01?' ✓':' — debería sumar 100%')+'</div>'
+  +'<div style="margin-top:10px">'+_pfBtnLista('data-parejo="1"','Repartir parejo',1)+'</div>';
+ _pfMarco('Peso de cada área',5,cuerpo,_pfPie());
+ var C=document.getElementById('_pfCuerpo');
+ var recalc=function(){var t=0;C.querySelectorAll('[data-peso]').forEach(function(i){var v=Math.max(0,Math.min(100,+i.value||0));_pfSel.pesos[i.getAttribute('data-peso')]=v;t+=v});
+  var Sx=document.getElementById('_pfSuma');if(Sx){Sx.textContent='Suma: '+_pfNum(t)+'%'+(Math.abs(t-100)<0.01?' ✓':' — debería sumar 100%');Sx.style.color=Math.abs(t-100)<0.01?'#1E7A46':'#B42318'}_pfGuardar()};
+ C.querySelectorAll('[data-peso]').forEach(function(i){i.oninput=recalc});
+ var rp=C.querySelector('[data-parejo]');if(rp)rp.onclick=function(){var q=Math.floor(100/Math.max(1,A.ord.length));A.ord.forEach(function(a,i){_pfSel.pesos[a]=q+(i===0?(100-q*A.ord.length):0)});_pfGuardar();_pfPasoPesos()};
+ document.getElementById('_pfAtras').onclick=_pfPasoSis;
+ document.getElementById('_pfSig').onclick=function(){recalc();_pfPaso3()};
 }
 /* ---------- el PDF ---------- */
 function _pfGenerar(sel){
@@ -7769,7 +7836,7 @@ function _pfGenerar(sel){
  try{
   var doc=_pfDoc(sel);
   w.document.write('<html><head><meta charset="utf-8"><title>'+esc(doc.title)+'</title><style>'+doc.css+'</style></head><body>'+doc.body
-   +"<style>#_cg{position:fixed;inset:0;background:rgba(39,38,67,.94);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Segoe UI,Arial,sans-serif;z-index:99999;text-align:center;padding:20px}#_cg b{font-size:22px}#_cg .b{width:70%;max-width:420px;height:10px;background:rgba(255,255,255,.25);border-radius:6px;margin-top:14px;overflow:hidden}#_cg .b i{display:block;height:100%;width:0;background:#bae8e8;transition:width .2s}#_cgp{position:fixed;right:14px;bottom:14px;z-index:99998;display:none;background:#2c698d;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);font-family:Segoe UI,Arial,sans-serif}@media print{#_cg,#_cgp{display:none!important}}</style>\n<div id=\"_cg\"><b>Cargando fotos…</b><div id=\"_cgt\" style=\"margin-top:8px;font-size:15px\">0 de 0</div><div class=\"b\"><i id=\"_cgb\"></i></div><div style=\"margin-top:12px;font-size:12.5px;opacity:.85\">No cierres esta ventana. Al terminar se abre solo el cuadro de imprimir / guardar PDF.</div></div>\n<button id=\"_cgp\">🖨 Imprimir / Guardar PDF</button>\n<script>\n(function(){\n /* espera a TODAS las fotos antes de imprimir: sin tope por foto (con cientos, el\n    navegador las baja de a pocas y tarda minutos). Si una falla se reintenta una\n    vez; si sigue fallando, queda un recuadro \"foto no disponible\", no un icono roto. */\n var im=[].slice.call(document.images||[]).filter(function(i){return !!i.src});\n var tot=im.length,done=0;\n var T=document.getElementById('_cgt'),B=document.getElementById('_cgb'),P=document.getElementById('_cgp');\n function upd(){done++;if(T)T.textContent=done+' de '+tot;if(B)B.style.width=(tot?Math.round(done/tot*100):100)+'%'}\n function falla(i){var box=i.parentNode;if(box&&box!==document.body){box.innerHTML='<div style=\"width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:7px;color:#5C6779;text-align:center;padding:2px\">foto no disponible</div>'}}\n function espera(i){return new Promise(function(res){var n=0;\n  function ok(){upd();res()}\n  function err(){n++;if(n<=1){setTimeout(function(){i.src=i.src+(i.src.indexOf('?')>0?'&':'?')+'r='+Date.now()},1200)}else{falla(i);upd();res()}}\n  if(i.complete&&i.naturalWidth>0){ok();return}\n  i.onload=ok;i.onerror=err;\n  if(i.complete&&i.naturalWidth===0){err()}})}\n function fin(){var cg=document.getElementById('_cg');if(cg)cg.style.display='none';\n  if(P){P.style.display='block';P.onclick=function(){window.print()}}\n  setTimeout(function(){window.print()},500)}\n window.addEventListener('load',function(){if(T)T.textContent='0 de '+tot;\n  var cap=setTimeout(fin,900000);\n  Promise.all(im.map(espera)).then(function(){clearTimeout(cap);fin()})});\n})();\n<\/script></body></html>\n");   /* la ventana espera a TODAS las fotos antes de imprimir */
+   +"<style>#_cg{position:fixed;inset:0;background:rgba(39,38,67,.94);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Segoe UI,Arial,sans-serif;z-index:99999;text-align:center;padding:20px}#_cg b{font-size:22px}#_cg .b{width:70%;max-width:420px;height:10px;background:rgba(255,255,255,.25);border-radius:6px;margin-top:14px;overflow:hidden}#_cg .b i{display:block;height:100%;width:0;background:#bae8e8;transition:width .2s}#_cgp{position:fixed;right:14px;bottom:14px;z-index:99998;display:none;background:#2c698d;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);font-family:Segoe UI,Arial,sans-serif}@media print{#_cg,#_cgp{display:none!important}}</style>\n<div id=\"_cg\"><b>Cargando fotos\u2026</b><div id=\"_cgt\" style=\"margin-top:8px;font-size:15px\">0 de 0</div><div class=\"b\"><i id=\"_cgb\"></i></div><div style=\"margin-top:12px;font-size:12.5px;opacity:.85\">No cierres esta ventana. Al terminar se abre solo el cuadro de imprimir / guardar PDF.</div></div>\n<button id=\"_cgp\">\ud83d\udda8 Imprimir / Guardar PDF</button>\n<script>\n(function(){\n /* Las fotos vienen con data-src y se bajan en COLA (6 a la vez): pedir cientos de golpe\n    hac\u00eda que el navegador cortara alguna y saliera \"no disponible\" aunque la foto exista.\n    Cada foto se reintenta hasta 4 veces con espera creciente; solo si sigue fallando\n    queda el recuadro \"foto no disponible\". Reci\u00e9n al terminar todas se imprime. */\n var im=[].slice.call(document.querySelectorAll('img[data-src]'));\n var tot=im.length,done=0,PAR=6,ESP=[1500,3000,5000,8000];\n var T=document.getElementById('_cgt'),B=document.getElementById('_cgb'),P=document.getElementById('_cgp');\n function upd(){done++;if(T)T.textContent=done+' de '+tot;if(B)B.style.width=(tot?Math.round(done/tot*100):100)+'%'}\n function falla(i){var box=i.parentNode;if(box&&box!==document.body){box.innerHTML='<div style=\"width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:7px;color:#5C6779;text-align:center;padding:2px\">foto no disponible</div>'}}\n function carga(i){return new Promise(function(res){var n=0,u=i.getAttribute('data-src')||'';\n  function intento(){var src=n?(u+(u.indexOf('?')>0?'&':'?')+'r='+Date.now()):u;\n   i.onload=function(){i.onload=i.onerror=null;upd();res()};\n   i.onerror=function(){i.onload=i.onerror=null;if(n<ESP.length){setTimeout(intento,ESP[n]);n++}else{falla(i);upd();res()}};\n   i.src=src}\n  intento()})}\n function cola(){var k=0;function sig(){if(k>=im.length)return Promise.resolve();var i=im[k++];return carga(i).then(sig)}\n  var ws=[];for(var j=0;j<PAR;j++)ws.push(sig());return Promise.all(ws)}\n function fin(){var cg=document.getElementById('_cg');if(cg)cg.style.display='none';\n  if(P){P.style.display='block';P.onclick=function(){window.print()}}\n  setTimeout(function(){window.print()},500)}\n window.addEventListener('load',function(){if(T)T.textContent='0 de '+tot;\n  if(!tot){fin();return}\n  var cap=setTimeout(fin,1200000);\n  cola().then(function(){clearTimeout(cap);fin()})});\n})();\n<\/script></body></html>\n");   /* la ventana espera a TODAS las fotos (en cola, con reintentos) antes de imprimir */
   w.document.close();
   var o=document.getElementById('_pfOv');if(o)o.remove();
  }catch(e){toast('No se pudo generar: '+((e&&e.message)||e));try{w.close()}catch(_e){}}
@@ -7782,10 +7849,12 @@ function _pfDoc(sel){
  /* tamaño de foto según cuántas van: visibles, ni tan grandes ni tan chicas; con muchas se achican para que la fila entre en una hoja */
  function anchoFoto(n){return n<=1?52:n===2?46:n===3?30:n===4?22:n<=6?28:n<=12?22:n<=24?18:15}
  var nCul=sel.filter(function(it){return it.pct>=100}).length;
- var avance=sel.length?(sel.reduce(function(a,it){return a+(+it.pct||0)},0)/sel.length):0;   /* a cuánto van, entre lo elegido */
+ /* AVANCE entre lo elegido: promedio de cada área, ponderado por su peso (si no hay pesos, promedio simple) */
+ var _ag={};sel.forEach(function(it){var e=_ag[it.area]||(_ag[it.area]={n:0,s:0});e.n++;e.s+=(+it.pct||0)});
+ var pz=_pfPesosDe(Object.keys(_ag)),sumP=0,acc=0;Object.keys(_ag).forEach(function(a){var p=+pz[a]||0;if(p>0){sumP+=p;acc+=p*(_ag[a].s/_ag[a].n)}});
+ var avance=sumP?(acc/sumP):(sel.length?(sel.reduce(function(a,it){return a+(+it.pct||0)},0)/sel.length):0);
  var alcs=[];sel.forEach(function(it){if(alcs.indexOf(it.alc)<0)alcs.push(it.alc)});
  var discs=_pfDiscs();
- var quien=(state.user&&state.user.supervisor)||'';
  var filas=[],pa='',par='',ps='';
  function grupo(txt,nivel){
   var st=nivel===0?('background:'+C.tinta+';color:#fff;font-size:9.5px;letter-spacing:.06em;padding:1.6mm 2.4mm;border-radius:1mm')
@@ -7794,7 +7863,7 @@ function _pfDoc(sel){
   filas.push({t:'g',n:nivel,html:'<div style="font-weight:900;margin-top:'+(nivel===0?2.2:nivel===1?1.6:1)+'mm;'+st+'">'+txt+'</div>'})}
  sel.forEach(function(it){
   if(it.alc!==pa){pa=it.alc;par='';ps='';grupo(esc(_pfLbl(it.alc)).toUpperCase(),0)}
-  if(it.area!==par){par=it.area;ps='';grupo(esc(it.area),1)}
+  if(it.area!==par){par=it.area;ps='';grupo(esc(it.area)+((sumP&&pz[it.area]>0)?(' <span style="font-weight:700;color:'+C.acento+'">· peso '+_pfNum(pz[it.area])+'%</span>'):''),1)}
   if(it.sis!==ps){ps=it.sis;grupo('▸ '+esc(it.sis),2)}
   var fotos=it.fotos.filter(function(f){return _pfFotOn(f.u)});
   var fw=anchoFoto(fotos.length),fh=Math.round(fw*0.72);
@@ -7802,13 +7871,13 @@ function _pfDoc(sel){
   var ini=it.ini?_pfDm(it.ini):(it.iniPl?('<span style="color:'+C.gris+'">prog. '+_pfDm(it.iniPl)+'</span>'):'—');
   var fin=it.fin?_pfDm(it.fin):(it.finPl?('<span style="color:'+C.gris+'">prog. '+_pfDm(it.finPl)+'</span>'):'—');
   var celda=function(w,inner,extra){return '<div style="flex:none;width:'+w+'mm;padding:1.2mm 1.6mm;box-sizing:border-box;'+(extra||'')+'">'+inner+'</div>'};
-  var html='<div style="display:flex;align-items:stretch;border-bottom:.3mm solid '+C.linea+';font-size:8.8px;color:'+C.tinta+'">'
+  var html='<div style="display:flex;align-items:stretch;margin:1.3mm 0;border:.45mm solid '+C.suave+';border-radius:2.6mm;background:#fff;overflow:hidden;font-size:8.8px;color:'+C.tinta+'">'
    +celda(COLS.desc,'<div style="font-weight:900;font-size:9.2px;line-height:1.25">'+esc(_pfCod(it.cod))+' - '+esc(it.nombre)+' <span style="color:'+C.acento+';font-weight:800">· '+esc(_pfLbl(it.alc))+'</span></div>'
-     +'<div style="font-size:7.8px;color:'+C.gris+';margin-top:.6mm">'+esc(it.d)+' · '+esc(it.area)+' · '+esc(it.sis)+'</div>','display:flex;flex-direction:column;justify-content:center')
+     +'<div style="font-size:7.8px;color:'+C.gris+';margin-top:.6mm">'+esc(it.d)+' · '+esc(it.area)+' · '+esc(it.sis)+'</div>','display:flex;flex-direction:column;justify-content:center;background:'+C.fondo+';border-right:.3mm solid '+C.suave)
    +celda(COLS.met,'<b>'+esc(it.met)+'</b>','display:flex;align-items:center;font-size:9px')
    +celda(COLS.ini,ini,'display:flex;align-items:center;font-weight:700')
    +celda(COLS.fin,fin,'display:flex;align-items:center;font-weight:700')
-   +celda(fotW,(fotos.length?('<div style="display:flex;flex-wrap:wrap;gap:1.4mm">'+fotos.map(function(f){return '<div style="width:'+fw+'mm;height:'+fh+'mm;border-radius:1.4mm;overflow:hidden;border:.3mm solid '+C.suave+';background:'+C.fondo+'"><img src="'+esc(f.u)+'" style="width:100%;height:100%;object-fit:cover;display:block"></div>'}).join('')+'</div>')
+   +celda(fotW,(fotos.length?('<div style="display:flex;flex-wrap:wrap;gap:1.4mm">'+fotos.map(function(f){return '<div style="width:'+fw+'mm;height:'+fh+'mm;border-radius:1.4mm;overflow:hidden;border:.3mm solid '+C.suave+';background:'+C.fondo+'"><img data-src="'+esc(f.u)+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></div>'}).join('')+'</div>')
      :('<span style="color:'+C.gris+';font-size:7.8px">sin fotos</span>')),'display:flex;align-items:center')
    +celda(COLS.est,'<div style="background:'+(done?C.ok:C.falta)+';color:#fff;border-radius:1.4mm;text-align:center;padding:1.6mm 1mm;font-weight:900">'
      +'<div style="font-size:11px;line-height:1">'+_rp2(it.pct)+'%</div><div style="font-size:7.4px;letter-spacing:.08em;margin-top:.8mm;opacity:.95">'+(done?'CULMINADA':'FALTA')+'</div></div>','display:flex;align-items:center')
@@ -7823,7 +7892,7 @@ function _pfDoc(sel){
  var cab1='<div style="display:flex;align-items:flex-end;gap:6mm;padding-bottom:3mm;margin-bottom:3mm;border-bottom:.6mm solid '+C.tinta+'">'
    +'<div style="flex:1"><div style="font-size:8.5px;letter-spacing:.2em;color:'+C.acento+';font-weight:800">INFORME DE AVANCE POR ACTIVIDAD</div>'
    +'<div style="font-size:19px;font-weight:900;color:'+C.tinta+';line-height:1.1;margin-top:1mm">'+esc(proy)+'</div>'
-   +'<div style="font-size:9px;color:'+C.gris+';margin-top:1.4mm;font-weight:700">'+esc(discs.join(' · '))+' · Alcance: '+esc(alcs.map(_pfLbl).join(', '))+' · al '+_pfDm(hoy)+(quien?(' · '+esc(quien)):'')+'</div></div>'
+   +'<div style="font-size:9px;color:'+C.gris+';margin-top:1.4mm;font-weight:700">'+esc(discs.join(' · '))+' · Alcance: '+esc(alcs.map(_pfLbl).join(', '))+' · al '+_pfDm(hoy)+'</div></div>'
    +'<div style="flex:none;display:flex;gap:3mm">'
     +kpi(_rp2(avance)+'%','AVANCE',(avance>=100?C.ok:C.acento))
     +kpi(sel.length,'ACTIVIDADES',C.tinta)+kpi(nCul,'CULMINADAS',C.ok)+kpi(sel.length-nCul,'FALTAN',C.falta)+'</div>'
